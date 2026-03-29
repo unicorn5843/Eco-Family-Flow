@@ -1,10 +1,49 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Eco Family Flow | Pro</title>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      // YOUR KEYS PLUGGED IN
+      const firebaseConfig = {
+        apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
+        authDomain: "ecofamilyflow.firebaseapp.com",
+        projectId: "ecofamilyflow",
+        storageBucket: "ecofamilyflow.firebasestorage.app",
+        messagingSenderId: "1013479772757",
+        appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc",
+        measurementId: "G-DDCPL98RXR"
+      };
+
+      // Initialize
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+
+      // EXPOSE TO WINDOW FOR BUTTONS
+      window.login = () => {
+        signInWithPopup(auth, provider)
+          .then((result) => { alert("Welcome " + result.user.displayName); })
+          .catch((error) => { alert("Error: " + error.message); });
+      };
+
+      window.logout = () => signOut(auth);
+
+      // UI HANDLER
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('app-interface').style.display = 'flex';
+        } else {
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('app-interface').style.display = 'none';
+        }
+      });
+    </script>
     
     <style>
         :root {
@@ -14,36 +53,26 @@
         }
         body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
         body.night { background: var(--night-bg); color: var(--night-text); }
-
-        /* AUTH SCREEN */
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        .login-btn { background: white; border: 1px solid #ddd; padding: 12px 24px; border-radius: 30px; display: flex; align-items: center; gap: 10px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-
-        /* APP INTERFACE (Hidden until login) */
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         #app-interface { display: none; width: 100%; height: 100%; }
         nav { width: 75px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #c8d6c8; }
         .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; }
         .tab-btn.active { background: var(--accent); color: white; }
         main { flex: 1; padding: 20px; overflow-y: auto; }
-        .page { display: none; }
-        .page.active { display: block; }
         .card { background: var(--card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
-        .save-btn { background: #66bb6a; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; }
-        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; z-index: 100; }
-        
-        /* NIGHT MODE OVERRIDES */
-        .night #auth-screen { background: #000; color: #ff0000; }
+        .save-btn { background: #66bb6a; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; }
         .night nav { background: #0a0000; border-right: 1px solid #400000; }
         .night .card { background: var(--night-card); border: 1px solid #400000; }
+        .night #auth-screen { background: #000; color: #ff0000; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <h1 style="color: var(--accent)">Eco Family Flow</h1>
-    <p>Your sustainable baby tracking companion.</p>
-    <br>
-    <button class="login-btn" onclick="login()">
+    <p>Please log in to save your baby's data.</p><br>
+    <button onclick="login()" style="padding: 15px 30px; border-radius: 30px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px;">
         <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/google.svg" width="20">
         Sign in with Google
     </button>
@@ -55,7 +84,6 @@
         <button class="tab-btn" onclick="showPage('nappy', this)">🧷</button>
         <button class="tab-btn" onclick="showPage('weight', this)">⚖️</button>
         <button class="tab-btn" onclick="showPage('scalper', this)">📈</button>
-        <button class="tab-btn" onclick="showPage('charts', this)">📊</button>
         <button class="tab-btn" onclick="logout()" style="margin-top: auto; font-size: 18px;">🏃</button>
     </nav>
     <main>
@@ -67,75 +95,33 @@
                 <button class="save-btn" onclick="logData('Milk', document.getElementById('milkAmt').value, 'Pumped')">Save Log</button>
             </div>
         </div>
-        </main>
+        <div id="nappy" class="page" style="display:none"><h1>Nappy Log</h1><div class="card">Nappy tracking content...</div></div>
+        <div id="weight" class="page" style="display:none"><h1>Weight Log</h1><div class="card">Weight tracking content...</div></div>
+        <div id="scalper" class="page" style="display:none"><h1>Price Finder</h1><div class="card">Market prices loading...</div></div>
+    </main>
 </div>
 
 <button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
 <script>
-    // PASTE YOUR FIREBASE CONFIG HERE
-    const firebaseConfig = {
-  apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
-  authDomain: "ecofamilyflow.firebaseapp.com",
-  projectId: "ecofamilyflow",
-  storageBucket: "ecofamilyflow.firebasestorage.app",
-  messagingSenderId: "1013479772757",
-  appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc",
-  measurementId: "G-DDCPL98RXR"
-};
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-Note: This option uses the modular JavaScript SDK,
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const GOOGLE_URL = 'YOUR_GOOGLE_SCRIPT_URL';
-
-    // AUTH LOGIC
-    function login() {
-        const provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider);
-    }
-
-    function logout() { auth.signOut(); }
-
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('app-interface').style.display = 'flex';
-        } else {
-            document.getElementById('auth-screen').style.display = 'flex';
-            document.getElementById('app-interface').style.display = 'none';
-        }
-    });
-
-    // NAVIGATION & LOGGING
     function showPage(id, btn) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
+        document.getElementById(id).style.display = 'block';
         btn.classList.add('active');
     }
 
     async function logData(cat, val, det1) {
-        const user = auth.currentUser;
-        if (!user) return alert("Please log in first");
-
+        alert("Saving...");
         try {
             await fetch(GOOGLE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
-                body: JSON.stringify({ 
-                    category: cat, 
-                    value: val, 
-                    detail1: det1,
-                    user: user.email // Now we track WHICH user sent the data!
-                })
+                body: JSON.stringify({ category: cat, value: val, detail1: det1, user: "logged-in-user" })
             });
-            alert("✅ Logged Successfully!");
+            alert("✅ Saved!");
         } catch (e) { alert("Error: " + e.message); }
     }
 </script>
