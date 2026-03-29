@@ -133,59 +133,67 @@
     let currentMode = 'Pump';
     let currentSide = 'Left';
 
-    // Set default time to "Now"
+    // 1. Setup default time
     window.addEventListener('load', () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('feedTime').value = now.toISOString().slice(0, 16);
+        const timeInput = document.getElementById('feedTime');
+        if(timeInput) timeInput.value = now.toISOString().slice(0, 16);
     });
 
-    function showPage(id, btn) {
+    // 2. Navigation & UI Toggles
+    window.showPage = (id, btn) => {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).style.display = 'block';
         btn.classList.add('active');
-    }
+    };
 
-    function setMilkMode(m) {
+    window.setMilkMode = (m) => {
         currentMode = m;
         document.getElementById('mode-pump').classList.toggle('active', m === 'Pump');
         document.getElementById('mode-feed').classList.toggle('active', m === 'Feed');
         document.getElementById('amtLabel').innerText = m === 'Pump' ? 'Amount Pumped (ml)' : 'Amount Fed (ml)';
-    }
+    };
 
-    function setSide(s) {
+    window.setSide = (s) => {
         currentSide = s;
         document.getElementById('sideL').classList.toggle('active', s === 'Left');
         document.getElementById('sideR').classList.toggle('active', s === 'Right');
         document.getElementById('sideB').classList.toggle('active', s === 'Both');
-    }
+    };
 
-    async function submitMilkLog() {
+    // 3. THE SAVING FUNCTION
+    window.submitMilkLog = async () => {
         const saveBtn = document.getElementById('saveBtn');
         const amt = document.getElementById('milkAmt').value;
         const time = document.getElementById('feedTime').value;
-        // Accessing auth from the window object (initialized in module script)
-        const user = firebase.auth ? firebase.auth().currentUser : null;
 
-        if(!amt) return alert("Please enter an amount");
+        if(!amt) {
+            alert("Please enter an amount!");
+            return;
+        }
 
         saveBtn.innerText = "⌛ Sending...";
         saveBtn.style.background = "#fb8c00"; 
 
+        const payload = {
+            timestamp: time,
+            category: 'Milk',
+            value: amt,
+            detail1: `${currentMode} (${currentSide})`,
+            user: 'Logged In User' 
+        };
+
         try {
+            // This 'fetch' sends the data to your Google Sheet
             await fetch(GOOGLE_URL, {
                 method: 'POST', 
                 mode: 'no-cors',
-                body: JSON.stringify({
-                    timestamp: time,
-                    category: 'Milk',
-                    value: amt,
-                    detail1: `${currentMode} (${currentSide})`,
-                    user: user ? user.email : 'Logged In'
-                })
+                body: JSON.stringify(payload)
             });
 
+            // If we get here, it sent!
             saveBtn.innerText = "✅ Saved to Cloud!";
             saveBtn.style.background = "#45a049"; 
 
@@ -196,10 +204,10 @@
             }, 3000);
 
         } catch (e) {
+            console.error("Save Error:", e);
+            alert("Save failed: " + e.message);
             saveBtn.innerText = "❌ Error - Try Again";
             saveBtn.style.background = "#e53935";
         }
-    }
+    };
 </script>
-</body>
-</html>
