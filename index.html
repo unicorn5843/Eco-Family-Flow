@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Milk Log - Eco Family Flow</title>
+    <title>Milk Log</title>
     <style>
         body { font-family: -apple-system, sans-serif; padding: 20px; background: #f4f4f9; transition: 0.3s; margin: 0; display: flex; justify-content: center; }
         .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        h2 { margin-top: 0; color: #333; }
         label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
         input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background: #059669; color: white; border: none; cursor: pointer; margin-top: 20px; }
+        button { background: #059669; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; }
         
-        /* Night Mode Styles */
+        /* Night Mode */
         body.night { background: #121212; color: #ff4d4d; }
         body.night .card { background: #1e1e1e; color: #ff4d4d; border: 1px solid #333; }
-        body.night h2 { color: #ff4d4d; }
         body.night input, body.night select { background: #2a2a2a; color: #ff4d4d; border: 1px solid #444; }
         body.night button { background: #b91c1c; }
     </style>
@@ -24,7 +22,7 @@
 
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2>Milk Log</h2>
+        <h2 style="margin:0">Milk Log</h2>
         <button onclick="toggleNight()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">Night Mode </button>
     </div>
 
@@ -37,21 +35,25 @@
         <option value="Feed">Feed (Bottle)</option>
     </select>
 
+    <label>Side (Optional)</label>
+    <select id="side">
+        <option value="">None</option>
+        <option value="Left">Left</option>
+        <option value="Right">Right</option>
+    </select>
+
     <button id="saveBtn" onclick="saveData()">Save Entry</button>
 </div>
 
 <script>
-    // Toggle Night Vision for early morning feeds
-    function toggleNight() {
-        document.body.classList.toggle('night');
-    }
+    function toggleNight() { document.body.classList.toggle('night'); }
 
     async function saveData() {
         const btn = document.getElementById('saveBtn');
         const amount = document.getElementById('amt').value;
         const type = document.getElementById('typ').value;
+        const side = document.getElementById('side').value;
         
-        // Verified settings from your project
         const SB_URL = 'https://cqvqteauzipnetntzht.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdnF1dGVhdXppcG5ldG50emh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjU1MDcsImV4cCI6MjA5MDIwMTUwN30.fSh7b0jH18Jja6YNetfhZDu6TcWUtL0ukzIZ9Wok8VY';
 
@@ -69,18 +71,19 @@
                 },
                 body: JSON.stringify({ 
                     amount_ml: parseInt(amount), 
-                    type: type 
+                    type: type,
+                    side: side || null // 
                 })
             });
 
             if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.message);
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Unknown Error");
             }
             
             alert("✅ Logged successfully!");
         } catch (err) {
-            alert("🚨 Error: " + err.message);
+            alert("🚨 Save Failed: " + err.message);
         } finally {
             btn.innerText = "Save Entry";
             btn.disabled = false;
