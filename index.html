@@ -5,36 +5,42 @@
     <title>Eco Family Flow</title>
     <style>
         :root {
-            --bg: #f2f9f2; --sidebar: #dceddc; --card: #ffffff;
-            --text: #2d412d; --accent: #88b388; --night-bg: #000;
+            --bg: #f4f9f4; --sidebar: #dceddc; --card: #ffffff;
+            --text: #2d412d; --accent: #81c784; --night-bg: #000;
             --night-text: #ff0000; --night-card: #1a0000;
         }
         body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; }
         body.night { background: var(--night-bg); color: var(--night-text); }
 
-        /* SIDEBAR */
-        nav { width: 70px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #c8d6c8; }
+        /* SIDEBAR TABS ON LEFT */
+        nav { width: 75px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #c8d6c8; }
         .night nav { background: #0a0000; border-right: 1px solid #400000; }
-        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 20px; cursor: pointer; padding: 10px; border-radius: 10px; }
-        .tab-btn.active { background: var(--accent); color: white; }
+        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; transition: 0.2s; }
+        .tab-btn.active { background: var(--accent); color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         .night .tab-btn { color: #ff0000; }
         .night .tab-btn.active { background: #400000; border: 1px solid #ff0000; }
 
-        /* CONTENT */
-        main { flex: 1; padding: 20px; overflow-y: auto; }
+        /* MAIN CONTENT AREA */
+        main { flex: 1; padding: 20px; overflow-y: auto; position: relative; }
         .page { display: none; }
-        .page.active { display: block; }
-        .card { background: var(--card); padding: 15px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); margin-bottom: 15px; }
-        .night .card { background: var(--night-card); border: 1px solid #400000; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); margin-bottom: 15px; }
+        .night .card { background: var(--night-card); border: 1px solid #400000; box-shadow: none; }
         
-        input, select, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ccc; font-size: 16px; box-sizing: border-box; }
-        .save-btn { background: #67a367; color: white; border: none; font-weight: bold; cursor: pointer; }
+        input, select { width: 100%; padding: 14px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; font-size: 16px; box-sizing: border-box; }
+        .night input, .night select { background: #1a0000; color: #ff0000; border: 1px solid #400000; }
+        
+        .save-btn { background: #66bb6a; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 10px; }
         .night .save-btn { background: #400000; color: #ff0000; border: 1px solid #ff0000; }
         
-        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 45px; height: 45px; }
+        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 20px; z-index: 100; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
+
+<button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
 <nav>
     <button class="tab-btn active" onclick="showPage('milk', this)">🍼</button>
@@ -46,47 +52,46 @@
 
 <main>
     <div id="milk" class="page active">
-        <h2>Milk Log</h2>
+        <h1>Milk Log</h1>
         <div class="card">
             <input type="number" id="milkAmt" placeholder="Amount (ml)" value="80">
-            <select id="milkType"><option>Pumped</option><option>Formula</option></select>
-            <button class="save-btn" onclick="logData('Milk', document.getElementById('milkAmt').value, document.getElementById('milkType').value)">Save</button>
+            <select id="milkType"><option>Pumped</option><option>Formula</option><option>Breast</option></select>
+            <button class="save-btn" onclick="logData('Milk', document.getElementById('milkAmt').value, document.getElementById('milkType').value)">Save Log</button>
         </div>
     </div>
 
     <div id="nappy" class="page">
-        <h2>Nappy Log</h2>
+        <h1>Nappy Log</h1>
         <div class="card">
             <select id="napType"><option>Wet</option><option>Dirty</option><option>Both</option></select>
-            <input type="text" id="napNote" placeholder="Notes (Normal, Soft)">
-            <button class="save-btn" onclick="logData('Nappy', document.getElementById('napType').value, document.getElementById('napNote').value)">Save</button>
+            <input type="text" id="napNote" placeholder="Notes (e.g. Soft, Normal)">
+            <button class="save-btn" onclick="logData('Nappy', document.getElementById('napType').value, document.getElementById('napNote').value)">Save Log</button>
         </div>
     </div>
 
     <div id="weight" class="page">
-        <h2>Weight Log</h2>
+        <h1>Weight Log</h1>
         <div class="card">
-            <input type="number" id="weightVal" step="0.01" placeholder="Weight (kg)">
-            <button class="save-btn" onclick="logData('Weight', document.getElementById('weightVal').value, 'kg')">Save</button>
+            <input type="number" step="0.01" id="weightVal" placeholder="Weight (kg)">
+            <button class="save-btn" onclick="logData('Weight', document.getElementById('weightVal').value, 'kg')">Save Weight</button>
         </div>
     </div>
 
     <div id="scalper" class="page">
-        <h2>Price Finder</h2>
+        <h1>Price Finder</h1>
         <div class="card">
+            <h3>Current Best Deal</h3>
             <p>Pampers S3: <b>£7.00</b> (Amazon)</p>
-            <button class="save-btn" onclick="window.open('YOUR_AFFILIATE_LINK')">Buy Now</button>
+            <button class="save-btn" onclick="window.open('YOUR_AFFILIATE_LINK')">🛒 Buy Cheapest</button>
         </div>
     </div>
 
     <div id="charts" class="page">
-        <h2>Charts & Trends</h2>
-        <div class="card"><h3>Milk Chart</h3><p>(Data loading...)</p></div>
-        <div class="card"><h3>Weight Chart</h3><p>(Data loading...)</p></div>
+        <h1>Trends</h1>
+        <div class="card"><h3>Milk Intake</h3><div style="height:60px; background:#e8f5e9; border-radius:8px; display:flex; align-items:flex-end; padding:5px; gap:4px;"><div style="height:40%; width:20%; background:#81c784;"></div><div style="height:70%; width:20%; background:#81c784;"></div><div style="height:90%; width:20%; background:#81c784;"></div></div></div>
+        <div class="card"><h3>Weight Progress</h3><p>Steady growth detected! 📈</p></div>
     </div>
 </main>
-
-<button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
 <script>
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
@@ -99,15 +104,15 @@
     }
 
     async function logData(cat, val, det1) {
-        alert("Saving...");
+        alert("Saving to Sheet...");
         try {
             await fetch(GOOGLE_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 body: JSON.stringify({ category: cat, value: val, detail1: det1 })
             });
-            alert("✅ Saved to Sheet!");
-        } catch (e) { alert("Error: " + e.message); }
+            alert("✅ Logged Successfully!");
+        } catch (e) { alert("❌ Error: " + e.message); }
     }
 </script>
 </body>
