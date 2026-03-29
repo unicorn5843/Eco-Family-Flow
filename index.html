@@ -8,7 +8,6 @@
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
       import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      // YOUR KEYS PLUGGED IN
       const firebaseConfig = {
         apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
         authDomain: "ecofamilyflow.firebaseapp.com",
@@ -19,21 +18,18 @@
         measurementId: "G-DDCPL98RXR"
       };
 
-      // Initialize
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const provider = new GoogleAuthProvider();
 
-      // EXPOSE TO WINDOW FOR BUTTONS
       window.login = () => {
         signInWithPopup(auth, provider)
-          .then((result) => { alert("Welcome " + result.user.displayName); })
+          .then((result) => { console.log("Logged in as: " + result.user.displayName); })
           .catch((error) => { alert("Error: " + error.message); });
       };
 
       window.logout = () => signOut(auth);
 
-      // UI HANDLER
       onAuthStateChanged(auth, (user) => {
         if (user) {
           document.getElementById('auth-screen').style.display = 'none';
@@ -53,18 +49,24 @@
         }
         body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
         body.night { background: var(--night-bg); color: var(--night-text); }
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
         #app-interface { display: none; width: 100%; height: 100%; }
         nav { width: 75px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #c8d6c8; }
-        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; }
+        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; transition: 0.2s; }
         .tab-btn.active { background: var(--accent); color: white; }
         main { flex: 1; padding: 20px; overflow-y: auto; }
-        .card { background: var(--card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
-        .save-btn { background: #66bb6a; color: white; border: none; padding: 16px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; }
+        .card { background: var(--card); padding: 20px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .save-btn { background: #66bb6a; color: white; border: none; padding: 18px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 16px; }
+        .side-btn, .type-select { flex:1; padding:12px; border-radius:10px; border:1px solid #ddd; background:white; cursor:pointer; font-weight: 500; transition: 0.2s; }
+        .side-btn.active, .type-select.active { background: var(--accent); color:white; border-color: var(--accent); font-weight:bold; }
+        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 100; }
+        /* Night Mode Logic */
         .night nav { background: #0a0000; border-right: 1px solid #400000; }
         .night .card { background: var(--night-card); border: 1px solid #400000; }
+        .night .side-btn, .night .type-select { background:#1a0000; color:#ff0000; border-color:#400000; }
+        .night .side-btn.active, .night .type-select.active { background:#400000; border-color:#ff0000; }
         .night #auth-screen { background: #000; color: #ff0000; }
+        .night input { background: #1a0000; color: #ff0000; border: 1px solid #400000; }
     </style>
 </head>
 <body>
@@ -87,49 +89,56 @@
         <button class="tab-btn" onclick="logout()" style="margin-top: auto; font-size: 18px;">🏃</button>
     </nav>
     <main>
-<div id="milk" class="page active">
-    <h2 style="color: var(--accent); margin-top:0;">🍼 Milk Entry</h2>
-    
-    <div class="card">
-        <div style="margin-bottom: 20px;">
-            <label style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Date & Time of Feed</label>
-            <input type="datetime-local" id="feedTime" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; font-family:inherit;">
+        <div id="milk" class="page active">
+            <h2 style="color: var(--accent); margin-top:0;">🍼 Milk Entry</h2>
+            <div class="card">
+                <div style="margin-bottom: 20px;">
+                    <label style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Date & Time of Feed</label>
+                    <input type="datetime-local" id="feedTime" style="width:100%; padding:12px; border-radius:10px; border:1px solid #ddd; font-family:inherit; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+                    <button id="mode-pump" class="type-select active" onclick="setMilkMode('Pump')">Pump</button>
+                    <button id="mode-feed" class="type-select" onclick="setMilkMode('Feed')">Feed</button>
+                </div>
+
+                <label style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Side Used</label>
+                <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+                    <button id="sideL" class="side-btn active" onclick="setSide('Left')">Left</button>
+                    <button id="sideR" class="side-btn" onclick="setSide('Right')">Right</button>
+                    <button id="sideB" class="side-btn" onclick="setSide('Both')">Both</button>
+                </div>
+
+                <label id="amtLabel" style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Amount (ml)</label>
+                <input type="number" id="milkAmt" placeholder="Enter amount..." style="font-size: 24px; text-align: center; width: 100%; padding:15px; border:none; background:#f9f9f9; border-radius:12px; margin-bottom:20px; box-sizing: border-box;">
+
+                <button class="save-btn" id="saveBtn" onclick="submitMilkLog()">Confirm & Save</button>
+            </div>
         </div>
 
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button id="mode-pump" class="type-select active" style="flex:1;" onclick="setMilkMode('Pump')">Pump</button>
-            <button id="mode-feed" class="type-select" style="flex:1;" onclick="setMilkMode('Feed')">Feed</button>
-        </div>
-
-        <label style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Side Used</label>
-        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
-            <button id="sideL" class="side-btn active" onclick="setSide('Left')">Left</button>
-            <button id="sideR" class="side-btn" onclick="setSide('Right')">Right</button>
-            <button id="sideB" class="side-btn" onclick="setSide('Both')">Both</button>
-        </div>
-
-        <label id="amtLabel" style="display:block; font-size:12px; color:#666; margin-bottom:5px;">Amount (ml)</label>
-        <input type="number" id="milkAmt" placeholder="Enter amount..." style="font-size: 24px; text-align: center; width: 100%; padding:15px; border:none; background:#f9f9f9; border-radius:12px; margin-bottom:20px;">
-
-        <button class="save-btn" id="saveBtn" style="background:#66bb6a; color:white; border:none; padding:18px; width:100%; border-radius:12px; font-weight:bold; font-size:16px; transition: 0.3s;" onclick="submitMilkLog()">Confirm & Save</button>
-    </div>
-</div>
-
-<style>
-    .side-btn { flex:1; padding:10px; border-radius:8px; border:1px solid #ddd; background:white; cursor:pointer; }
-    .side-btn.active { background: var(--accent); color:white; border-color: var(--accent); font-weight:bold; }
-    /* Night mode support */
-    .night .side-btn { background:#1a0000; color:#ff0000; border-color:#400000; }
-    .night .side-btn.active { background:#400000; border-color:#ff0000; }
-</style>
-        
+        <div id="nappy" class="page" style="display:none"><h1>Nappy Log</h1><div class="card">Coming soon...</div></div>
+        <div id="weight" class="page" style="display:none"><h1>Weight Log</h1><div class="card">Coming soon...</div></div>
+        <div id="scalper" class="page" style="display:none"><h1>Price Finder</h1><div class="card">Coming soon...</div></div>
     </main>
 </div>
 
 <button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
 <script>
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
+    
+    let currentMode = 'Pump';
+    let currentSide = 'Left';
+
+    // Set default time to "Now"
+    window.addEventListener('load', () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('feedTime').value = now.toISOString().slice(0, 16);
+    });
 
     function showPage(id, btn) {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -138,82 +147,59 @@
         btn.classList.add('active');
     }
 
-    async function logData(cat, val, det1) {
-        alert("Saving...");
+    function setMilkMode(m) {
+        currentMode = m;
+        document.getElementById('mode-pump').classList.toggle('active', m === 'Pump');
+        document.getElementById('mode-feed').classList.toggle('active', m === 'Feed');
+        document.getElementById('amtLabel').innerText = m === 'Pump' ? 'Amount Pumped (ml)' : 'Amount Fed (ml)';
+    }
+
+    function setSide(s) {
+        currentSide = s;
+        document.getElementById('sideL').classList.toggle('active', s === 'Left');
+        document.getElementById('sideR').classList.toggle('active', s === 'Right');
+        document.getElementById('sideB').classList.toggle('active', s === 'Both');
+    }
+
+    async function submitMilkLog() {
+        const saveBtn = document.getElementById('saveBtn');
+        const amt = document.getElementById('milkAmt').value;
+        const time = document.getElementById('feedTime').value;
+        // Accessing auth from the window object (initialized in module script)
+        const user = firebase.auth ? firebase.auth().currentUser : null;
+
+        if(!amt) return alert("Please enter an amount");
+
+        saveBtn.innerText = "⌛ Sending...";
+        saveBtn.style.background = "#fb8c00"; 
+
         try {
             await fetch(GOOGLE_URL, {
-                method: 'POST',
+                method: 'POST', 
                 mode: 'no-cors',
-                body: JSON.stringify({ category: cat, value: val, detail1: det1, user: "logged-in-user" })
+                body: JSON.stringify({
+                    timestamp: time,
+                    category: 'Milk',
+                    value: amt,
+                    detail1: `${currentMode} (${currentSide})`,
+                    user: user ? user.email : 'Logged In'
+                })
             });
-            alert("✅ Saved!");
-        } catch (e) { alert("Error: " + e.message); }
+
+            saveBtn.innerText = "✅ Saved to Cloud!";
+            saveBtn.style.background = "#45a049"; 
+
+            setTimeout(() => {
+                saveBtn.innerText = "Confirm & Save";
+                saveBtn.style.background = "#66bb6a";
+                document.getElementById('milkAmt').value = ''; 
+            }, 3000);
+
+        } catch (e) {
+            saveBtn.innerText = "❌ Error - Try Again";
+            saveBtn.style.background = "#e53935";
+        }
     }
-<let currentMode = 'Pump';
-let currentSide = 'Left';
-
-// Set default time to "Now" when the page loads
-window.onload = () => {
-    const now = new Date();
-    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-    document.getElementById('feedTime').value = now.toISOString().slice(0, 16);
-};
-
-function setMilkMode(m) {
-    currentMode = m;
-    document.getElementById('mode-pump').classList.toggle('active', m === 'Pump');
-    document.getElementById('mode-feed').classList.toggle('active', m === 'Feed');
-    document.getElementById('amtLabel').innerText = m === 'Pump' ? 'Amount Pumped (ml)' : 'Amount Fed (ml)';
-}
-
-function setSide(s) {
-    currentSide = s;
-    document.getElementById('sideL').classList.toggle('active', s === 'Left');
-    document.getElementById('sideR').classList.toggle('active', s === 'Right');
-    document.getElementById('sideB').classList.toggle('active', s === 'Both');
-}
-
-async function submitMilkLog() {
-    const saveBtn = document.getElementById('saveBtn');
-    const amt = document.getElementById('milkAmt').value;
-    const time = document.getElementById('feedTime').value;
-    const user = firebase.auth().currentUser;
-
-    if(!amt) return alert("Please enter an amount");
-
-    // Start "Saving" animation
-    saveBtn.innerText = "⌛ Sending...";
-    saveBtn.style.background = "#fb8c00"; 
-
-    try {
-        await fetch(GOOGLE_URL, {
-            method: 'POST', 
-            mode: 'no-cors',
-            body: JSON.stringify({
-                timestamp: time,
-                category: 'Milk',
-                value: amt,
-                detail1: `${currentMode} (${currentSide})`,
-                user: user ? user.email : 'Anonymous'
-            })
-        });
-
-        // SUCCESS STATE
-        saveBtn.innerText = "✅ Saved to Cloud!";
-        saveBtn.style.background = "#45a049"; // Darker green
-
-        // Reset after 3 seconds
-        setTimeout(() => {
-            saveBtn.innerText = "Confirm & Save";
-            saveBtn.style.background = "#66bb6a";
-            document.getElementById('milkAmt').value = ''; 
-        }, 3000);
-
-    } catch (e) {
-        saveBtn.innerText = "❌ Error - Try Again";
-        saveBtn.style.background = "#e53935"; // Red for error
-    }
-}
-    >
+</script>
 </body>
 </html>
