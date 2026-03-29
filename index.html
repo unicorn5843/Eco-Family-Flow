@@ -75,12 +75,19 @@
 <script>
     // PASTE YOUR FIREBASE CONFIG HERE
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-        projectId: "YOUR_PROJECT_ID",
-        storageBucket: "YOUR_PROJECT_ID.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
+  authDomain: "ecofamilyflow.firebaseapp.com",
+  projectId: "ecofamilyflow",
+  storageBucket: "ecofamilyflow.firebasestorage.app",
+  messagingSenderId: "1013479772757",
+  appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc",
+  measurementId: "G-DDCPL98RXR"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+Note: This option uses the modular JavaScript SDK,
     };
 
     firebase.initializeApp(firebaseConfig);
