@@ -3,95 +3,165 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Milk Log</title>
+    <title>Eco Family Flow</title>
     <style>
-        body { font-family: -apple-system, sans-serif; padding: 20px; background: #f4f4f9; transition: 0.3s; margin: 0; display: flex; justify-content: center; }
-        .card { background: white; padding: 25px; border-radius: 16px; box-shadow: 0 8px 15px rgba(0,0,0,0.1); width: 100%; max-width: 350px; }
-        label { display: block; margin-top: 15px; font-weight: bold; font-size: 14px; }
-        input, select, button { width: 100%; padding: 14px; margin: 8px 0; border-radius: 10px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
-        button { background: #059669; color: white; border: none; cursor: pointer; margin-top: 20px; font-weight: bold; }
-        body.night { background: #121212; color: #ff4d4d; }
-        body.night .card { background: #1e1e1e; color: #ff4d4d; border: 1px solid #333; }
-        body.night input, body.night select { background: #2a2a2a; color: #ff4d4d; border: 1px solid #444; }
-        body.night button { background: #b91c1c; }
+        /* THEME VARIABLES */
+        :root {
+            --bg: #f7faf7;
+            --sidebar: #e8f5e9;
+            --card: #ffffff;
+            --text: #2e4a2e;
+            --accent: #81c784;
+            --btn: #66bb6a;
+            --night-bg: #000000;
+            --night-text: #ff0000;
+            --night-card: #1a0000;
+        }
+
+        /* GENERAL STYLES */
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); overflow: hidden; }
+        
+        /* SIDEBAR TABS */
+        nav { width: 80px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #dcedc8; transition: 0.3s; }
+        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; opacity: 0.6; padding: 10px; border-radius: 12px; }
+        .tab-btn.active { opacity: 1; background: var(--accent); color: white; }
+        
+        /* MAIN CONTENT */
+        main { flex: 1; padding: 20px; overflow-y: auto; }
+        .page { display: none; }
+        .page.active { display: block; animation: fadeIn 0.3s; }
+        
+        /* CARDS & INPUTS */
+        .card { background: var(--card); padding: 20px; border-radius: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        h1 { font-size: 1.5rem; margin-top: 0; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box; font-size: 16px; }
+        .save-btn { width: 100%; background: var(--btn); color: white; border: none; padding: 15px; border-radius: 12px; font-weight: bold; font-size: 16px; margin-top: 10px; }
+
+        /* NIGHT MODE TOGGLE */
+        .mode-toggle { position: fixed; bottom: 20px; left: 15px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; font-size: 20px; z-index: 100; }
+
+        /* NIGHT MODE OVERRIDE */
+        body.night { background: var(--night-bg); color: var(--night-text); }
+        .night nav { background: #0a0000; border-right: 1px solid #400000; }
+        .night .card { background: var(--night-card); box-shadow: none; border: 1px solid #400000; }
+        .night input, .night select { background: #1a0000; color: #ff0000; border: 1px solid #400000; }
+        .night .save-btn { background: #400000; color: #ff0000; border: 1px solid #ff0000; }
+        .night .tab-btn { color: #ff0000; }
+        .night .tab-btn.active { background: #400000; border: 1px solid #ff0000; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h2 style="margin:0">Milk Log</h2>
-        <button onclick="toggleNight()" style="width: auto; padding: 6px 12px; margin: 0; font-size: 12px;">Night Mode</button>
-    </div>
-    <label>Date & Time</label>
-    <input type="datetime-local" id="logTime">
-    <label>Amount (ml)</label>
-    <input type="number" id="amt" value="80" inputmode="numeric">
-    <label>Type</label>
-    <select id="typ">
-        <option value="Pumped">Pumped</option>
-        <option value="Feed">Feed (Bottle)</option>
-    </select>
-    <label>Side</label>
-    <select id="side">
-        <option value="Both">Both</option>
-        <option value="Left">Left</option>
-        <option value="Right">Right</option>
-    </select>
-    <button id="saveBtn" onclick="saveData()">Save Entry</button>
-</div>
 
-<script>
-    window.onload = () => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('logTime').value = now.toISOString().slice(0, 16);
-    };
+    <button class="mode-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
-    function toggleNight() { document.body.classList.toggle('night'); }
+    <nav>
+        <button class="tab-btn active" onclick="showPage('milk', this)">🍼</button>
+        <button class="tab-btn" onclick="showPage('nappy', this)">🧷</button>
+        <button class="tab-btn" onclick="showPage('weight', this)">⚖️</button>
+        <button class="tab-btn" onclick="showPage('scalper', this)">📈</button>
+        <button class="tab-btn" onclick="showPage('charts', this)">📊</button>
+    </nav>
 
-    async function saveData() {
-        const btn = document.getElementById('saveBtn');
-        const amount = document.getElementById('amt').value;
-        const type = document.getElementById('typ').value;
-        const side = document.getElementById('side').value;
-        const logTime = document.getElementById('logTime').value;
-        
-        const SB_URL = 'https://cqvqteauzipnetntzht.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNxdnF1dGVhdXppcG5ldG50emh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ2MjU1MDcsImV4cCI6MjA5MDIwMTUwN30.fSh7b0jH18Jja6YNetfhZDu6TcWUtL0ukzIZ9Wok8VY';
+    <main>
+        <div id="milk" class="page active">
+            <h1>Milk Log</h1>
+            <div class="card">
+                <label>Amount (ml)</label>
+                <input type="number" id="milkAmt" placeholder="80">
+                <label>Type</label>
+                <select id="milkType">
+                    <option>Pumped</option>
+                    <option>Formula</option>
+                    <option>Breast (Time)</option>
+                </select>
+                <button class="save-btn" onclick="logData('Milk', document.getElementById('milkAmt').value, document.getElementById('milkType').value)">Save Log</button>
+            </div>
+        </div>
 
-        btn.innerText = "Saving...";
-        btn.disabled = true;
+        <div id="nappy" class="page">
+            <h1>Nappy Log</h1>
+            <div class="card">
+                <label>Type</label>
+                <select id="napType">
+                    <option>Wet</option>
+                    <option>Dirty</option>
+                    <option>Both</option>
+                </select>
+                <label>Details</label>
+                <input type="text" id="napNote" placeholder="e.g. Soft, Normal">
+                <button class="save-btn" onclick="logData('Nappy', document.getElementById('napType').value, document.getElementById('napNote').value)">Save Log</button>
+            </div>
+        </div>
 
-        try {
-            const response = await fetch(`${SB_URL}/rest/v1/milk_logs`, {
-                method: 'POST',
-                headers: {
-                    'apikey': SB_KEY,
-                    'Authorization': `Bearer ${SB_KEY}`,
-                    'Content-Type': 'application/json',
-                    'Prefer': 'return=minimal'
-                },
-                body: JSON.stringify({ 
-                    amount_ml: parseInt(amount) || 0, 
-                    type: type,
-                    side: side,
-                    created_at: new Date(logTime).toISOString()
-                })
-            });
+        <div id="weight" class="page">
+            <h1>Weight Log</h1>
+            <div class="card">
+                <label>Weight (kg)</label>
+                <input type="number" step="0.01" id="weightVal" placeholder="4.50">
+                <button class="save-btn" onclick="logData('Weight', document.getElementById('weightVal').value, 'kg')">Save Weight</button>
+            </div>
+        </div>
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                alert(`🚨 Database Rejected: ${errorData.message || response.statusText}`);
-            } else {
-                alert("✅ Logged successfully!");
-            }
-        } catch (err) {
-            alert(`🚨 CONNECTION BLOCKED: ${err.message}. This usually means a VPN or AdBlock is stopping the request.`);
-        } finally {
-            btn.innerText = "Save Entry";
-            btn.disabled = false;
+        <div id="scalper" class="page">
+            <h1>Price Finder</h1>
+            <div class="card">
+                <h3>Current Best Deals</h3>
+                <p>Pampers Size 3: <b>£7.50</b> (Amazon)</p>
+                <button class="save-btn" onclick="window.open('YOUR_AFFILIATE_LINK')">🛒 Buy Now & Save</button>
+            </div>
+            <div class="card" style="opacity: 0.7;">
+                <p>Aldi Mamia S3: <b>£4.20</b> (Instore)</p>
+            </div>
+        </div>
+
+        <div id="charts" class="page">
+            <h1>History & Charts</h1>
+            <div class="card">
+                <p>Milk Chart: <i>(Connect to Sheet for Graph)</i></p>
+                <div style="height: 100px; background: #eee; border-radius: 8px; display: flex; align-items: flex-end; padding: 10px; gap: 5px;">
+                    <div style="width: 20%; height: 40%; background: var(--btn);"></div>
+                    <div style="width: 20%; height: 70%; background: var(--btn);"></div>
+                    <div style="width: 20%; height: 50%; background: var(--btn);"></div>
+                    <div style="width: 20%; height: 90%; background: var(--btn);"></div>
+                </div>
+            </div>
+            <div class="card">
+                <p>Weight Gain: <b>Trend Up 📈</b></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
+
+        // TAB SWITCHING
+        function showPage(pageId, btn) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
+            btn.classList.add('active');
         }
-    }
-</script>
+
+        // SEND DATA TO GOOGLE
+        async function logData(cat, val, det1) {
+            const data = { category: cat, value: val, detail1: det1, detail2: "" };
+            
+            // Show feedback immediately since no-cors won't return a result
+            alert("Sent! Checking connection...");
+
+            try {
+                await fetch(GOOGLE_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    body: JSON.stringify(data)
+                });
+                console.log("Success");
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        }
+    </script>
 </body>
 </html>
