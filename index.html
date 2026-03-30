@@ -43,6 +43,7 @@
         }
       });
     </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
         :root {
@@ -119,7 +120,16 @@
         
         <div id="nappy" class="page" style="display:none"><h2>Nappy Log</h2><div class="card">Coming soon...</div></div>
         <div id="weight" class="page" style="display:none"><h2>Weight Log</h2><div class="card">Coming soon...</div></div>
-        <div id="scalper" class="page" style="display:none"><h2>Scalper</h2><div class="card">Coming soon...</div></div>
+        <div id="scalper" class="page" style="display:none">
+    <h2 style="color: var(--accent); margin-top:0;">📈 Your Trends</h2>
+    <div class="card">
+        <button onclick="loadChartData()" style="background:var(--accent); color:white; border:none; padding:10px; border-radius:8px; width:100%; margin-bottom:15px; font-weight:bold;">🔄 Refresh Graph</button>
+        <div style="height: 300px; position: relative;">
+            <canvas id="milkChart"></canvas>
+        </div>
+    </div>
+        </div>
+        
     </main>
 </div>
 
@@ -192,6 +202,63 @@
             saveBtn.innerText = "❌ Error";
         }
     };
+
+    let myChart = null;
+
+window.loadChartData = async () => {
+    const userEmail = (window.auth && window.auth.currentUser) ? window.auth.currentUser.email : null;
+    if (!userEmail) return alert("Please log in first");
+
+    // Fetch data from Google
+    const response = await fetch(GOOGLE_URL);
+    const allData = await response.json();
+
+    // Filter for THIS user and ONLY 'Milk' category
+    const userData = allData.filter(row => row.user === userEmail && row.category === 'Milk');
+
+    // Group data by date
+    const labels = userData.map(d => new Date(d.timestamp).toLocaleDateString());
+    const pumpedData = userData.map(d => d.detail1.includes('Pump') ? d.value : 0);
+    const fedData = userData.map(d => d.detail1.includes('Feed') ? d.value : 0);
+
+    const ctx = document.getElementById('milkChart').getContext('2d');
+    
+    // Destroy old chart if it exists so we can redraw
+    if (myChart) myChart.destroy();
+
+    myChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Pumped (ml)',
+                    data: pumpedData,
+                    backgroundColor: '#81c784',
+                    borderRadius: 5
+                },
+                {
+                    label: 'Fed (ml)',
+                    data: fedData,
+                    backgroundColor: '#fb8c00',
+                    borderRadius: 5
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { display: false } },
+                x: { grid: { display: false } }
+            },
+            plugins: {
+                legend: { position: 'bottom' }
+            }
+        }
+    });
+};
+    
 </script>
 </body>
 </html>
