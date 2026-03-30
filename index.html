@@ -224,43 +224,7 @@ window.loadChartData = async () => {
     const pumpedData = userData.map(d => d.detail1.includes('Pump') ? d.value : 0);
     const fedData = userData.map(d => d.detail1.includes('Feed') ? d.value : 0);
 
-    const ctx = document.getElementById('milkChart').getContext('2d');
     
-    // Destroy old chart if it exists so we can redraw
-    if (myChart) myChart.destroy();
-
-    myChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [
-                {
-                    label: 'Pumped (ml)',
-                    data: pumpedData,
-                    backgroundColor: '#81c784',
-                    borderRadius: 5
-                },
-                {
-                    label: 'Fed (ml)',
-                    data: fedData,
-                    backgroundColor: '#fb8c00',
-                    borderRadius: 5
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: { beginAtZero: true, grid: { display: false } },
-                x: { grid: { display: false } }
-            },
-            plugins: {
-                legend: { position: 'bottom' }
-            }
-        }
-    });
-};
 
 let myChart = null;
 
