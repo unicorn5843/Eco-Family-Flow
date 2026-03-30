@@ -121,14 +121,17 @@
         <div id="nappy" class="page" style="display:none"><h2>Nappy Log</h2><div class="card">Coming soon...</div></div>
         <div id="weight" class="page" style="display:none"><h2>Weight Log</h2><div class="card">Coming soon...</div></div>
         <div id="scalper" class="page" style="display:none">
-    <h2 style="color: var(--accent); margin-top:0;">📈 Your Trends</h2>
+    <h2 style="color: var(--accent); margin-top:0;">📈 Feeding Trends</h2>
     <div class="card">
-        <button onclick="loadChartData()" style="background:var(--accent); color:white; border:none; padding:10px; border-radius:8px; width:100%; margin-bottom:15px; font-weight:bold;">🔄 Refresh Graph</button>
-        <div style="height: 300px; position: relative;">
+        <button onclick="loadChartData()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; margin-bottom:15px; font-weight:bold; cursor:pointer;">
+            🔄 Refresh My Stats
+        </button>
+        <div style="height: 300px; width: 100%;">
             <canvas id="milkChart"></canvas>
         </div>
     </div>
         </div>
+        
         
     </main>
 </div>
@@ -257,6 +260,50 @@ window.loadChartData = async () => {
             }
         }
     });
+};
+
+let myChart = null;
+
+window.loadChartData = async () => {
+    const btn = document.querySelector('#scalper button');
+    btn.innerText = "⌛ Fetching Data...";
+
+    try {
+        const response = await fetch(GOOGLE_URL);
+        const allData = await response.json();
+        const userEmail = window.auth.currentUser.email;
+
+        // Filter: Only 'Milk' logs for the logged-in user
+        const myMilkData = allData.filter(row => row.user === userEmail && row.category === 'Milk');
+
+        const labels = myMilkData.map(d => new Date(d.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+        const values = myMilkData.map(d => parseFloat(d.value));
+
+        const ctx = document.getElementById('milkChart').getContext('2d');
+        if (myChart) myChart.destroy(); // Clear old graph
+
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Amount (ml)',
+                    data: values,
+                    backgroundColor: '#81c784',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } }
+            }
+        });
+        btn.innerText = "🔄 Refresh My Stats";
+    } catch (e) {
+        console.error(e);
+        btn.innerText = "❌ Load Failed";
+    }
 };
     
 </script>
