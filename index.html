@@ -112,6 +112,7 @@
 
         <div id="scalper" class="page" style="display:none">
             <h2 style="color: var(--accent); margin-top:0;">📈 Feeding Trends</h2>
+            <div id="stats-box"></div>
             <div class="card">
                 <button onclick="loadChartData()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Refresh My Stats</button>
                 <div style="height: 300px; width: 100%;"><canvas id="milkChart"></canvas></div>
@@ -166,27 +167,100 @@
     };
 
     window.loadChartData = async () => {
-        const btn = document.querySelector('#scalper button');
-        btn.innerText = "⌛ Fetching...";
-        try {
-            const response = await fetch(GOOGLE_URL);
-            const allData = await response.json();
-            const userEmail = window.auth.currentUser.email;
-            const myData = allData.filter(row => row.user === userEmail && row.category === 'Milk');
-            
-            const labels = myData.map(d => new Date(d.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
-            const values = myData.map(d => parseFloat(d.value));
+    const btn = document.querySelector('#scalper button');
+    btn.innerText = "⌛ Calculating...";
+    
+    try {
+        const response = await fetch(GOOGLE_URL);
+        const allData = await response.json();
+        const userEmail = window.auth.currentUser.email;
 
-            const ctx = document.getElementById('milkChart').getContext('2d');
-            if (myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: labels, datasets: [{ label: 'ml', data: values, backgroundColor: '#81c784', borderRadius: 8 }] },
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-            btn.innerText = "🔄 Refresh My Stats";
-        } catch (e) { btn.innerText = "❌ Load Failed"; }
-    };
+        // 1. Filter and Sort by Time
+        let myMilk = allData.filter(row => row.user === userEmail && row.category === 'Milk');
+        myMilk.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        // 2. Math for Totals
+        const today = new Date().toLocaleDateString();
+        let totalAllTime = 0;
+        let totalFedAllTime = 0;
+        let totalToday = 0;
+
+        myMilk.forEach(row => {
+            const val = parseFloat(row.value) || 0;
+            const isPump = row.detail1 && row.detail1.includes('Pump');
+            const isFeed = row.detail1 && row.detail1.includes('Feed');
+
+            if (isPump) {
+                totalAllTime += val;
+                if (new Date(row.timestamp).toLocaleDateString() === today) {
+                    totalToday += val;
+                }
+            }
+            if (isFeed) {
+                totalFedAllTime += val;
+            }
+        });
+
+        // 3. Update the UI with Totals
+        const remaining = totalAllTime - totalFedAllTime;
+        document.getElementById('stats-box').innerHTML = `
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+                <div class="card" style="margin:0; text-align:center; border-left:4px solid #81c784;">
+                    <small>Today's Pump</small><br><strong>${totalToday}ml</strong>
+                </div>
+                <div class="card" style="margin:0; text-align:center; border-left:4px solid #fb8c00;">
+                    <small>In Fridge</small><br><strong>${remaining}ml</strong>
+                </div>
+            </div>
+            <div class="card" style="margin:0 0 15px 0; text-align:center; background:#f0f7f0;">
+                <small>All-Time Pumped Total</small><br><strong style="font-size:20px;">${totalAllTime}ml</strong>
+            </div>
+        `;
+
+        // 4. Draw the Graph
+        const labels = myMilk.map(d => {
+            const dt = new Date(d.timestamp);
+            return dt.toLocaleDateString([], {day:'2-digit', month:'short'}) + ' ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        });
+
+        const ctx = document.getElementById('milkChart').getContext('2d');
+        if (myChart) myChart.destroy();
+        myChart = new Chart(ctx, {
+            type: 'line', // Line graph shows trends better over days
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Pumped',
+                        data: myMilk.map(d => d.detail1.includes('Pump') ? d.value : null),
+                        borderColor: '#81c784',
+                        backgroundColor: '#81c784',
+                        spanGaps: true,
+                        tension: 0.3
+                    },
+                    {
+                        label: 'Fed',
+                        data: myMilk.map(d => d.detail1.includes('Feed') ? d.value : null),
+                        borderColor: '#fb8c00',
+                        backgroundColor: '#fb8c00',
+                        spanGaps: true,
+                        tension: 0.3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+        btn.innerText = "🔄 Refresh My Stats";
+    } catch (e) {
+        btn.innerText = "❌ Load Failed";
+        console.error(e);
+    }
+};
+
 </script>
 </body>
 </html>
