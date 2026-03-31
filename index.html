@@ -166,58 +166,60 @@
         } catch (e) { alert("Error saving!"); btn.innerText = "❌ Error"; }
     };
 
-    window.loadChartData = async () => {
+                window.loadChartData = async () => {
     const btn = document.querySelector('#scalper button');
-    btn.innerText = "⌛ Calculating...";
+    btn.innerText = "⌛ Calculating Inventory...";
     
     try {
         const response = await fetch(GOOGLE_URL);
         const allData = await response.json();
         const userEmail = window.auth.currentUser.email;
 
-        // 1. Filter and Sort by Time
+        // 1. Filter and SORT by actual Date/Time
         let myMilk = allData.filter(row => row.user === userEmail && row.category === 'Milk');
         myMilk.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-        // 2. Math for Totals
-        const today = new Date().toLocaleDateString();
-        let totalAllTime = 0;
+        // 2. Supply & Demand Math
+        const todayStr = new Date().toLocaleDateString();
+        let totalPumpedAllTime = 0;
         let totalFedAllTime = 0;
-        let totalToday = 0;
+        let pumpedToday = 0;
+        let fedToday = 0;
 
         myMilk.forEach(row => {
             const val = parseFloat(row.value) || 0;
-            const isPump = row.detail1 && row.detail1.includes('Pump');
-            const isFeed = row.detail1 && row.detail1.includes('Feed');
+            const isPump = row.detail1 && row.detail1.toLowerCase().includes('pump');
+            const isFeed = row.detail1 && row.detail1.toLowerCase().includes('feed');
+            const isToday = new Date(row.timestamp).toLocaleDateString() === todayStr;
 
             if (isPump) {
-                totalAllTime += val;
-                if (new Date(row.timestamp).toLocaleDateString() === today) {
-                    totalToday += val;
-                }
-            }
-            if (isFeed) {
+                totalPumpedAllTime += val;
+                if (isToday) pumpedToday += val;
+            } else if (isFeed) {
                 totalFedAllTime += val;
+                if (isToday) fedToday += val;
             }
         });
 
-        // 3. Update the UI with Totals
-        const remaining = totalAllTime - totalFedAllTime;
+        const surplus = totalPumpedAllTime - totalFedAllTime;
+
+        // 3. Update the UI with the "Stock" Dashboard
         document.getElementById('stats-box').innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div class="card" style="margin:0; text-align:center; border-left:4px solid #81c784;">
-                    <small>Today's Pump</small><br><strong>${totalToday}ml</strong>
+                <div class="card" style="margin:0; text-align:center; border-top:4px solid #81c784;">
+                    <small>Today's Pump</small><br><strong style="font-size:18px;">${pumpedToday}ml</strong>
                 </div>
-                <div class="card" style="margin:0; text-align:center; border-left:4px solid #fb8c00;">
-                    <small>In Fridge</small><br><strong>${remaining}ml</strong>
+                <div class="card" style="margin:0; text-align:center; border-top:4px solid #fb8c00;">
+                    <small>Today's Feed</small><br><strong style="font-size:18px;">${fedToday}ml</strong>
                 </div>
             </div>
-            <div class="card" style="margin:0 0 15px 0; text-align:center; background:#f0f7f0;">
-                <small>All-Time Pumped Total</small><br><strong style="font-size:20px;">${totalAllTime}ml</strong>
+            <div class="card" style="margin:0 0 15px 0; display:flex; justify-content:space-between; align-items:center; background:#e8f5e9; border:none;">
+                <div><small>Current Surplus (Fridge/Freezer)</small><br><strong style="font-size:22px; color:#2e7d32;">${surplus}ml</strong></div>
+                <div style="text-align:right;"><small>Total All-Time Pumped</small><br><strong>${totalPumpedAllTime}ml</strong></div>
             </div>
         `;
 
-        // 4. Draw the Graph
+        // 4. Create the Graph with two separate lines
         const labels = myMilk.map(d => {
             const dt = new Date(d.timestamp);
             return dt.toLocaleDateString([], {day:'2-digit', month:'short'}) + ' ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
@@ -226,31 +228,34 @@
         const ctx = document.getElementById('milkChart').getContext('2d');
         if (myChart) myChart.destroy();
         myChart = new Chart(ctx, {
-            type: 'line', // Line graph shows trends better over days
+            type: 'line', 
             data: {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'Pumped',
-                        data: myMilk.map(d => d.detail1.includes('Pump') ? d.value : null),
+                        label: 'Pumped (Supply)',
+                        data: myMilk.map(d => d.detail1.toLowerCase().includes('pump') ? d.value : null),
                         borderColor: '#81c784',
                         backgroundColor: '#81c784',
+                        tension: 0.3,
                         spanGaps: true,
-                        tension: 0.3
+                        pointRadius: 5
                     },
                     {
-                        label: 'Fed',
-                        data: myMilk.map(d => d.detail1.includes('Feed') ? d.value : null),
+                        label: 'Fed (Demand)',
+                        data: myMilk.map(d => d.detail1.toLowerCase().includes('feed') ? d.value : null),
                         borderColor: '#fb8c00',
                         backgroundColor: '#fb8c00',
+                        tension: 0.3,
                         spanGaps: true,
-                        tension: 0.3
+                        pointRadius: 5
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } },
                 plugins: { legend: { position: 'bottom' } }
             }
         });
@@ -260,6 +265,7 @@
         console.error(e);
     }
 };
+    
 
 </script>
 </body>
