@@ -171,103 +171,105 @@
     };
 
                 
-                window.loadChartData = async () => {
+                
+        // 4. Populate History with Delete Buttons
+        window.loadChartData = async () => {
     const btn = document.querySelector('#scalper button');
-    btn.innerText = "⌛ Analyzing Trends...";
+    btn.innerText = "⌛ Summarizing Trends...";
     
     try {
         const response = await fetch(GOOGLE_URL);
         const allData = await response.json();
         const userEmail = window.auth.currentUser.email;
 
-        // 1. Filter and Sort
+        // 1. FILTER & SORT (Individual entries for History)
         let myMilk = allData.filter(row => row.user === userEmail && row.category === 'Milk');
         myMilk.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-        // 2. Advanced Math (Daily Totals & 7-Day Average)
-        const todayStr = new Date().toLocaleDateString();
+        // 2. DAILY GROUPING (For the Graph)
+        let dailyTotals = {}; 
         let totals = { pumpAll: 0, feedAll: 0, pumpToday: 0, feedToday: 0 };
-        let dailyPumps = {}; // To calculate 7-day average
+        const todayStr = new Date().toLocaleDateString();
 
         myMilk.forEach(row => {
             const val = parseFloat(row.value) || 0;
-            const dateObj = new Date(row.timestamp);
-            const dStr = dateObj.toLocaleDateString();
-            const isPump = row.detail1?.toLowerCase().includes('pump');
-            
-            if (isPump) {
+            const dt = new Date(row.timestamp);
+            const dStr = dt.toLocaleDateString([], { day: '2-digit', month: 'short' });
+            const fullDateStr = dt.toLocaleDateString();
+            const detailText = (row.detail1 || row.detail || "").toLowerCase();
+
+            if (!dailyTotals[dStr]) dailyTotals[dStr] = { pump: 0, feed: 0 };
+
+            if (detailText.includes('pump')) {
                 totals.pumpAll += val;
-                if (dStr === todayStr) totals.pumpToday += val;
-                dailyPumps[dStr] = (dailyPumps[dStr] || 0) + val;
-            } else {
+                dailyTotals[dStr].pump += val;
+                if (fullDateStr === todayStr) totals.pumpToday += val;
+            } else if (detailText.includes('feed')) {
                 totals.feedAll += val;
-                if (dStr === todayStr) totals.feedToday += val;
+                dailyTotals[dStr].feed += val;
+                if (fullDateStr === todayStr) totals.feedToday += val;
             }
         });
 
-        // Calculate 7-Day Average Pump
-        const last7Days = Object.values(dailyPumps).slice(-7);
-        const avg7Day = last7Days.length ? (last7Days.reduce((a, b) => a + b, 0) / last7Days.length).toFixed(1) : 0;
+        // 3. MATH: 7-Day Moving Average
+        const pumpValues = Object.values(dailyTotals).map(d => d.pump);
+        const last7 = pumpValues.slice(-7);
+        const avg7Day = last7.length ? (last7.reduce((a, b) => a + b, 0) / last7.length).toFixed(1) : 0;
+        
+        const surplus = totals.pumpAll - totals.feedAll;
+        // LOW STOCK ALERT: Red if under 200ml, Green otherwise
+        const alertColor = surplus < 200 ? '#ffebee' : '#e8f5e9';
+        const textColor = surplus < 200 ? '#c62828' : '#2e7d32';
 
-        // 3. Update Dashboard
+        // 4. UI: Update Stats Box
         document.getElementById('stats-box').innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div class="card" style="margin:0; text-align:center;">
+                <div class="card" style="margin:0; text-align:center; border-top:4px solid #81c784;">
                     <small>Today's Pump</small><br><strong>${totals.pumpToday}ml</strong>
                 </div>
-                <div class="card" style="margin:0; text-align:center;">
+                <div class="card" style="margin:0; text-align:center; border-top:4px solid #2196f3;">
                     <small>7-Day Avg</small><br><strong>${avg7Day}ml</strong>
                 </div>
             </div>
-            <div class="card" style="background:#e8f5e9; border:none; margin-bottom:15px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <span><strong>Fridge Surplus:</strong></span>
-                    <strong style="color:#2e7d32;">${totals.pumpAll - totals.feedAll}ml</strong>
-                </div>
+            <div class="card" style="margin:0 0 15px 0; background:${alertColor}; border:none; display:flex; justify-content:space-between; align-items:center;">
+                <div><small>Fridge Surplus</small><br><strong style="font-size:22px; color:${textColor};">${surplus}ml</strong></div>
+                <div style="text-align:right;"><small>${surplus < 200 ? '⚠️ LOW STOCK' : 'Total Fed'}</small><br><strong>${totals.feedAll}ml</strong></div>
             </div>
-            <div id="history-list" style="max-height:150px; overflow-y:auto; font-size:12px; margin-bottom:15px;"></div>
+            <div id="history-list" style="max-height:120px; overflow-y:auto; font-size:12px; margin-bottom:15px; border:1px solid #eee; padding:5px; border-radius:8px;"></div>
         `;
 
-        // 4. Populate History with Delete Buttons
+        // 5. RECENT LOGS: Individual entries for deletion
         const historyHtml = myMilk.slice(-5).reverse().map(row => `
             <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
                 <span>${new Date(row.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${row.value}ml (${row.detail1})</span>
-                <button onclick="deleteEntry('${row.timestamp}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button>
+                <button onclick="deleteEntry('${row.timestamp}')" style="color:red; background:none; border:none; font-weight:bold;">✕</button>
             </div>
         `).join('');
         document.getElementById('history-list').innerHTML = `<strong>Recent Logs:</strong>` + historyHtml;
 
-        // 5. Chart (Separate Pump vs Feed)
-        const labels = myMilk.map(d => new Date(d.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'}));
-        if (myChart) myChart.destroy();
-        myChart = new Chart(document.getElementById('milkChart'), {
+        // 6. CHART: One data point per day
+        const labels = Object.keys(dailyTotals);
+        const ctx = document.getElementById('milkChart').getContext('2d');
+        if (window.myChart) window.myChart.destroy();
+        window.myChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    { label: 'Pumped', data: myMilk.map(d => d.detail1.toLowerCase().includes('pump') ? d.value : null), borderColor: '#81c784', spanGaps: true },
-                    { label: 'Fed', data: myMilk.map(d => d.detail1.toLowerCase().includes('feed') ? d.value : null), borderColor: '#fb8c00', spanGaps: true }
+                    { label: 'Pumped', data: labels.map(l => dailyTotals[l].pump), borderColor: '#81c784', tension: 0.3, fill: false },
+                    { label: 'Fed', data: labels.map(l => dailyTotals[l].feed), borderColor: '#fb8c00', tension: 0.3, fill: false }
                 ]
             },
-            options: { responsive: true, maintainAspectRatio: false }
+            options: { 
+                responsive: true, 
+                maintainAspectRatio: false,
+                scales: { y: { beginAtZero: true } }
+            }
         });
         btn.innerText = "🔄 Refresh My Stats";
-    } catch (e) { btn.innerText = "❌ Load Failed"; }
+    } catch (e) { btn.innerText = "❌ Load Failed"; console.error(e); }
 };
 
-// The actual Delete Function
-window.deleteEntry = async (timestamp) => {
-    if (!confirm("Delete this entry?")) return;
-    try {
-        await fetch(GOOGLE_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify({ action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email })
-        });
-        alert("Delete requested. Please refresh in a moment.");
-        loadChartData();
-    } catch (e) { alert("Delete failed"); }
-};
     
     
 
