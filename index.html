@@ -170,105 +170,105 @@
         } catch (e) { alert("Error saving!"); btn.innerText = "❌ Error"; }
     };
 
+                
                 window.loadChartData = async () => {
     const btn = document.querySelector('#scalper button');
-    btn.innerText = "⌛ Calculating Inventory...";
+    btn.innerText = "⌛ Analyzing Trends...";
     
     try {
         const response = await fetch(GOOGLE_URL);
         const allData = await response.json();
         const userEmail = window.auth.currentUser.email;
 
-        // 1. Filter and SORT by actual Date/Time
+        // 1. Filter and Sort
         let myMilk = allData.filter(row => row.user === userEmail && row.category === 'Milk');
         myMilk.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-        // 2. Supply & Demand Math
+        // 2. Advanced Math (Daily Totals & 7-Day Average)
         const todayStr = new Date().toLocaleDateString();
-        let totalPumpedAllTime = 0;
-        let totalFedAllTime = 0;
-        let pumpedToday = 0;
-        let fedToday = 0;
+        let totals = { pumpAll: 0, feedAll: 0, pumpToday: 0, feedToday: 0 };
+        let dailyPumps = {}; // To calculate 7-day average
 
         myMilk.forEach(row => {
             const val = parseFloat(row.value) || 0;
-            const isPump = row.detail1 && row.detail1.toLowerCase().includes('pump');
-            const isFeed = row.detail1 && row.detail1.toLowerCase().includes('feed');
-            const isToday = new Date(row.timestamp).toLocaleDateString() === todayStr;
-
+            const dateObj = new Date(row.timestamp);
+            const dStr = dateObj.toLocaleDateString();
+            const isPump = row.detail1?.toLowerCase().includes('pump');
+            
             if (isPump) {
-                totalPumpedAllTime += val;
-                if (isToday) pumpedToday += val;
-            } else if (isFeed) {
-                totalFedAllTime += val;
-                if (isToday) fedToday += val;
+                totals.pumpAll += val;
+                if (dStr === todayStr) totals.pumpToday += val;
+                dailyPumps[dStr] = (dailyPumps[dStr] || 0) + val;
+            } else {
+                totals.feedAll += val;
+                if (dStr === todayStr) totals.feedToday += val;
             }
         });
 
-        const surplus = totalPumpedAllTime - totalFedAllTime;
+        // Calculate 7-Day Average Pump
+        const last7Days = Object.values(dailyPumps).slice(-7);
+        const avg7Day = last7Days.length ? (last7Days.reduce((a, b) => a + b, 0) / last7Days.length).toFixed(1) : 0;
 
-        // 3. Update the UI with the "Stock" Dashboard
+        // 3. Update Dashboard
         document.getElementById('stats-box').innerHTML = `
             <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
-                <div class="card" style="margin:0; text-align:center; border-top:4px solid #81c784;">
-                    <small>Today's Pump</small><br><strong style="font-size:18px;">${pumpedToday}ml</strong>
+                <div class="card" style="margin:0; text-align:center;">
+                    <small>Today's Pump</small><br><strong>${totals.pumpToday}ml</strong>
                 </div>
-                <div class="card" style="margin:0; text-align:center; border-top:4px solid #fb8c00;">
-                    <small>Today's Feed</small><br><strong style="font-size:18px;">${fedToday}ml</strong>
+                <div class="card" style="margin:0; text-align:center;">
+                    <small>7-Day Avg</small><br><strong>${avg7Day}ml</strong>
                 </div>
             </div>
-            <div class="card" style="margin:0 0 15px 0; display:flex; justify-content:space-between; align-items:center; background:#e8f5e9; border:none;">
-                <div><small>Current Surplus (Fridge/Freezer)</small><br><strong style="font-size:22px; color:#2e7d32;">${surplus}ml</strong></div>
-                <div style="text-align:right;"><small>Total All-Time Pumped</small><br><strong>${totalPumpedAllTime}ml</strong></div>
+            <div class="card" style="background:#e8f5e9; border:none; margin-bottom:15px;">
+                <div style="display:flex; justify-content:space-between;">
+                    <span><strong>Fridge Surplus:</strong></span>
+                    <strong style="color:#2e7d32;">${totals.pumpAll - totals.feedAll}ml</strong>
+                </div>
             </div>
+            <div id="history-list" style="max-height:150px; overflow-y:auto; font-size:12px; margin-bottom:15px;"></div>
         `;
 
-        // 4. Create the Graph with two separate lines
-        const labels = myMilk.map(d => {
-            const dt = new Date(d.timestamp);
-            return dt.toLocaleDateString([], {day:'2-digit', month:'short'}) + ' ' + dt.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-        });
+        // 4. Populate History with Delete Buttons
+        const historyHtml = myMilk.slice(-5).reverse().map(row => `
+            <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
+                <span>${new Date(row.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${row.value}ml (${row.detail1})</span>
+                <button onclick="deleteEntry('${row.timestamp}')" style="color:red; background:none; border:none; cursor:pointer;">✕</button>
+            </div>
+        `).join('');
+        document.getElementById('history-list').innerHTML = `<strong>Recent Logs:</strong>` + historyHtml;
 
-        const ctx = document.getElementById('milkChart').getContext('2d');
+        // 5. Chart (Separate Pump vs Feed)
+        const labels = myMilk.map(d => new Date(d.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'}));
         if (myChart) myChart.destroy();
-        myChart = new Chart(ctx, {
-            type: 'line', 
+        myChart = new Chart(document.getElementById('milkChart'), {
+            type: 'line',
             data: {
                 labels: labels,
                 datasets: [
-                    {
-                        label: 'Pumped (Supply)',
-                        data: myMilk.map(d => d.detail1.toLowerCase().includes('pump') ? d.value : null),
-                        borderColor: '#81c784',
-                        backgroundColor: '#81c784',
-                        tension: 0.3,
-                        spanGaps: true,
-                        pointRadius: 5
-                    },
-                    {
-                        label: 'Fed (Demand)',
-                        data: myMilk.map(d => d.detail1.toLowerCase().includes('feed') ? d.value : null),
-                        borderColor: '#fb8c00',
-                        backgroundColor: '#fb8c00',
-                        tension: 0.3,
-                        spanGaps: true,
-                        pointRadius: 5
-                    }
+                    { label: 'Pumped', data: myMilk.map(d => d.detail1.toLowerCase().includes('pump') ? d.value : null), borderColor: '#81c784', spanGaps: true },
+                    { label: 'Fed', data: myMilk.map(d => d.detail1.toLowerCase().includes('feed') ? d.value : null), borderColor: '#fb8c00', spanGaps: true }
                 ]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: { y: { beginAtZero: true } },
-                plugins: { legend: { position: 'bottom' } }
-            }
+            options: { responsive: true, maintainAspectRatio: false }
         });
         btn.innerText = "🔄 Refresh My Stats";
-    } catch (e) {
-        btn.innerText = "❌ Load Failed";
-        console.error(e);
-    }
+    } catch (e) { btn.innerText = "❌ Load Failed"; }
 };
+
+// The actual Delete Function
+window.deleteEntry = async (timestamp) => {
+    if (!confirm("Delete this entry?")) return;
+    try {
+        await fetch(GOOGLE_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: JSON.stringify({ action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email })
+        });
+        alert("Delete requested. Please refresh in a moment.");
+        loadChartData();
+    } catch (e) { alert("Delete failed"); }
+};
+    
     
 
 </script>
