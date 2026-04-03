@@ -137,7 +137,7 @@
             <h2 style="color: var(--accent); margin-top:0;">📊 Milk Bank Trends</h2>
             <div id="stats-box"></div> 
             <div class="card">
-                <button onclick="loadChartData()" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Refresh My Stats</button>
+                <button onclick="loadChartData()" id="refreshMilkBtn" style="background:var(--accent); color:white; border:none; padding:12px; border-radius:10px; width:100%; margin-bottom:15px; font-weight:bold; cursor:pointer;">🔄 Refresh My Stats</button>
                 <div style="height: 300px; width: 100%;">
                     <canvas id="milkChart"></canvas>
                 </div>
@@ -152,8 +152,8 @@
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
     window.currentMode = 'Pump';
     window.currentSide = 'Left';
-    let myChart = null;
-    let formChart = null;
+    let milkChart = null;
+    let formulaChart = null;
 
     window.showPage = (id, btn) => {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -189,7 +189,17 @@
         btn.innerText = "⌛ Sending...";
 
         try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ timestamp: time, category: 'Milk', value: amt, detail1: `${window.currentMode} (${window.currentSide})`, user: userEmail })});
+            await fetch(GOOGLE_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ 
+                    timestamp: time, 
+                    category: 'Milk', 
+                    value: amt, 
+                    detail1: `${window.currentMode} (${window.currentSide})`, 
+                    user: userEmail 
+                })
+            });
             btn.innerText = "✅ Saved!";
             setTimeout(() => { btn.innerText = "Confirm & Save"; document.getElementById('milkAmt').value = ''; }, 2000);
         } catch (e) { alert("Error saving!"); btn.innerText = "❌ Error"; }
@@ -247,8 +257,8 @@
             document.getElementById('form-avg').innerText = avg + "ml";
 
             const ctx = document.getElementById('formulaChart').getContext('2d');
-            if (window.formChart) window.formChart.destroy();
-            window.formChart = new Chart(ctx, {
+            if (formulaChart) formulaChart.destroy();
+            formulaChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: Object.keys(dailyTotals),
@@ -267,7 +277,7 @@
     };
 
     window.loadChartData = async () => {
-        const btn = document.querySelector('#scalper button');
+        const btn = document.getElementById('refreshMilkBtn');
         btn.innerText = "⌛ Summarizing Trends...";
         try {
             const response = await fetch(GOOGLE_URL);
@@ -332,8 +342,8 @@
 
             const labels = Object.keys(dailyTotals);
             const ctx = document.getElementById('milkChart').getContext('2d');
-            if (window.myChart) window.myChart.destroy();
-            window.myChart = new Chart(ctx, {
+            if (milkChart) milkChart.destroy();
+            milkChart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
