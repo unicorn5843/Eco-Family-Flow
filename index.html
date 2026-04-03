@@ -33,10 +33,13 @@
         if (user) {
           authScreen.style.display = 'none';
           appInterface.style.display = 'flex';
+          
+          // Set default time for both loggers
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-          const timeInput = document.getElementById('feedTime');
-          if(timeInput) timeInput.value = now.toISOString().slice(0, 16);
+          const timeStr = now.toISOString().slice(0, 16);
+          if(document.getElementById('feedTime')) document.getElementById('feedTime').value = timeStr;
+          if(document.getElementById('formulaTime')) document.getElementById('formulaTime').value = timeStr;
         } else {
           authScreen.style.display = 'flex';
           appInterface.style.display = 'none';
@@ -65,8 +68,9 @@
         .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; }
         .night nav { background: #0a0000; border-right: 1px solid #400000; }
         .night .card { background: var(--night-card); border: 1px solid #400000; }
-        .night #auth-screen { background: #000; color: #ff0000; }
         .night .side-btn, .night .type-select { background:#1a0000; color:#ff0000; border-color:#400000; }
+        .hist-item { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:13px; }
+        .del-btn { color: #ff5252; background: none; border: none; font-weight: bold; cursor: pointer; padding: 0 5px; }
     </style>
 </head>
 <body>
@@ -114,13 +118,23 @@
                     <small>7-Day Avg</small><br><strong id="form-avg">0ml</strong>
                 </div>
             </div>
-            <div class="card" style="margin-bottom:15px;">
-                <label style="display:block; font-size:12px; margin-bottom:5px;">Log New Feed (ml):</label>
+            
+            <div class="card">
+                <label style="display:block; font-size:12px; margin-bottom:5px;">Date & Time:</label>
+                <input type="datetime-local" id="formulaTime" style="width:100%; padding:10px; margin-bottom:15px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;">
+                
+                <label style="display:block; font-size:12px; margin-bottom:5px;">Amount (ml):</label>
                 <div style="display:flex; gap:8px;">
                     <input type="number" id="formulaAmt" placeholder="e.g. 120" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
-                    <button onclick="submitFormulaLog()" id="formulaSaveBtn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">Save</button>
+                    <button onclick="submitFormulaLog()" id="formulaSaveBtn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Save</button>
                 </div>
             </div>
+
+            <div class="card">
+                <strong>Recent Formula Logs:</strong>
+                <div id="formula-history-list" style="max-height:150px; overflow-y:auto; margin-top:10px;"></div>
+            </div>
+
             <div class="card">
                 <div style="height: 250px; width: 100%;">
                     <canvas id="formulaChart"></canvas>
@@ -149,7 +163,7 @@
 <button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
 <script>
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
+    const GOOGLE_URL = 'REPLACE_WITH_YOUR_NEW_DEPLOY_URL';
     window.currentMode = 'Pump';
     window.currentSide = 'Left';
     let milkChart = null;
@@ -183,7 +197,7 @@
         const btn = document.getElementById('saveBtn');
         const amt = document.getElementById('milkAmt').value;
         const time = document.getElementById('feedTime').value;
-        const userEmail = (window.auth && window.auth.currentUser) ? window.auth.currentUser.email : "Unknown";
+        const userEmail = window.auth.currentUser.email;
 
         if(!amt) return alert("Enter amount!");
         btn.innerText = "⌛ Sending...";
@@ -207,6 +221,7 @@
 
     window.submitFormulaLog = async () => {
         const amt = document.getElementById('formulaAmt').value;
+        const time = document.getElementById('formulaTime').value;
         const btn = document.getElementById('formulaSaveBtn');
         if (!amt) return alert("Enter amount!");
 
@@ -216,7 +231,7 @@
                 method: 'POST',
                 mode: 'no-cors',
                 body: JSON.stringify({
-                    timestamp: new Date().toISOString(),
+                    timestamp: time,
                     user: window.auth.currentUser.email,
                     category: 'Formula',
                     value: amt,
@@ -255,6 +270,15 @@
 
             document.getElementById('form-today').innerText = todayTotal + "ml";
             document.getElementById('form-avg').innerText = avg + "ml";
+
+            // Render Formula History
+            const historyHtml = myFormula.slice(-10).reverse().map(row => `
+                <div class="hist-item">
+                    <span>${new Date(row.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${row.value}ml</span>
+                    <button class="del-btn" onclick="deleteEntry('${row.timestamp}', 'formula')">✕</button>
+                </div>
+            `).join('');
+            document.getElementById('formula-history-list').innerHTML = historyHtml || '<small>No recent logs</small>';
 
             const ctx = document.getElementById('formulaChart').getContext('2d');
             if (formulaChart) formulaChart.destroy();
@@ -296,7 +320,7 @@
                 const dt = new Date(row.timestamp);
                 const dStr = dt.toLocaleDateString([], { day: '2-digit', month: 'short' });
                 const fullDateStr = dt.toLocaleDateString();
-                const detailText = (row.detail1 || row.detail || "").toLowerCase();
+                const detailText = (row.detail1 || "").toLowerCase();
 
                 if (!dailyTotals[dStr]) dailyTotals[dStr] = { pump: 0, feed: 0 };
                 if (detailText.includes('pump')) {
@@ -333,9 +357,9 @@
             `;
 
             const historyHtml = myMilk.slice(-5).reverse().map(row => `
-                <div style="display:flex; justify-content:space-between; padding:5px; border-bottom:1px solid #eee;">
+                <div class="hist-item">
                     <span>${new Date(row.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${row.value}ml (${row.detail1})</span>
-                    <button onclick="deleteEntry('${row.timestamp}')" style="color:red; background:none; border:none; font-weight:bold;">✕</button>
+                    <button class="del-btn" onclick="deleteEntry('${row.timestamp}', 'milk')">✕</button>
                 </div>
             `).join('');
             document.getElementById('history-list').innerHTML = `<strong>Recent Logs:</strong>` + historyHtml;
@@ -358,7 +382,7 @@
         } catch (e) { btn.innerText = "❌ Load Failed"; console.error(e); }
     };
 
-    window.deleteEntry = async (timestamp) => {
+    window.deleteEntry = async (timestamp, context) => {
         if (!confirm("Delete this entry?")) return;
         try {
             await fetch(GOOGLE_URL, {
@@ -366,8 +390,9 @@
                 mode: 'no-cors',
                 body: JSON.stringify({ action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email })
             });
-            alert("Delete requested. Please refresh in a moment.");
-            loadChartData();
+            alert("Entry removed. Refreshing...");
+            if(context === 'formula') loadFormulaData();
+            else loadChartData();
         } catch (e) { alert("Delete failed"); }
     };
 </script>
