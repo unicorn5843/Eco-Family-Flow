@@ -121,7 +121,34 @@
         </div>
     </div>
 </div>
+<div id="formula" class="page" style="display:none">
+    <h2 style="color: var(--accent); margin-top:0;">🍼 Formula Tracker</h2>
+    
+    <div id="formula-stats" style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px;">
+        <div class="card" style="margin:0; text-align:center; border-top:4px solid #2196f3;">
+            <small>Today's Total</small><br><strong id="form-today">0ml</strong>
+        </div>
+        <div class="card" style="margin:0; text-align:center; border-top:4px solid #9c27b0;">
+            <small>7-Day Avg</small><br><strong id="form-avg">0ml</strong>
+        </div>
+    </div>
 
+    <div class="card" style="margin-bottom:15px;">
+        <label style="display:block; font-size:12px; margin-bottom:5px;">Log New Feed (ml):</label>
+        <div style="display:flex; gap:8px;">
+            <input type="number" id="formulaAmt" placeholder="e.g. 120" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ddd;">
+            <button onclick="submitFormulaLog()" id="formulaSaveBtn" style="background:var(--accent); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">Save</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <button onclick="loadFormulaData()" id="formulaRefreshBtn" style="background:#eee; color:#333; border:none; width:100%; padding:8px; border-radius:8px; margin-bottom:10px; font-size:12px;">🔄 Refresh Formula Trends</button>
+        <div style="height: 250px; width: 100%;">
+            <canvas id="formulaChart"></canvas>
+        </div>
+    </div>
+</div>
+            
     </main>
 </div>
 
