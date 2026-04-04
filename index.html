@@ -35,25 +35,26 @@
         }
       });
 
-      window.login = () => signInWithPopup(auth, provider).catch(e => alert(e.message));
+      window.login = () => signInWithPopup(auth, provider);
       window.logout = () => signOut(auth).then(() => location.reload());
 
       window.resetTimeInputs = () => {
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           const timeStr = now.toISOString().slice(0, 16);
-          document.querySelectorAll('input[type="datetime-local"]').forEach(i => i.value = timeStr);
+          document.getElementById('feedTime').value = timeStr;
+          document.getElementById('formulaTime').value = timeStr;
       };
     </script>
     
     <style>
         :root {
-            --bg: #f4f9f4; --side: #dceddc; --card: #ffffff; --text: #2d412d; --accent: #81c784; --chart-grid: #ddd;
+            --bg: #f4f9f4; --side: #dceddc; --card: #ffffff; --text: #2d412d; --accent: #81c784; --chart-grid: #eeeeee;
         }
         body.night {
             --bg: #000000; --side: #1a0000; --card: #120000; --text: #cc0000; --accent: #880000; --chart-grid: #330000;
         }
-        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; overflow: hidden; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; height: 100%; }
         
@@ -65,7 +66,7 @@
         .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
         input { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
-        .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
         
         .side-btn { flex:1; padding:10px; border-radius:10px; border:1px solid var(--accent); background: var(--card); color: var(--text); cursor:pointer; font-size: 14px; text-align: center; }
         .side-btn.active { background: var(--accent); color: white !important; font-weight:bold; }
@@ -150,11 +151,11 @@
     let milkChart = null;
     let formulaChart = null;
 
-    function toggleNight() {
+    window.toggleNight = () => {
         document.body.classList.toggle('night');
         if(document.getElementById('milk').style.display !== 'none') loadMilkData();
         else loadFormulaData();
-    }
+    };
 
     window.showPage = (id, btn) => {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -177,16 +178,23 @@
     };
 
     window.submitLog = async (cat) => {
-        const amt = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value;
-        const time = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime').value;
+        const amtInput = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
+        const timeInput = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime');
         const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
-        if(!amt) return alert("Enter amount!");
+        
+        if(!amtInput.value) {
+            const old = btn.innerText;
+            btn.innerText = "⚠️ Enter amount!";
+            setTimeout(() => btn.innerText = old, 2000);
+            return;
+        }
+        
         btn.innerText = "⌛ Saving...";
 
         const payload = { 
-            timestamp: time, 
+            timestamp: timeInput.value, 
             category: cat, 
-            value: amt, 
+            value: amtInput.value, 
             detail1: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
             user: window.auth.currentUser.email 
         };
@@ -194,17 +202,19 @@
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             btn.innerText = "✅ Saved!";
+            amtInput.value = ''; // clear input
             setTimeout(() => { 
                 btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
-                document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value = '';
                 cat === 'Milk' ? loadMilkData() : loadFormulaData();
-            }, 1000);
-        } catch (e) { alert("Error connecting to sheet."); btn.innerText = "Error"; }
+            }, 1500);
+        } catch (e) { 
+            btn.innerText = "❌ Connection Error";
+            setTimeout(() => btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle", 2000);
+        }
     };
 
-    // Calculate 7-Day Moving Average
     function getMovingAverage(dataArr, index, span = 7) {
-        let sum = 0; let count = 0;
+        let sum = 0, count = 0;
         for (let i = Math.max(0, index - span + 1); i <= index; i++) {
             sum += dataArr[i]; count++;
         }
@@ -223,22 +233,18 @@
             myLogs.forEach(r => {
                 const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
                 if(!dailyObj[dtStr]) dailyObj[dtStr] = { pump: 0, feed: 0 };
-                
                 let val = parseFloat(r.value) || 0;
                 if(r.detail1 && r.detail1.includes('Pump')) dailyObj[dtStr].pump += val;
                 else dailyObj[dtStr].feed += val;
             });
 
-            // Prepare chart arrays
-            const labels = Object.keys(dailyObj).slice(-10); // show last 10 active days
+            const labels = Object.keys(dailyObj).slice(-10);
             const pumpData = labels.map(l => dailyObj[l].pump);
             const feedData = labels.map(l => dailyObj[l].feed);
             
-            // Total daily volume for moving average
             const totalDailyData = labels.map(l => dailyObj[l].pump + dailyObj[l].feed);
             const movingAvgData = totalDailyData.map((_, i) => getMovingAverage(totalDailyData, i, 7));
 
-            // Stats
             const todayStr = new Date().toLocaleDateString([], {day:'2-digit', month:'short'});
             const todayPump = dailyObj[todayStr] ? dailyObj[todayStr].pump : 0;
             const todayFeed = dailyObj[todayStr] ? dailyObj[todayStr].feed : 0;
@@ -255,8 +261,12 @@
                     <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'milk')">✕</button>
                 </div>`).join('') || '<div style="padding:10px">No logs yet.</div>';
             
-            renderMilkChart(labels, pumpData, feedData, movingAvgData);
-        } catch(e) { hist.innerHTML = "⚠️ Data Load Failed"; console.error(e); }
+            renderChart('milkChart', labels, [
+                { label: '7-Day Avg', data: movingAvgData, borderColor: '#999', borderDash: [5, 5], tension: 0.4, fill: false },
+                { label: 'Pump', data: pumpData, borderColor: '#81c784', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.4, fill: true },
+                { label: 'Feed', data: feedData, borderColor: '#ffb74d', backgroundColor: 'rgba(255, 183, 77, 0.2)', tension: 0.4, fill: true }
+            ]);
+        } catch(e) { hist.innerHTML = "⚠️ Data Load Failed"; }
     };
 
     window.loadFormulaData = async () => {
@@ -273,12 +283,10 @@
                 dailyObj[dtStr] = (dailyObj[dtStr] || 0) + (parseFloat(r.value) || 0);
             });
 
-            // Prepare chart arrays
             const labels = Object.keys(dailyObj).slice(-10);
             const formulaData = labels.map(l => dailyObj[l]);
             const movingAvgData = formulaData.map((_, i) => getMovingAverage(formulaData, i, 7));
 
-            // Stats
             const todayStr = new Date().toLocaleDateString([], {day:'2-digit', month:'short'});
             const todayTotal = dailyObj[todayStr] || 0;
 
@@ -293,68 +301,37 @@
                     <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'formula')">✕</button>
                 </div>`).join('') || '<div style="padding:10px">No logs yet.</div>';
             
-            renderFormulaChart(labels, formulaData, movingAvgData);
+            renderChart('formulaChart', labels, [
+                { label: '7-Day Avg', data: movingAvgData, borderColor: '#999', borderDash: [5, 5], tension: 0.4, fill: false },
+                { label: 'Formula', data: formulaData, borderColor: '#64b5f6', backgroundColor: 'rgba(100, 181, 246, 0.2)', tension: 0.4, fill: true }
+            ]);
         } catch(e) { hist.innerHTML = "⚠️ Data Load Failed"; }
     };
 
-    function getChartColors() {
+    function renderChart(canvasId, labels, datasets) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
         const isNight = document.body.classList.contains('night');
-        return {
-            grid: isNight ? '#330000' : '#eeeeee',
-            text: isNight ? '#cc0000' : '#666666',
-            line: isNight ? '#ffaaaa' : '#999999'
-        };
-    }
+        const textColor = isNight ? '#cc0000' : '#666666';
+        const gridColor = isNight ? '#330000' : '#eeeeee';
 
-    function renderMilkChart(labels, pumpData, feedData, maData) {
-        const ctx = document.getElementById('milkChart').getContext('2d');
-        const c = getChartColors();
-        if(milkChart) milkChart.destroy();
+        if(canvasId === 'milkChart' && milkChart) milkChart.destroy();
+        if(canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
         
-        milkChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { type: 'line', label: '7-Day Avg (Total)', data: maData, borderColor: c.line, borderDash: [5, 5], tension: 0.3, fill: false },
-                    { label: 'Pump', data: pumpData, backgroundColor: '#81c784', borderRadius: 4 },
-                    { label: 'Feed', data: feedData, backgroundColor: '#ffb74d', borderRadius: 4 }
-                ]
-            },
+        const chartObj = new Chart(ctx, {
+            type: 'line',
+            data: { labels: labels, datasets: datasets },
             options: { 
                 responsive: true, maintainAspectRatio: false,
                 scales: { 
-                    x: { grid: { display: false }, ticks: { color: c.text } },
-                    y: { grid: { color: c.grid }, ticks: { color: c.text }, beginAtZero: true }
+                    x: { grid: { display: false }, ticks: { color: textColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
                 },
-                plugins: { legend: { labels: { color: c.text } } }
+                plugins: { legend: { labels: { color: textColor } } }
             }
         });
-    }
 
-    function renderFormulaChart(labels, data, maData) {
-        const ctx = document.getElementById('formulaChart').getContext('2d');
-        const c = getChartColors();
-        if(formulaChart) formulaChart.destroy();
-        
-        formulaChart = new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: labels,
-                datasets: [
-                    { type: 'line', label: '7-Day Avg', data: maData, borderColor: c.line, borderDash: [5, 5], tension: 0.3, fill: false },
-                    { label: 'Formula', data: data, backgroundColor: '#64b5f6', borderRadius: 4 }
-                ]
-            },
-            options: { 
-                responsive: true, maintainAspectRatio: false,
-                scales: { 
-                    x: { grid: { display: false }, ticks: { color: c.text } },
-                    y: { grid: { color: c.grid }, ticks: { color: c.text }, beginAtZero: true }
-                },
-                plugins: { legend: { labels: { color: c.text } } }
-            }
-        });
+        if (canvasId === 'milkChart') milkChart = chartObj;
+        else formulaChart = chartObj;
     }
 
     window.deleteItem = async (ts, type) => {
