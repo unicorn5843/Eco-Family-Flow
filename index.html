@@ -91,9 +91,9 @@
 
 <div id="app-interface">
     <nav>
-        <button class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
-        <button class="tab-btn" onclick="showPage('formula', this)">🥛</button>
-        <button class="tab-btn" onclick="showPage('combined', this)">📈</button>
+        <button id="btn-milk" class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
+        <button id="btn-formula" class="tab-btn" onclick="showPage('formula', this)">🥛</button>
+        <button id="btn-combined" class="tab-btn" onclick="showPage('combined', this)">📈</button>
         <button class="tab-btn" onclick="logout()" style="margin-top: auto; filter:none">🏃</button>
     </nav>
     <main>
@@ -151,11 +151,9 @@
     
     window.currentSide = 'Left';
     window.currentMode = 'Pump';
-    let milkChart = null;
-    let formulaChart = null;
-    let combinedChart = null;
-    let lastMilkTime = null;
-    let lastFormulaTime = null;
+    window.activeTab = 'milk';
+    let milkChart = null, formulaChart = null, combinedChart = null;
+    let lastMilkTime = null, lastFormulaTime = null;
 
     function updateClocks() {
         if (lastMilkTime) document.getElementById('milk-timer').innerText = `Last Feed: ${getTimeAgo(lastMilkTime)}`;
@@ -174,21 +172,23 @@
 
     window.toggleNight = () => {
         document.body.classList.toggle('night');
-        const activePage = document.querySelector('.page[style*="block"]') || document.getElementById('milk');
-        if(activePage.id === 'milk') loadMilkData();
-        else if(activePage.id === 'formula') loadFormulaData();
-        else loadCombinedData();
+        refreshCurrentPage();
     };
 
     window.showPage = (id, btn) => {
+        window.activeTab = id;
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).style.display = 'block';
         btn.classList.add('active');
-        if(id === 'milk') loadMilkData();
-        else if(id === 'formula') loadFormulaData();
-        else loadCombinedData();
+        refreshCurrentPage();
     };
+
+    function refreshCurrentPage() {
+        if(window.activeTab === 'milk') loadMilkData();
+        else if(window.activeTab === 'formula') loadFormulaData();
+        else loadCombinedData();
+    }
 
     window.setSide = (s) => {
         window.currentSide = s;
@@ -219,7 +219,7 @@
             amtInput.value = '';
             setTimeout(() => { 
                 btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
-                cat === 'Milk' ? loadMilkData() : loadFormulaData();
+                refreshCurrentPage();
             }, 1500);
         } catch (e) { btn.innerText = "❌ Error"; }
     };
@@ -283,9 +283,12 @@
             });
 
             const labels = Object.keys(dailyTotal).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
+            if(labels.length === 0) {
+                statsArea.innerHTML = "<div class='card'>No data to combine yet!</div>";
+                return;
+            }
+
             const combinedValues = labels.map(l => dailyTotal[l]);
-            
-            // Calculate 7-Day Avg
             const last7 = combinedValues.slice(-7);
             const avg = (last7.reduce((a, b) => a + b, 0) / (last7.length || 1)).toFixed(1);
             const todayTotal = dailyTotal[labels[labels.length-1]] || 0;
@@ -337,4 +340,4 @@
     window.deleteItem = async (ts, type) => {
         if(!confirm("Delete this log permanently?")) return;
         try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', tim
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', 
