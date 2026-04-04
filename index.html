@@ -31,7 +31,7 @@
           loadMilkData(); 
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
-          document.getElementById('app-interface').style.none;
+          document.getElementById('app-interface').style.display = 'none';
         }
       });
 
@@ -54,17 +54,7 @@
         body.night {
             --bg: #000000; --side: #1a0000; --card: #120000; --text: #cc0000; --accent: #880000; --chart-grid: #330000; --timer-bg: #210000;
         }
-            body { 
-        font-family: -apple-system, sans-serif; 
-        margin: 0; 
-        display: flex; 
-        height: 100dvh; 
-        background: var(--bg); 
-        color: var(--text); 
-        transition: background 0.3s, color 0.3s; 
-        overflow: hidden; 
-            }
-     
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100dvh; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; overflow: hidden; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; height: 100%; }
         
@@ -72,14 +62,7 @@
         .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; filter: grayscale(1); transition: 0.2s; }
         .tab-btn.active { background: var(--accent); filter: none; color: white; }
         
-        main { 
-        flex: 1; 
-        padding: 15px; 
-        padding-bottom: 100px; 
-        overflow-y: auto; 
-        box-sizing: border-box; 
-        -webkit-overflow-scrolling: touch; 
-        }
+        main { flex: 1; padding: 15px; padding-bottom: 100px; overflow-y: auto; box-sizing: border-box; -webkit-overflow-scrolling: touch; }
         .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
         .timer-banner { background: var(--timer-bg); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); font-weight: bold; font-size: 15px; }
@@ -110,6 +93,7 @@
     <nav>
         <button class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
         <button class="tab-btn" onclick="showPage('formula', this)">🥛</button>
+        <button class="tab-btn" onclick="showPage('combined', this)">📈</button>
         <button class="tab-btn" onclick="logout()" style="margin-top: auto; filter:none">🏃</button>
     </nav>
     <main>
@@ -147,6 +131,16 @@
             <div class="card"><div style="height: 250px;"><canvas id="formulaChart"></canvas></div></div>
             <div class="card"><small><strong>Recent History</strong></small><div id="formula-history"></div></div>
         </div>
+
+        <div id="combined" class="page" style="display:none">
+            <h2 style="margin-top:0;">📈 Combined Intake</h2>
+            <div id="combined-stats-area"></div>
+            <div class="card">
+                <small><strong>Daily Feed + Formula Volume</strong></small>
+                <div style="height: 250px; margin-top:10px;"><canvas id="combinedChart"></canvas></div>
+            </div>
+            <div id="combined-insights-area"></div>
+        </div>
     </main>
 </div>
 
@@ -159,17 +153,13 @@
     window.currentMode = 'Pump';
     let milkChart = null;
     let formulaChart = null;
+    let combinedChart = null;
     let lastMilkTime = null;
     let lastFormulaTime = null;
 
-    // Timer Logic
     function updateClocks() {
-        if (lastMilkTime) {
-            document.getElementById('milk-timer').innerText = `Last Feed: ${getTimeAgo(lastMilkTime)}`;
-        }
-        if (lastFormulaTime) {
-            document.getElementById('formula-timer').innerText = `Last Bottle: ${getTimeAgo(lastFormulaTime)}`;
-        }
+        if (lastMilkTime) document.getElementById('milk-timer').innerText = `Last Feed: ${getTimeAgo(lastMilkTime)}`;
+        if (lastFormulaTime) document.getElementById('formula-timer').innerText = `Last Bottle: ${getTimeAgo(lastFormulaTime)}`;
     }
 
     function getTimeAgo(timestamp) {
@@ -180,12 +170,14 @@
         return `${h}h ${m}m ago`;
     }
 
-    setInterval(updateClocks, 60000); // Update every minute
+    setInterval(updateClocks, 60000);
 
     window.toggleNight = () => {
         document.body.classList.toggle('night');
-        if(document.getElementById('milk').style.display !== 'none') loadMilkData();
-        else loadFormulaData();
+        const activePage = document.querySelector('.page[style*="block"]') || document.getElementById('milk');
+        if(activePage.id === 'milk') loadMilkData();
+        else if(activePage.id === 'formula') loadFormulaData();
+        else loadCombinedData();
     };
 
     window.showPage = (id, btn) => {
@@ -193,7 +185,9 @@
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).style.display = 'block';
         btn.classList.add('active');
-        id === 'milk' ? loadMilkData() : loadFormulaData();
+        if(id === 'milk') loadMilkData();
+        else if(id === 'formula') loadFormulaData();
+        else loadCombinedData();
     };
 
     window.setSide = (s) => {
@@ -212,23 +206,13 @@
         const amtInput = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
         const timeInput = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime');
         const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
-        
-        if(!amtInput.value) {
-            const old = btn.innerText;
-            btn.innerText = "⚠️ Enter amount!";
-            setTimeout(() => btn.innerText = old, 2000);
-            return;
-        }
-        
+        if(!amtInput.value) return;
         btn.innerText = "⌛ Saving...";
         const payload = { 
-            timestamp: timeInput.value, 
-            category: cat, 
-            value: amtInput.value, 
+            timestamp: timeInput.value, category: cat, value: amtInput.value, 
             detail1: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
             user: window.auth.currentUser.email 
         };
-
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             btn.innerText = "✅ Saved!";
@@ -237,97 +221,93 @@
                 btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
                 cat === 'Milk' ? loadMilkData() : loadFormulaData();
             }, 1500);
-        } catch (e) { 
-            btn.innerText = "❌ Connection Error";
-            setTimeout(() => btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle", 2000);
-        }
+        } catch (e) { btn.innerText = "❌ Error"; }
     };
 
     window.loadMilkData = async () => {
-        const hist = document.getElementById('milk-history');
         try {
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
-            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Milk')
-                               .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            // Find last 'Feed' specifically for the timer
+            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Milk').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
             const feeds = myLogs.filter(r => r.detail1 && r.detail1.includes('Feed'));
-            if(feeds.length > 0) {
-                lastMilkTime = feeds[feeds.length - 1].timestamp;
-                updateClocks();
-            }
-
+            if(feeds.length > 0) { lastMilkTime = feeds[feeds.length - 1].timestamp; updateClocks(); }
             let dailyObj = {};
             myLogs.forEach(r => {
                 const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
                 if(!dailyObj[dtStr]) dailyObj[dtStr] = { pump: 0, feed: 0 };
                 let val = parseFloat(r.value) || 0;
-                if(r.detail1 && r.detail1.includes('Pump')) dailyObj[dtStr].pump += val;
-                else dailyObj[dtStr].feed += val;
+                if(r.detail1 && r.detail1.includes('Pump')) dailyObj[dtStr].pump += val; else dailyObj[dtStr].feed += val;
             });
-
             const labels = Object.keys(dailyObj).slice(-10);
-            const pumpData = labels.map(l => dailyObj[l].pump);
-            const feedData = labels.map(l => dailyObj[l].feed);
-            
-            document.getElementById('milk-stats-area').innerHTML = `
-                <div class="stat-grid">
-                    <div class="stat-card">Today's Pump<br><strong>${dailyObj[labels[labels.length-1]]?.pump || 0}ml</strong></div>
-                    <div class="stat-card">Today's Feed<br><strong>${dailyObj[labels[labels.length-1]]?.feed || 0}ml</strong></div>
-                </div>`;
-
-            hist.innerHTML = myLogs.slice(-8).reverse().map(r => `
-                <div class="hist-item">
-                    <span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml (${r.detail1})</span>
-                    <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'milk')">✕</button>
-                </div>`).join('') || '<div style="padding:10px">No logs yet.</div>';
-            
-            renderChart('milkChart', labels, [
-                { label: 'Pump', data: pumpData, borderColor: '#81c784', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.4, fill: true },
-                { label: 'Feed', data: feedData, borderColor: '#ffb74d', backgroundColor: 'rgba(255, 183, 77, 0.2)', tension: 0.4, fill: true }
-            ]);
-        } catch(e) { hist.innerHTML = "⚠️ Data Load Failed"; }
+            document.getElementById('milk-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card">Today's Pump<br><strong>${dailyObj[labels[labels.length-1]]?.pump || 0}ml</strong></div><div class="stat-card">Today's Feed<br><strong>${dailyObj[labels[labels.length-1]]?.feed || 0}ml</strong></div></div>`;
+            document.getElementById('milk-history').innerHTML = myLogs.slice(-8).reverse().map(r => `<div class="hist-item"><span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml (${r.detail1})</span><button class="del-btn" onclick="deleteItem('${r.timestamp}', 'milk')">✕</button></div>`).join('');
+            renderChart('milkChart', labels, [{ label: 'Pump', data: labels.map(l => dailyObj[l].pump), borderColor: '#81c784', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.4, fill: true }, { label: 'Feed', data: labels.map(l => dailyObj[l].feed), borderColor: '#ffb74d', backgroundColor: 'rgba(255, 183, 77, 0.2)', tension: 0.4, fill: true }]);
+        } catch(e) {}
     };
 
     window.loadFormulaData = async () => {
-        const hist = document.getElementById('formula-history');
         try {
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
-            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Formula')
-                               .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            if(myLogs.length > 0) {
-                lastFormulaTime = myLogs[myLogs.length - 1].timestamp;
-                updateClocks();
-            }
-
+            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Formula').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            if(myLogs.length > 0) { lastFormulaTime = myLogs[myLogs.length - 1].timestamp; updateClocks(); }
             let dailyObj = {};
             myLogs.forEach(r => {
                 const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
                 dailyObj[dtStr] = (dailyObj[dtStr] || 0) + (parseFloat(r.value) || 0);
             });
-
             const labels = Object.keys(dailyObj).slice(-10);
-            const formulaData = labels.map(l => dailyObj[l]);
-            const todayTotal = dailyObj[labels[labels.length-1]] || 0;
+            document.getElementById('formula-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card" style="grid-column: span 2;">Today's Formula Total<br><strong>${dailyObj[labels[labels.length-1]] || 0}ml</strong></div></div>`;
+            document.getElementById('formula-history').innerHTML = myLogs.slice(-8).reverse().map(r => `<div class="hist-item"><span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml</span><button class="del-btn" onclick="deleteItem('${r.timestamp}', 'formula')">✕</button></div>`).join('');
+            renderChart('formulaChart', labels, [{ label: 'Formula', data: labels.map(l => dailyObj[l]), borderColor: '#64b5f6', backgroundColor: 'rgba(100, 181, 246, 0.2)', tension: 0.4, fill: true }]);
+        } catch(e) {}
+    };
 
-            document.getElementById('formula-stats-area').innerHTML = `
+    window.loadCombinedData = async () => {
+        const statsArea = document.getElementById('combined-stats-area');
+        const insightsArea = document.getElementById('combined-insights-area');
+        try {
+            const res = await fetch(GOOGLE_URL);
+            const data = await res.json();
+            const myLogs = data.filter(r => r.user === window.auth.currentUser.email);
+            
+            let dailyTotal = {};
+            let feedCount = {};
+            
+            myLogs.forEach(r => {
+                if (r.category === 'Formula' || (r.category === 'Milk' && r.detail1.includes('Feed'))) {
+                    const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
+                    dailyTotal[dtStr] = (dailyTotal[dtStr] || 0) + (parseFloat(r.value) || 0);
+                    feedCount[dtStr] = (feedCount[dtStr] || 0) + 1;
+                }
+            });
+
+            const labels = Object.keys(dailyTotal).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
+            const combinedValues = labels.map(l => dailyTotal[l]);
+            
+            // Calculate 7-Day Avg
+            const last7 = combinedValues.slice(-7);
+            const avg = (last7.reduce((a, b) => a + b, 0) / (last7.length || 1)).toFixed(1);
+            const todayTotal = dailyTotal[labels[labels.length-1]] || 0;
+            const todayCount = feedCount[labels[labels.length-1]] || 0;
+
+            statsArea.innerHTML = `
                 <div class="stat-grid">
-                    <div class="stat-card" style="grid-column: span 2;">Today's Formula Total<br><strong>${todayTotal}ml</strong></div>
+                    <div class="stat-card">Today's Intake<br><strong>${todayTotal}ml</strong></div>
+                    <div class="stat-card">7-Day Average<br><strong>${avg}ml</strong></div>
+                </div>`;
+            
+            insightsArea.innerHTML = `
+                <div class="card">
+                    <small><strong>Daily Insights</strong></small>
+                    <div style="display:flex; justify-content:space-around; margin-top:10px;">
+                        <div style="text-align:center"><small>Feeds Today</small><br><strong>${todayCount}</strong></div>
+                        <div style="text-align:center"><small>Avg Session</small><br><strong>${todayCount ? (todayTotal/todayCount).toFixed(0) : 0}ml</strong></div>
+                    </div>
                 </div>`;
 
-            hist.innerHTML = myLogs.slice(-8).reverse().map(r => `
-                <div class="hist-item">
-                    <span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml</span>
-                    <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'formula')">✕</button>
-                </div>`).join('') || '<div style="padding:10px">No logs yet.</div>';
-            
-            renderChart('formulaChart', labels, [
-                { label: 'Formula', data: formulaData, borderColor: '#64b5f6', backgroundColor: 'rgba(100, 181, 246, 0.2)', tension: 0.4, fill: true }
-            ]);
-        } catch(e) { hist.innerHTML = "⚠️ Data Load Failed"; }
+            renderChart('combinedChart', labels, [{ label: 'Total Intake', data: combinedValues, borderColor: '#9575cd', backgroundColor: 'rgba(149, 117, 205, 0.2)', tension: 0.4, fill: true }]);
+        } catch(e) { statsArea.innerHTML = "⚠️ Load Failed"; }
     };
 
     function renderChart(canvasId, labels, datasets) {
@@ -335,13 +315,11 @@
         const isNight = document.body.classList.contains('night');
         const textColor = isNight ? '#cc0000' : '#666666';
         const gridColor = isNight ? '#330000' : '#eeeeee';
-
         if(canvasId === 'milkChart' && milkChart) milkChart.destroy();
         if(canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
-        
+        if(canvasId === 'combinedChart' && combinedChart) combinedChart.destroy();
         const chartObj = new Chart(ctx, {
-            type: 'line',
-            data: { labels: labels, datasets: datasets },
+            type: 'line', data: { labels: labels, datasets: datasets },
             options: { 
                 responsive: true, maintainAspectRatio: false,
                 scales: { 
@@ -352,19 +330,11 @@
             }
         });
         if (canvasId === 'milkChart') milkChart = chartObj;
-        else formulaChart = chartObj;
+        else if (canvasId === 'formulaChart') formulaChart = chartObj;
+        else combinedChart = chartObj;
     }
 
     window.deleteItem = async (ts, type) => {
         if(!confirm("Delete this log permanently?")) return;
         try {
-            await fetch(GOOGLE_URL, { 
-                method: 'POST', mode: 'no-cors', 
-                body: JSON.stringify({ action: 'delete', timestamp: ts, user: window.auth.currentUser.email })
-            });
-            setTimeout(() => { type === 'milk' ? loadMilkData() : loadFormulaData(); }, 1000);
-        } catch (e) { alert("Failed to delete."); }
-    };
-</script>
-</body>
-</html>
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', tim
