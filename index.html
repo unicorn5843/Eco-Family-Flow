@@ -34,7 +34,7 @@
           authScreen.style.display = 'none';
           appInterface.style.display = 'flex';
           resetTimeInputs();
-          loadMilkData(); // Load default page data
+          loadMilkData(); // Auto-load the first page
         } else {
           authScreen.style.display = 'flex';
           appInterface.style.display = 'none';
@@ -69,10 +69,10 @@
         .side-btn, .type-select { flex:1; padding:10px; border-radius:10px; border:1px solid #ddd; background:white; cursor:pointer; font-size: 13px; }
         .side-btn.active, .type-select.active { background: var(--accent); color:white; border-color: var(--accent); font-weight:bold; }
         .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 100; }
-        .hist-item { display:flex; justify-content:space-between; padding:8px; border-bottom:1px solid #eee; font-size:12px; }
-        .del-btn { color: #ff5252; background: none; border: none; font-weight: bold; cursor: pointer; }
-        .stat-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px; }
-        .stat-card { background:white; padding:10px; border-radius:12px; text-align:center; border-top:4px solid var(--accent); }
+        .hist-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; font-size:13px; }
+        .del-btn { color: #ff5252; background: none; border: none; font-size: 18px; font-weight: bold; cursor: pointer; padding: 5px 10px; }
+        .stat-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; }
+        .stat-card { background:white; padding:12px; border-radius:12px; text-align:center; border-top:4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body>
@@ -116,7 +116,7 @@
 
             <div class="card">
                 <small><strong>Recent Milk History</strong></small>
-                <div id="milk-history" style="max-height:120px; overflow-y:auto; margin-top:5px;"></div>
+                <div id="milk-history" style="margin-top:10px;"></div>
             </div>
         </div>
 
@@ -137,7 +137,7 @@
 
             <div class="card">
                 <small><strong>Recent Formula History</strong></small>
-                <div id="formula-history" style="max-height:120px; overflow-y:auto; margin-top:5px;"></div>
+                <div id="formula-history" style="margin-top:10px;"></div>
             </div>
         </div>
 
@@ -148,11 +148,11 @@
 <button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
 
 <script>
-    const GOOGLE_URL = 'PASTE_YOUR_NEW_WEB_APP_URL_HERE';
+    const GOOGLE_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
     window.currentMode = 'Pump';
     window.currentSide = 'Left';
-    let milkChart = null;
-    let formulaChart = null;
+    let milkChartInstance = null;
+    let formulaChartInstance = null;
 
     window.showPage = (id, btn) => {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
@@ -229,13 +229,16 @@
             const surplus = totals.pAll - totals.fAll;
             document.getElementById('milk-stats-area').innerHTML = `
                 <div class="stat-grid">
-                    <div class="stat-card">Today<br><strong>${totals.pToday}ml</strong></div>
-                    <div class="stat-card" style="border-top-color:#fb8c00">Surplus<br><strong>${surplus}ml</strong></div>
+                    <div class="stat-card">Today's Pump<br><strong>${totals.pToday}ml</strong></div>
+                    <div class="stat-card" style="border-top-color:#fb8c00">Fridge Surplus<br><strong>${surplus}ml</strong></div>
                 </div>`;
 
-            renderHistory('milk-history', myMilk.slice(-5).reverse());
-            renderChart('milkChart', daily, ['#81c784', '#fb8c00'], ['Pumped', 'Fed']);
-        } catch(e) { console.error(e); }
+            renderHistory('milk-history', myMilk.slice(-10).reverse());
+            renderMilkChart(daily);
+        } catch(e) { 
+            console.error(e);
+            document.getElementById('milk-history').innerHTML = '<div style="color:red">⚠️ Data Load Failed</div>';
+        }
     };
 
     window.loadFormulaData = async () => {
@@ -258,10 +261,10 @@
 
             document.getElementById('formula-stats-area').innerHTML = `
                 <div class="stat-grid">
-                    <div class="stat-card" style="border-top-color:#2196f3; grid-column: span 2;">Today's Formula: <strong>${tToday}ml</strong></div>
+                    <div class="stat-card" style="border-top-color:#2196f3; grid-column: span 2;">Today's Total Formula: <strong>${tToday}ml</strong></div>
                 </div>`;
 
-            renderHistory('formula-history', myForm.slice(-5).reverse());
+            renderHistory('formula-history', myForm.slice(-10).reverse());
             renderFormulaChart(daily);
         } catch(e) { console.error(e); }
     };
@@ -269,20 +272,23 @@
     function renderHistory(id, logs) {
         document.getElementById(id).innerHTML = logs.map(r => `
             <div class="hist-item">
-                <span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml</span>
+                <div>
+                    <strong>${r.value}ml</strong><br>
+                    <small>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.detail1 || ''}</small>
+                </div>
                 <button class="del-btn" onclick="deleteItem('${r.timestamp}')">✕</button>
-            </div>`).join('') || 'None';
+            </div>`).join('') || '<p style="text-align:center; color:#999">No recent data</p>';
     }
 
-    function renderChart(id, daily, colors, labels) {
-        const ctx = document.getElementById(id).getContext('2d');
-        if(milkChart) milkChart.destroy();
+    function renderMilkChart(daily) {
+        const ctx = document.getElementById('milkChart').getContext('2d');
+        if(milkChartInstance) milkChartInstance.destroy();
         const days = Object.keys(daily);
-        milkChart = new Chart(ctx, {
+        milkChartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels: days, datasets: [
-                { label: labels[0], data: days.map(d => daily[d].p), borderColor: colors[0], tension: 0.3 },
-                { label: labels[1], data: days.map(d => daily[d].f), borderColor: colors[1], tension: 0.3 }
+                { label: 'Pumped', data: days.map(d => daily[d].p), borderColor: '#81c784', tension: 0.3 },
+                { label: 'Fed', data: days.map(d => daily[d].f), borderColor: '#fb8c00', tension: 0.3 }
             ]},
             options: { responsive: true, maintainAspectRatio: false }
         });
@@ -290,9 +296,9 @@
 
     function renderFormulaChart(daily) {
         const ctx = document.getElementById('formulaChart').getContext('2d');
-        if(formulaChart) formulaChart.destroy();
+        if(formulaChartInstance) formulaChartInstance.destroy();
         const days = Object.keys(daily);
-        formulaChart = new Chart(ctx, {
+        formulaChartInstance = new Chart(ctx, {
             type: 'line',
             data: { labels: days, datasets: [{ label: 'ml', data: days.map(d => daily[d]), borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.1)', fill: true, tension: 0.3 }]},
             options: { responsive: true, maintainAspectRatio: false }
@@ -300,12 +306,18 @@
     }
 
     window.deleteItem = async (ts) => {
-        if(!confirm("Delete?")) return;
+        if(!confirm("Are you sure you want to delete this entry?")) return;
         try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', timestamp: ts, user: window.auth.currentUser.email })});
-            alert("Requested. Refreshing...");
-            loadMilkData(); loadFormulaData();
-        } catch(e) { alert("Fail"); }
+            await fetch(GOOGLE_URL, { 
+                method: 'POST', 
+                mode: 'no-cors', 
+                body: JSON.stringify({ action: 'delete', timestamp: ts, user: window.auth.currentUser.email })
+            });
+            alert("Delete request sent. It may take a moment to reflect.");
+            // Refresh current tab
+            const activeTab = document.querySelector('.tab-btn.active').getAttribute('onclick');
+            if(activeTab.includes('milk')) loadMilkData(); else loadFormulaData();
+        } catch(e) { alert("Failed to delete."); }
     };
 </script>
 </body>
