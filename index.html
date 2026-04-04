@@ -54,7 +54,17 @@
         body.night {
             --bg: #000000; --side: #1a0000; --card: #120000; --text: #cc0000; --accent: #880000; --chart-grid: #330000; --timer-bg: #210000;
         }
-        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; overflow: hidden; }
+            body { 
+        font-family: -apple-system, sans-serif; 
+        margin: 0; 
+        display: flex; 
+        height: 100dvh; 
+        background: var(--bg); 
+        color: var(--text); 
+        transition: background 0.3s, color 0.3s; 
+        overflow: hidden; 
+            }
+     
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; height: 100%; }
         
@@ -62,7 +72,14 @@
         .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; filter: grayscale(1); transition: 0.2s; }
         .tab-btn.active { background: var(--accent); filter: none; color: white; }
         
-        main { flex: 1; padding: 15px; overflow-y: auto; box-sizing: border-box; }
+        main { 
+        flex: 1; 
+        padding: 15px; 
+        padding-bottom: 100px; 
+        overflow-y: auto; 
+        box-sizing: border-box; 
+        -webkit-overflow-scrolling: touch; 
+        }
         .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
         .timer-banner { background: var(--timer-bg); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); font-weight: bold; font-size: 15px; }
