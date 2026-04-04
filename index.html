@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eco Family Flow</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script type="module">
@@ -28,16 +28,14 @@
       window.logout = () => signOut(auth);
 
       onAuthStateChanged(auth, (user) => {
-        const authScreen = document.getElementById('auth-screen');
-        const appInterface = document.getElementById('app-interface');
         if (user) {
-          authScreen.style.display = 'none';
-          appInterface.style.display = 'flex';
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('app-interface').style.display = 'flex';
           resetTimeInputs();
-          loadMilkData(); // Auto-load the first page
+          loadMilkData(); 
         } else {
-          authScreen.style.display = 'flex';
-          appInterface.style.display = 'none';
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('app-interface').style.display = 'none';
         }
       });
 
@@ -45,56 +43,61 @@
           const now = new Date();
           now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
           const timeStr = now.toISOString().slice(0, 16);
-          if(document.getElementById('feedTime')) document.getElementById('feedTime').value = timeStr;
-          if(document.getElementById('formulaTime')) document.getElementById('formulaTime').value = timeStr;
+          document.querySelectorAll('input[type="datetime-local"]').forEach(i => i.value = timeStr);
       };
     </script>
     
     <style>
         :root {
-            --bg: #f4f9f4; --sidebar: #dceddc; --card: #ffffff;
-            --text: #2d412d; --accent: #81c784; --night-bg: #000;
-            --night-text: #ff0000; --night-card: #1a0000;
+            --bg: #f4f9f4; --side: #dceddc; --card: #ffffff; --text: #2d412d; --accent: #81c784; --chart-grid: #ddd;
         }
-        body { font-family: sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
-        body.night { background: var(--night-bg); color: var(--night-text); }
+        body.night {
+            --bg: #0a0000; --side: #1a0000; --card: #150000; --text: #cc0000; --accent: #880000; --chart-grid: #330000;
+        }
+        body { font-family: -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg); color: var(--text); transition: 0.3s; overflow: hidden; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; height: 100%; }
-        nav { width: 75px; background: var(--sidebar); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid #c8d6c8; }
-        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; }
-        .tab-btn.active { background: var(--accent); color: white; }
-        main { flex: 1; padding: 15px; overflow-y: auto; }
-        .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); }
-        .save-btn { background: #66bb6a; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
-        .side-btn, .type-select { flex:1; padding:10px; border-radius:10px; border:1px solid #ddd; background:white; cursor:pointer; font-size: 13px; }
-        .side-btn.active, .type-select.active { background: var(--accent); color:white; border-color: var(--accent); font-weight:bold; }
-        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #333; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; z-index: 100; }
-        .hist-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid #eee; font-size:13px; }
-        .del-btn { color: #ff5252; background: none; border: none; font-size: 18px; font-weight: bold; cursor: pointer; padding: 5px 10px; }
+        
+        nav { width: 70px; background: var(--side); display: flex; flex-direction: column; align-items: center; padding-top: 20px; border-right: 1px solid rgba(0,0,0,0.1); }
+        .tab-btn { background: none; border: none; font-size: 24px; margin-bottom: 25px; cursor: pointer; padding: 12px; border-radius: 12px; filter: grayscale(1); }
+        .tab-btn.active { background: var(--accent); filter: none; color: white; }
+        
+        main { flex: 1; padding: 15px; overflow-y: auto; box-sizing: border-box; }
+        .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        
+        input, select { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; }
+        .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; }
+        
+        .side-btn, .type-select { flex:1; padding:10px; border-radius:10px; border:1px solid var(--accent); background: var(--card); color: var(--text); cursor:pointer; font-size: 13px; }
+        .side-btn.active, .type-select.active { background: var(--accent); color: white !important; font-weight:bold; }
+        
+        .hist-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(128,128,128,0.2); font-size:13px; }
+        .del-btn { color: #ff5252; background: none; border: none; font-size: 18px; cursor: pointer; }
+        
         .stat-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; }
-        .stat-card { background:white; padding:12px; border-radius:12px; text-align:center; border-top:4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .stat-card { background: var(--card); padding: 12px; border-radius: 12px; text-align: center; border-top: 4px solid var(--accent); }
+        
+        .night-toggle { position: fixed; bottom: 20px; right: 20px; background: #222; color: #ff0000; border: 2px solid #440000; border-radius: 50%; width: 55px; height: 55px; cursor: pointer; z-index: 100; font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <h1 style="color: var(--accent)">Eco Family Flow</h1>
-    <button onclick="login()" style="padding: 15px 30px; border-radius: 30px; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer;">Sign in with Google</button>
+    <button onclick="login()" style="padding: 15px 30px; border-radius: 30px; border: 1px solid var(--accent); background: var(--card); color: var(--text); font-weight: bold;">Sign in with Google</button>
 </div>
 
 <div id="app-interface">
     <nav>
         <button class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
         <button class="tab-btn" onclick="showPage('formula', this)">🥛</button>
-        <button class="tab-btn" onclick="showPage('nappy', this)">🧷</button>
-        <button class="tab-btn" onclick="logout()" style="margin-top: auto;">🏃</button>
+        <button class="tab-btn" onclick="logout()" style="margin-top: auto; filter:none">🏃</button>
     </nav>
     <main>
         <div id="milk" class="page">
-            <h2 style="color: var(--accent); margin-top:0;">🤱 Milk Command</h2>
-            
+            <h2 style="margin-top:0;">🤱 Milk Command</h2>
             <div class="card">
-                <input type="datetime-local" id="feedTime" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;">
+                <input type="datetime-local" id="feedTime">
                 <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                     <button id="mode-pump" class="type-select active" onclick="setMilkMode('Pump')">Pump</button>
                     <button id="mode-feed" class="type-select" onclick="setMilkMode('Feed')">Feed</button>
@@ -104,63 +107,49 @@
                     <button id="sideR" class="side-btn" onclick="setSide('Right')">Right</button>
                     <button id="sideB" class="side-btn" onclick="setSide('Both')">Both</button>
                 </div>
-                <input type="number" id="milkAmt" placeholder="Amount (ml)" style="font-size: 20px; text-align: center; width: 100%; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #eee;">
+                <input type="number" id="milkAmt" placeholder="Amount (ml)" style="font-size: 20px; text-align: center;">
                 <button class="save-btn" id="saveBtn" onclick="submitLog('Milk')">Confirm & Save</button>
             </div>
-
             <div id="milk-stats-area"></div>
-
-            <div class="card">
-                <div style="height: 250px;"><canvas id="milkChart"></canvas></div>
-            </div>
-
-            <div class="card">
-                <small><strong>Recent Milk History</strong></small>
-                <div id="milk-history" style="margin-top:10px;"></div>
-            </div>
+            <div class="card"><div style="height: 220px;"><canvas id="milkChart"></canvas></div></div>
+            <div class="card"><small><strong>History</strong></small><div id="milk-history"></div></div>
         </div>
 
         <div id="formula" class="page" style="display:none">
-            <h2 style="color: #2196f3; margin-top:0;">🥛 Formula Command</h2>
-            
+            <h2 style="margin-top:0;">🥛 Formula Command</h2>
             <div class="card">
-                <input type="datetime-local" id="formulaTime" style="width:100%; padding:10px; margin-bottom:10px; border-radius:8px; border:1px solid #ddd; box-sizing:border-box;">
-                <input type="number" id="formulaAmt" placeholder="Bottle Amount (ml)" style="font-size: 20px; text-align: center; width: 100%; padding:12px; border-radius:10px; margin-bottom:15px; border:1px solid #eee;">
-                <button class="save-btn" id="formulaSaveBtn" style="background:#2196f3" onclick="submitLog('Formula')">Save Bottle</button>
+                <input type="datetime-local" id="formulaTime">
+                <input type="number" id="formulaAmt" placeholder="Bottle (ml)" style="font-size: 20px; text-align: center;">
+                <button class="save-btn" id="formulaSaveBtn" onclick="submitLog('Formula')">Save Bottle</button>
             </div>
-
             <div id="formula-stats-area"></div>
-
-            <div class="card">
-                <div style="height: 250px;"><canvas id="formulaChart"></canvas></div>
-            </div>
-
-            <div class="card">
-                <small><strong>Recent Formula History</strong></small>
-                <div id="formula-history" style="margin-top:10px;"></div>
-            </div>
+            <div class="card"><div style="height: 220px;"><canvas id="formulaChart"></canvas></div></div>
+            <div class="card"><small><strong>History</strong></small><div id="formula-history"></div></div>
         </div>
-
-        <div id="nappy" class="page" style="display:none"><h2 style="color: var(--accent)">🧷 Nappy</h2><div class="card">Coming Soon...</div></div>
     </main>
 </div>
 
-<button class="night-toggle" onclick="document.body.classList.toggle('night')">🌙</button>
+<button class="night-toggle" onclick="toggleNight()">🌙</button>
 
 <script>
-    const GOOGLE_URL = 'PASTE_YOUR_APPS_SCRIPT_URL_HERE';
+    const GOOGLE_URL = 'PASTE_YOUR_NEW_WEB_APP_URL_HERE';
     window.currentMode = 'Pump';
     window.currentSide = 'Left';
-    let milkChartInstance = null;
-    let formulaChartInstance = null;
+    let milkChart = null;
+    let formulaChart = null;
+
+    function toggleNight() {
+        document.body.classList.toggle('night');
+        if(document.getElementById('milk').style.display !== 'none') loadMilkData();
+        else loadFormulaData();
+    }
 
     window.showPage = (id, btn) => {
         document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(id).style.display = 'block';
-        if(btn) btn.classList.add('active');
-        if(id === 'milk') loadMilkData();
-        if(id === 'formula') loadFormulaData();
+        btn.classList.add('active');
+        id === 'milk' ? loadMilkData() : loadFormulaData();
     };
 
     window.setMilkMode = (m) => {
@@ -177,13 +166,9 @@
     };
 
     window.submitLog = async (cat) => {
-        const amtId = cat === 'Milk' ? 'milkAmt' : 'formulaAmt';
-        const timeId = cat === 'Milk' ? 'feedTime' : 'formulaTime';
-        const btnId = cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn';
-        
-        const amt = document.getElementById(amtId).value;
-        const time = document.getElementById(timeId).value;
-        const btn = document.getElementById(btnId);
+        const amt = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value;
+        const time = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime').value;
+        const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
         const detail = cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle';
 
         if(!amt) return alert("Enter amount!");
@@ -196,11 +181,11 @@
             });
             btn.innerText = "✅ Saved!";
             setTimeout(() => { 
-                btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle"; 
-                document.getElementById(amtId).value = '';
+                btn.innerText = "Confirm & Save";
+                document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value = '';
                 cat === 'Milk' ? loadMilkData() : loadFormulaData();
-            }, 1500);
-        } catch (e) { alert("Error!"); btn.innerText = "❌ Error"; }
+            }, 1000);
+        } catch (e) { alert("Error writing data."); }
     };
 
     window.loadMilkData = async () => {
@@ -208,37 +193,31 @@
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
             const user = window.auth.currentUser.email;
-            const today = new Date().toLocaleDateString();
-
             let myMilk = data.filter(r => r.user === user && r.category === 'Milk').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
             
-            let daily = {}, totals = { pAll: 0, fAll: 0, pToday: 0 };
+            let daily = {}, totals = { pToday: 0, pAll: 0, fAll: 0 };
+            const today = new Date().toLocaleDateString();
+
             myMilk.forEach(r => {
                 const dt = new Date(r.timestamp);
                 const dStr = dt.toLocaleDateString([], {day:'2-digit', month:'short'});
                 const val = parseFloat(r.value) || 0;
-                const mode = (r.detail1 || "").toLowerCase();
-
                 if(!daily[dStr]) daily[dStr] = {p:0, f:0};
-                if(mode.includes('pump')) {
-                    totals.pAll += val; daily[dStr].p += val;
+                if(r.detail1.includes('Pump')) {
+                    daily[dStr].p += val; totals.pAll += val;
                     if(dt.toLocaleDateString() === today) totals.pToday += val;
-                } else { totals.fAll += val; daily[dStr].f += val; }
+                } else { daily[dStr].f += val; totals.fAll += val; }
             });
 
-            const surplus = totals.pAll - totals.fAll;
             document.getElementById('milk-stats-area').innerHTML = `
                 <div class="stat-grid">
                     <div class="stat-card">Today's Pump<br><strong>${totals.pToday}ml</strong></div>
-                    <div class="stat-card" style="border-top-color:#fb8c00">Fridge Surplus<br><strong>${surplus}ml</strong></div>
+                    <div class="stat-card">Surplus<br><strong>${totals.pAll - totals.fAll}ml</strong></div>
                 </div>`;
 
-            renderHistory('milk-history', myMilk.slice(-10).reverse());
-            renderMilkChart(daily);
-        } catch(e) { 
-            console.error(e);
-            document.getElementById('milk-history').innerHTML = '<div style="color:red">⚠️ Data Load Failed</div>';
-        }
+            renderHistory('milk-history', myMilk.slice(-8).reverse(), 'milk');
+            renderChart('milkChart', daily, ['#81c784', '#fb8c00']);
+        } catch(e) { document.getElementById('milk-history').innerHTML = "⚠️ Load Failed"; }
     };
 
     window.loadFormulaData = async () => {
@@ -246,11 +225,11 @@
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
             const user = window.auth.currentUser.email;
-            const today = new Date().toLocaleDateString();
-
             let myForm = data.filter(r => r.user === user && r.category === 'Formula').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
             
             let daily = {}, tToday = 0;
+            const today = new Date().toLocaleDateString();
+
             myForm.forEach(r => {
                 const dt = new Date(r.timestamp);
                 const dStr = dt.toLocaleDateString([], {day:'2-digit', month:'short'});
@@ -260,64 +239,58 @@
             });
 
             document.getElementById('formula-stats-area').innerHTML = `
-                <div class="stat-grid">
-                    <div class="stat-card" style="border-top-color:#2196f3; grid-column: span 2;">Today's Total Formula: <strong>${tToday}ml</strong></div>
-                </div>`;
+                <div class="stat-card" style="margin-bottom:15px;">Today's Formula Total: <strong>${tToday}ml</strong></div>`;
 
-            renderHistory('formula-history', myForm.slice(-10).reverse());
-            renderFormulaChart(daily);
-        } catch(e) { console.error(e); }
+            renderHistory('formula-history', myForm.slice(-8).reverse(), 'formula');
+            renderChart('formulaChart', daily, ['#2196f3']);
+        } catch(e) { }
     };
 
-    function renderHistory(id, logs) {
+    function renderHistory(id, logs, type) {
         document.getElementById(id).innerHTML = logs.map(r => `
             <div class="hist-item">
-                <div>
-                    <strong>${r.value}ml</strong><br>
-                    <small>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.detail1 || ''}</small>
-                </div>
-                <button class="del-btn" onclick="deleteItem('${r.timestamp}')">✕</button>
-            </div>`).join('') || '<p style="text-align:center; color:#999">No recent data</p>';
+                <span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml (${r.detail1})</span>
+                <button class="del-btn" onclick="deleteItem('${r.timestamp}', '${type}')">✕</button>
+            </div>`).join('') || 'No data';
     }
 
-    function renderMilkChart(daily) {
-        const ctx = document.getElementById('milkChart').getContext('2d');
-        if(milkChartInstance) milkChartInstance.destroy();
+    function renderChart(canvasId, daily, colors) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        const isNight = document.body.classList.contains('night');
+        const gridColor = isNight ? '#330000' : '#eeeeee';
+        const textColor = isNight ? '#cc0000' : '#666666';
+
+        if(canvasId === 'milkChart' && milkChart) milkChart.destroy();
+        if(canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
+
         const days = Object.keys(daily);
-        milkChartInstance = new Chart(ctx, {
+        const config = {
             type: 'line',
-            data: { labels: days, datasets: [
-                { label: 'Pumped', data: days.map(d => daily[d].p), borderColor: '#81c784', tension: 0.3 },
-                { label: 'Fed', data: days.map(d => daily[d].f), borderColor: '#fb8c00', tension: 0.3 }
-            ]},
-            options: { responsive: true, maintainAspectRatio: false }
-        });
+            data: {
+                labels: days,
+                datasets: canvasId === 'milkChart' ? [
+                    { label: 'Pump', data: days.map(d => daily[d].p), borderColor: colors[0], tension: 0.3 },
+                    { label: 'Feed', data: days.map(d => daily[d].f), borderColor: colors[1], tension: 0.3 }
+                ] : [{ label: 'Formula', data: days.map(d => daily[d]), borderColor: colors[0], tension: 0.3 }]
+            },
+            options: { 
+                responsive: true, maintainAspectRatio: false,
+                scales: { 
+                    x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: textColor } }
+                },
+                plugins: { legend: { labels: { color: textColor } } }
+            }
+        };
+        
+        if(canvasId === 'milkChart') milkChart = new Chart(ctx, config);
+        else formulaChart = new Chart(ctx, config);
     }
 
-    function renderFormulaChart(daily) {
-        const ctx = document.getElementById('formulaChart').getContext('2d');
-        if(formulaChartInstance) formulaChartInstance.destroy();
-        const days = Object.keys(daily);
-        formulaChartInstance = new Chart(ctx, {
-            type: 'line',
-            data: { labels: days, datasets: [{ label: 'ml', data: days.map(d => daily[d]), borderColor: '#2196f3', backgroundColor: 'rgba(33, 150, 243, 0.1)', fill: true, tension: 0.3 }]},
-            options: { responsive: true, maintainAspectRatio: false }
-        });
-    }
-
-    window.deleteItem = async (ts) => {
-        if(!confirm("Are you sure you want to delete this entry?")) return;
-        try {
-            await fetch(GOOGLE_URL, { 
-                method: 'POST', 
-                mode: 'no-cors', 
-                body: JSON.stringify({ action: 'delete', timestamp: ts, user: window.auth.currentUser.email })
-            });
-            alert("Delete request sent. It may take a moment to reflect.");
-            // Refresh current tab
-            const activeTab = document.querySelector('.tab-btn.active').getAttribute('onclick');
-            if(activeTab.includes('milk')) loadMilkData(); else loadFormulaData();
-        } catch(e) { alert("Failed to delete."); }
+    window.deleteItem = async (ts, type) => {
+        if(!confirm("Delete this log?")) return;
+        await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', timestamp: ts, user: window.auth.currentUser.email })});
+        type === 'milk' ? loadMilkData() : loadFormulaData();
     };
 </script>
 </body>
