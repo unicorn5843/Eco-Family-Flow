@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -28,7 +28,7 @@
           document.getElementById('auth-screen').style.display = 'none';
           document.getElementById('app-interface').style.display = 'flex';
           resetTimeInputs();
-          loadMilkData(); 
+          if (window.loadMilkData) window.loadMilkData(); 
         } else {
           document.getElementById('auth-screen').style.display = 'flex';
           document.getElementById('app-interface').style.display = 'none';
@@ -91,9 +91,9 @@
 
 <div id="app-interface">
     <nav>
-        <button id="btn-milk" class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
-        <button id="btn-formula" class="tab-btn" onclick="showPage('formula', this)">🥛</button>
-        <button id="btn-combined" class="tab-btn" onclick="showPage('combined', this)">📈</button>
+        <button class="tab-btn active" onclick="showPage('milk', this)">🤱</button>
+        <button class="tab-btn" onclick="showPage('formula', this)">🥛</button>
+        <button class="tab-btn" onclick="showPage('combined', this)">📈</button>
         <button class="tab-btn" onclick="logout()" style="margin-top: auto; filter:none">🏃</button>
     </nav>
     <main>
@@ -147,6 +147,7 @@
 <button class="night-toggle" onclick="toggleNight()">🌙</button>
 
 <script>
+    // Bulletproof JS Section
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
     
     window.currentSide = 'Left';
@@ -176,12 +177,17 @@
     };
 
     window.showPage = (id, btn) => {
-        window.activeTab = id;
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).style.display = 'block';
-        btn.classList.add('active');
-        refreshCurrentPage();
+        try {
+            window.activeTab = id;
+            document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).style.display = 'block';
+            btn.classList.add('active');
+            refreshCurrentPage();
+        } catch (error) {
+            console.error("Navigation error:", error);
+            alert("Oops! Navigation hiccup. Check console for details.");
+        }
     };
 
     function refreshCurrentPage() {
@@ -203,16 +209,25 @@
     };
 
     window.submitLog = async (cat) => {
+        const email = window.auth?.currentUser?.email;
+        if (!email) {
+            alert("Waiting for user authentication to finish loading...");
+            return;
+        }
+
         const amtInput = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
         const timeInput = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime');
         const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
+        
         if(!amtInput.value) return;
         btn.innerText = "⌛ Saving...";
+        
         const payload = { 
             timestamp: timeInput.value, category: cat, value: amtInput.value, 
             detail1: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
-            user: window.auth.currentUser.email 
+            user: email 
         };
+
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             btn.innerText = "✅ Saved!";
@@ -221,16 +236,27 @@
                 btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
                 refreshCurrentPage();
             }, 1500);
-        } catch (e) { btn.innerText = "❌ Error"; }
+        } catch (e) { 
+            console.error("Save Error:", e);
+            btn.innerText = "❌ Error"; 
+            setTimeout(() => btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle", 2000);
+        }
     };
 
+    // Helper to safely get email to prevent crashes
+    const getUserEmail = () => window.auth?.currentUser?.email;
+
     window.loadMilkData = async () => {
+        const email = getUserEmail();
+        if(!email) return;
+        
         try {
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
-            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Milk').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const myLogs = data.filter(r => r.user === email && r.category === 'Milk').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
             const feeds = myLogs.filter(r => r.detail1 && r.detail1.includes('Feed'));
             if(feeds.length > 0) { lastMilkTime = feeds[feeds.length - 1].timestamp; updateClocks(); }
+            
             let dailyObj = {};
             myLogs.forEach(r => {
                 const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
@@ -239,43 +265,58 @@
                 if(r.detail1 && r.detail1.includes('Pump')) dailyObj[dtStr].pump += val; else dailyObj[dtStr].feed += val;
             });
             const labels = Object.keys(dailyObj).slice(-10);
+            
             document.getElementById('milk-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card">Today's Pump<br><strong>${dailyObj[labels[labels.length-1]]?.pump || 0}ml</strong></div><div class="stat-card">Today's Feed<br><strong>${dailyObj[labels[labels.length-1]]?.feed || 0}ml</strong></div></div>`;
             document.getElementById('milk-history').innerHTML = myLogs.slice(-8).reverse().map(r => `<div class="hist-item"><span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml (${r.detail1})</span><button class="del-btn" onclick="deleteItem('${r.timestamp}', 'milk')">✕</button></div>`).join('');
+            
             renderChart('milkChart', labels, [{ label: 'Pump', data: labels.map(l => dailyObj[l].pump), borderColor: '#81c784', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.4, fill: true }, { label: 'Feed', data: labels.map(l => dailyObj[l].feed), borderColor: '#ffb74d', backgroundColor: 'rgba(255, 183, 77, 0.2)', tension: 0.4, fill: true }]);
-        } catch(e) {}
+        } catch(e) { console.error("Load Milk Failed:", e); }
     };
 
     window.loadFormulaData = async () => {
+        const email = getUserEmail();
+        if(!email) return;
+
         try {
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
-            const myLogs = data.filter(r => r.user === window.auth.currentUser.email && r.category === 'Formula').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const myLogs = data.filter(r => r.user === email && r.category === 'Formula').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
             if(myLogs.length > 0) { lastFormulaTime = myLogs[myLogs.length - 1].timestamp; updateClocks(); }
+            
             let dailyObj = {};
             myLogs.forEach(r => {
                 const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
                 dailyObj[dtStr] = (dailyObj[dtStr] || 0) + (parseFloat(r.value) || 0);
             });
             const labels = Object.keys(dailyObj).slice(-10);
+            
             document.getElementById('formula-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card" style="grid-column: span 2;">Today's Formula Total<br><strong>${dailyObj[labels[labels.length-1]] || 0}ml</strong></div></div>`;
             document.getElementById('formula-history').innerHTML = myLogs.slice(-8).reverse().map(r => `<div class="hist-item"><span>${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})} - ${r.value}ml</span><button class="del-btn" onclick="deleteItem('${r.timestamp}', 'formula')">✕</button></div>`).join('');
+            
             renderChart('formulaChart', labels, [{ label: 'Formula', data: labels.map(l => dailyObj[l]), borderColor: '#64b5f6', backgroundColor: 'rgba(100, 181, 246, 0.2)', tension: 0.4, fill: true }]);
-        } catch(e) {}
+        } catch(e) { console.error("Load Formula Failed:", e); }
     };
 
     window.loadCombinedData = async () => {
+        const email = getUserEmail();
         const statsArea = document.getElementById('combined-stats-area');
         const insightsArea = document.getElementById('combined-insights-area');
+        
+        if(!email) {
+            statsArea.innerHTML = "Authenticating...";
+            return;
+        }
+
         try {
             const res = await fetch(GOOGLE_URL);
             const data = await res.json();
-            const myLogs = data.filter(r => r.user === window.auth.currentUser.email);
+            const myLogs = data.filter(r => r.user === email);
             
             let dailyTotal = {};
             let feedCount = {};
             
             myLogs.forEach(r => {
-                if (r.category === 'Formula' || (r.category === 'Milk' && r.detail1.includes('Feed'))) {
+                if (r.category === 'Formula' || (r.category === 'Milk' && r.detail1 && r.detail1.includes('Feed'))) {
                     const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
                     dailyTotal[dtStr] = (dailyTotal[dtStr] || 0) + (parseFloat(r.value) || 0);
                     feedCount[dtStr] = (feedCount[dtStr] || 0) + 1;
@@ -284,7 +325,7 @@
 
             const labels = Object.keys(dailyTotal).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
             if(labels.length === 0) {
-                statsArea.innerHTML = "<div class='card'>No data to combine yet!</div>";
+                statsArea.innerHTML = "<div class='card'>No feeding data to combine yet!</div>";
                 return;
             }
 
@@ -310,34 +351,14 @@
                 </div>`;
 
             renderChart('combinedChart', labels, [{ label: 'Total Intake', data: combinedValues, borderColor: '#9575cd', backgroundColor: 'rgba(149, 117, 205, 0.2)', tension: 0.4, fill: true }]);
-        } catch(e) { statsArea.innerHTML = "⚠️ Load Failed"; }
+        } catch(e) { 
+            console.error("Combine Load Failed:", e); 
+            statsArea.innerHTML = "⚠️ Load Failed - check console"; 
+        }
     };
 
     function renderChart(canvasId, labels, datasets) {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        const isNight = document.body.classList.contains('night');
-        const textColor = isNight ? '#cc0000' : '#666666';
-        const gridColor = isNight ? '#330000' : '#eeeeee';
-        if(canvasId === 'milkChart' && milkChart) milkChart.destroy();
-        if(canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
-        if(canvasId === 'combinedChart' && combinedChart) combinedChart.destroy();
-        const chartObj = new Chart(ctx, {
-            type: 'line', data: { labels: labels, datasets: datasets },
-            options: { 
-                responsive: true, maintainAspectRatio: false,
-                scales: { 
-                    x: { grid: { display: false }, ticks: { color: textColor } },
-                    y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
-                },
-                plugins: { legend: { labels: { color: textColor } } }
-            }
-        });
-        if (canvasId === 'milkChart') milkChart = chartObj;
-        else if (canvasId === 'formulaChart') formulaChart = chartObj;
-        else combinedChart = chartObj;
-    }
-
-    window.deleteItem = async (ts, type) => {
-        if(!confirm("Delete this log permanently?")) return;
         try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', 
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            const isNight = document.body.classList.contains('night');
+            const textColor = isNight ? '#cc00
