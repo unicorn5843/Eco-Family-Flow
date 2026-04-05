@@ -357,8 +357,49 @@
         }
     };
 
-    function renderChart(canvasId, labels, datasets) {
+        function renderChart(canvasId, labels, datasets) {
         try {
             const ctx = document.getElementById(canvasId).getContext('2d');
             const isNight = document.body.classList.contains('night');
-            const textColor = isNight ? '#cc00
+            
+            // Matches your CSS theme variables
+            const textColor = isNight ? '#cc0000' : '#2d412d'; 
+            const gridColor = isNight ? '#330000' : '#eeeeee';
+
+            // Clear old charts before drawing new ones to prevent overlapping glitches
+            if (canvasId === 'milkChart' && milkChart) milkChart.destroy();
+            if (canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
+            if (canvasId === 'combinedChart' && combinedChart) combinedChart.destroy();
+
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { grid: { color: gridColor }, ticks: { color: textColor } },
+                        y: { grid: { color: gridColor }, ticks: { color: textColor }, beginAtZero: true }
+                    },
+                    plugins: { legend: { labels: { color: textColor } } }
+                }
+            });
+
+            // Save the new chart instance
+            if (canvasId === 'milkChart') milkChart = newChart;
+            if (canvasId === 'formulaChart') formulaChart = newChart;
+            if (canvasId === 'combinedChart') combinedChart = newChart;
+
+        } catch(e) { 
+            console.error("Chart Error:", e); 
+        }
+    }
+
+    // Placeholder for the delete buttons in your history lists
+    window.deleteItem = (timestamp, type) => {
+        alert("Delete feature coming soon! (Timestamp: " + timestamp + ")");
+    };
+
+</script>
+</body>
+</html>
