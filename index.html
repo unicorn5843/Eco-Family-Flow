@@ -395,10 +395,35 @@
         }
     }
 
-    // Placeholder for the delete buttons in your history lists
-    window.deleteItem = (timestamp, type) => {
-        alert("Delete feature coming soon! (Timestamp: " + timestamp + ")");
+    window.deleteItem = async (timestamp, type) => {
+    // 1. Double check so we don't delete by accident
+    if (!confirm("Are you sure you want to delete this entry?")) return;
+    
+    const email = window.auth?.currentUser?.email;
+    if (!email) return;
+
+    // 2. Prepare the "Kill" command
+    const payload = { 
+        action: 'delete', 
+        timestamp: timestamp, 
+        user: email 
     };
+
+    try {
+        // 3. Send to Google Sheets
+        await fetch(GOOGLE_URL, { 
+            method: 'POST', 
+            mode: 'no-cors', 
+            body: JSON.stringify(payload) 
+        });
+        
+        alert("Deleted! Refreshing...");
+        location.reload(); // Refresh to update the charts and history
+    } catch (e) { 
+        alert("Delete failed: " + e.message); 
+    }
+};
+
 
 </script>
 </body>
