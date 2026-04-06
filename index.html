@@ -102,12 +102,13 @@
         .stat-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; }
         .stat-card { background: var(--card); padding: 12px; border-radius: 12px; text-align: center; border-top: 4px solid var(--accent); font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
-        /* Fixed Bottom Bar */
-        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: center; border-top: 1px solid rgba(0,0,0,0.1); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
-        .fixed-action { display: flex; align-items: center; color: var(--text); opacity: 0.8; font-size: 14px; text-decoration: none; cursor: pointer; padding: 10px; }
+                /* Fixed Bottom Bar */
+        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
+        .fixed-action { display: flex; align-items: center; color: var(--text); opacity: 0.8; font-size: 14px; text-decoration: none; cursor: pointer; padding: 10px; transition: 0.2s; }
+        .fixed-action:active { transform: scale(0.95); opacity: 1; }
         .fixed-action span { font-size: 20px; margin-right: 8px; }
+        .footer-divider { width: 1px; height: 30px; background: var(--text); opacity: 0.2; }
 
-        .night-toggle { position: absolute; right: 20px; bottom: 80px; background: #222; color: #ff0000; border: 2px solid #440000; border-radius: 50%; width: 50px; height: 50px; z-index: 100; font-size: 22px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -282,10 +283,15 @@
         refreshCurrentPage();
     };
 
-    window.toggleNight = () => {
+        window.toggleNight = () => {
         document.body.classList.toggle('night');
+        const isNight = document.body.classList.contains('night');
+        // This ensures the button in the bottom bar changes icons
+        const iconEl = document.getElementById('night-icon');
+        if (iconEl) iconEl.innerText = isNight ? '☀️' : '🌙';
         refreshCurrentPage();
     };
+
 
     window.showPage = (id, btn) => {
         try {
