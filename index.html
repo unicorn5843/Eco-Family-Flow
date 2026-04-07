@@ -55,11 +55,13 @@
         .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         input { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
         .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
-        .side-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--card); color: var(--text); cursor: pointer; }
+        .side-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--card); color: var(--text); cursor: pointer; font-size: 12px; }
         .side-btn.active { background: var(--accent); color: white; }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; border-top: 3px solid var(--accent); }
-        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); }
+        .stat-val { font-size: 18px; font-weight: bold; display: block; }
+        .stat-lbl { font-size: 10px; text-transform: uppercase; opacity: 0.8; }
+        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); z-index: 100; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
@@ -98,7 +100,7 @@
                 <button class="save-btn" id="saveBtn" onclick="window.submitLog('Milk')">Confirm & Save</button>
             </div>
             <div id="milk-stats" class="stat-grid"></div>
-            <div class="card"><canvas id="milkChart" style="height:200px;"></canvas></div>
+            <div class="card"><canvas id="milkChart" style="height:220px;"></canvas></div>
         </div>
 
         <div id="formula" class="page">
@@ -108,28 +110,33 @@
                 <button class="save-btn" id="formulaSaveBtn" onclick="window.submitLog('Formula')">Save Bottle</button>
             </div>
             <div id="formula-stats" class="stat-grid"></div>
-            <div class="card"><canvas id="formulaChart" style="height:200px;"></canvas></div>
+            <div class="card"><canvas id="formulaChart" style="height:220px;"></canvas></div>
         </div>
 
         <div id="combined" class="page">
             <div id="combined-stats" class="stat-grid"></div>
-            <div class="card"><canvas id="combinedChart" style="height:200px;"></canvas></div>
+            <div class="card" style="padding-top:10px;">
+                <div style="text-align:center; font-size:12px; margin-bottom:10px;">Daily Total Volume</div>
+                <canvas id="combinedChart" style="height:250px;"></canvas>
+            </div>
         </div>
 
         <div id="skin-to-skin" class="page">
             <div class="card">
-                <label style="font-size: 12px;">Start Time</label><input type="datetime-local" id="skinStart">
-                <label style="font-size: 12px;">End Time</label><input type="datetime-local" id="skinEnd">
-                <button class="save-btn" id="skinSaveBtn" onclick="window.submitSkinLog()">Log Session</button>
+                <label style="font-size: 11px; font-weight:bold;">START SESSION</label>
+                <input type="datetime-local" id="skinStart">
+                <label style="font-size: 11px; font-weight:bold;">END SESSION</label>
+                <input type="datetime-local" id="skinEnd">
+                <button class="save-btn" id="skinSaveBtn" onclick="window.submitSkinLog()">Log Skin Session</button>
             </div>
             <div id="skin-stats" class="stat-grid"></div>
-            <div class="card"><canvas id="skinChart" style="height:200px;"></canvas></div>
+            <div class="card"><canvas id="skinChart" style="height:220px;"></canvas></div>
         </div>
     </main>
 </div>
 
 <footer id="fixed-bottom">
-    <div onclick="window.toggleNight()" style="cursor:pointer">🌙 Night Mode</div>
+    <div onclick="window.toggleNight()" style="cursor:pointer">🌙 Night</div>
     <div onclick="window.logout()" style="cursor:pointer">🏃 Logout</div>
 </footer>
 
@@ -139,6 +146,7 @@
     window.currentUnits = 'UK';
     window.currentSide = 'Left';
     window.currentMode = 'Pump';
+    window.activeTab = 'milk';
     let charts = {};
 
     window.setSide = (s) => { 
@@ -174,23 +182,25 @@
     };
 
     window.showPage = (id, btn) => {
+        window.activeTab = id;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-tile').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(btn) btn.classList.add('active');
-        window.activeTab = id;
         window.refreshCurrentPage();
     };
 
     window.submitLog = async (cat) => {
         const email = window.auth?.currentUser?.email;
         const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
-        let val = parseFloat(document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value);
+        const input = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
+        let val = parseFloat(input.value);
+        
         if(!val || !email) return;
+        btn.innerText = "⌛ Saving...";
 
-        btn.innerText = "Saving...";
-        // Always store ML in Sheets for consistency
-        if(window.currentUnits === 'US') val = (val * 29.57).toFixed(0);
+        // Logic: Always save as ML in the sheet to keep math simple
+        if(window.currentUnits === 'US') val = Math.round(val * 29.57);
 
         const payload = { 
             timestamp: document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime').value, 
@@ -200,30 +210,40 @@
             user: email 
         };
 
-        await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        btn.innerText = "Saved!";
-        setTimeout(() => { 
-            btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
-            document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value = '';
-            window.refreshCurrentPage(); 
-        }, 1200);
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            btn.innerText = "✅ Saved!";
+            input.value = '';
+            setTimeout(() => { 
+                btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
+                window.refreshCurrentPage(); 
+            }, 1200);
+        } catch (e) { btn.innerText = "❌ Error"; }
     };
 
     window.submitSkinLog = async () => {
+        const email = window.auth?.currentUser?.email;
         const start = new Date(document.getElementById('skinStart').value);
         const end = new Date(document.getElementById('skinEnd').value);
         const duration = Math.round((end - start) / 1000 / 60);
-        if(duration <= 0) return;
+        const btn = document.getElementById('skinSaveBtn');
+
+        if(duration <= 0 || !email) { btn.innerText = "Check Times!"; return; }
+        btn.innerText = "⌛ Saving...";
 
         const payload = { 
             timestamp: new Date().toISOString(), 
             category: 'SkinToSkin', 
             value: duration, 
             detail1: 'Session', 
-            user: window.auth.currentUser.email 
+            user: email 
         };
-        await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-        window.refreshCurrentPage();
+        
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            btn.innerText = "✅ Saved!";
+            setTimeout(() => { btn.innerText = "Log Skin Session"; window.refreshCurrentPage(); }, 1200);
+        } catch (e) { btn.innerText = "❌ Error"; }
     };
 
     window.refreshCurrentPage = async () => {
@@ -231,38 +251,41 @@
         if(!email) return;
         try {
             const res = await fetch(GOOGLE_URL);
-            const data = await res.json();
-            const userLogs = data.filter(r => r.user === email);
+            const rawData = await res.json();
+            const userLogs = rawData.filter(r => r.user === email);
 
-            if(window.activeTab === 'milk' || !window.activeTab) process(userLogs, 'Milk', 'milkChart', 'milk-stats', '#81c784');
+            if(window.activeTab === 'milk') process(userLogs, 'Milk', 'milkChart', 'milk-stats', '#81c784');
             if(window.activeTab === 'formula') process(userLogs, 'Formula', 'formulaChart', 'formula-stats', '#4caf50');
             if(window.activeTab === 'combined') processCombined(userLogs);
             if(window.activeTab === 'skin-to-skin') process(userLogs, 'SkinToSkin', 'skinChart', 'skin-stats', '#2196f3', 'mins');
-        } catch (e) { console.log("Fetch error:", e); }
+        } catch (e) { console.error("Refresh fail:", e); }
     };
 
     function process(logs, cat, chartId, statId, color, unitSuffix) {
-        const filtered = logs.filter(r => r.category === cat);
         const daily = {};
-        filtered.forEach(r => {
-            const d = new Date(r.timestamp).toLocaleDateString();
+        const todayStr = new Date().toLocaleDateString();
+        
+        logs.filter(r => r.category === cat).forEach(r => {
+            const dateObj = new Date(r.timestamp);
+            if(isNaN(dateObj)) return;
+            const d = dateObj.toLocaleDateString();
             daily[d] = (daily[d] || 0) + parseFloat(r.value);
         });
 
-        const labels = Object.keys(daily).sort().slice(-7);
+        const labels = Object.keys(daily).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
         const vals = labels.map(l => {
-            let val = daily[l];
-            return window.currentUnits === 'US' && !unitSuffix ? (val * 0.0338).toFixed(1) : val;
+            let v = daily[l];
+            return (window.currentUnits === 'US' && !unitSuffix) ? (v * 0.0338).toFixed(1) : v;
         });
         
         const sum = vals.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
         const avg = (sum / (vals.length || 1)).toFixed(1);
-        const today = vals[vals.length - 1] || 0;
+        const todayVal = (window.currentUnits === 'US' && !unitSuffix) ? ((daily[todayStr] || 0) * 0.0338).toFixed(1) : (daily[todayStr] || 0);
         const unit = unitSuffix || (window.currentUnits === 'US' ? 'oz' : 'ml');
 
         document.getElementById(statId).innerHTML = `
-            <div class="stat-card"><b>Today</b><br>${today} ${unit}</div>
-            <div class="stat-card"><b>7D Avg</b><br>${avg} ${unit}</div>
+            <div class="stat-card"><span class="stat-lbl">Today</span><span class="stat-val">${todayVal} ${unit}</span></div>
+            <div class="stat-card"><span class="stat-lbl">7D Average</span><span class="stat-val">${avg} ${unit}</span></div>
         `;
         render(chartId, cat, labels, vals, color);
     }
@@ -273,7 +296,7 @@
             const d = new Date(r.timestamp).toLocaleDateString();
             daily[d] = (daily[d] || 0) + parseFloat(r.value);
         });
-        const labels = Object.keys(daily).sort().slice(-7);
+        const labels = Object.keys(daily).sort((a,b) => new Date(a) - new Date(b)).slice(-7);
         const vals = labels.map(l => window.currentUnits === 'US' ? (daily[l] * 0.0338).toFixed(1) : daily[l]);
         
         const sum = vals.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
@@ -281,8 +304,8 @@
         const unit = window.currentUnits === 'US' ? 'oz' : 'ml';
 
         document.getElementById('combined-stats').innerHTML = `
-            <div class="stat-card"><b>Avg Intake</b><br>${avg} ${unit}</div>
-            <div class="stat-card"><b>Days Logged</b><br>${labels.length}</div>
+            <div class="stat-card"><span class="stat-lbl">Daily Average</span><span class="stat-val">${avg} ${unit}</span></div>
+            <div class="stat-card"><span class="stat-lbl">Total Days</span><span class="stat-val">${labels.length}</span></div>
         `;
         render('combinedChart', 'Total Intake', labels, vals, '#ff9800');
     }
@@ -295,21 +318,15 @@
             data: { 
                 labels: labels, 
                 datasets: [{ 
-                    label: label, 
-                    data: data, 
-                    borderColor: color, 
-                    backgroundColor: color + '22',
-                    fill: true,
-                    tension: 0.4 
+                    label: label, data: data, borderColor: color, 
+                    backgroundColor: color + '22', fill: true, tension: 0.4 
                 }] 
             },
             options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
     }
 
-    window.toggleNight = () => {
-        document.body.classList.toggle('night');
-    };
+    window.toggleNight = () => document.body.classList.toggle('night');
 </script>
 </body>
 </html>
