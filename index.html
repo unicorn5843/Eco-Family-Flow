@@ -143,10 +143,14 @@
             <span class="tile-label">Sleep</span>
         </div>
         <div class="tab-tile" style="opacity: 0.2; cursor: default">
-            <span class="tile-emoji">💩</span>
-            <span class="tile-label">Diaper</span>
+            <span class="tile-emoji">🚼</span>
+            <span class="tile-label">Nappy</span>
         </div>
-
+<div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)">
+    <span class="tile-emoji">🫂</span>
+    <span class="tile-label">Skin to Skin</span>
+</div>
+       
         <div class="tab-tile" onclick="window.switchUnits()">
             <span class="switch-label">Version:</span>
             <span id="switcher-flag" class="tile-emoji">🇬🇧</span>
@@ -197,6 +201,28 @@
             </div>
             <div id="combined-insights-area"></div>
         </div>
+       <div id="skin-to-skin" class="page">
+    <h2 class="section-header">🫂 Skin to Skin</h2>
+    <div class="card">
+        <label class="sub-header">Start Time</label>
+        <input type="datetime-local" id="skinStart">
+        
+        <label class="sub-header">End Time</label>
+        <input type="datetime-local" id="skinEnd">
+
+        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+            <button id="person-mama" class="side-btn active" onclick="setSkinPerson('Mama')">Mama</button>
+            <button id="person-papa" class="side-btn" onclick="setSkinPerson('Papa')">Papa</button>
+        </div>
+        
+        <button class="save-btn" id="skinSaveBtn" onclick="submitSkinLog()">Log Session</button>
+    </div>
+    <div class="card">
+        <small><strong>Recent History</strong></small>
+        <div id="skin-history"></div>
+    </div>
+       </div>
+       
     </main>
 </div>
 
