@@ -21,7 +21,7 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const provider = new GoogleAuthProvider();
-      window.auth7 = auth; // Using auth7 to match your login logic
+      window.auth = auth; // Unified auth variable
 
       onAuthStateChanged(auth, (user) => {
         const authScreen = document.getElementById('auth-screen');
@@ -42,66 +42,27 @@
     </script>
     
     <style>
-        :root {
-            --bg: #f4f9f4; --card: #ffffff; --text: #2d412d; --accent: #81c784; --chart-grid: #eeeeee; --timer-bg: #e8f5e9; --active-tile-border: #4caf50;
-        }
-        body.night {
-            --bg: #000000; --card: #120000; --text: #cc0000; --accent: #880000; --chart-grid: #330000; --timer-bg: #210000; --active-tile-border: #ff1744;
-        }
-        
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; padding-bottom: 70px; overflow-x: hidden; scroll-behavior: smooth; }
-        
+        :root { --bg: #f4f9f4; --card: #ffffff; --text: #2d412d; --accent: #81c784; --timer-bg: #e8f5e9; --active-tile-border: #4caf50; }
+        body.night { --bg: #000000; --card: #120000; --text: #cc0000; --accent: #880000; --timer-bg: #210000; --active-tile-border: #ff1744; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: 0.3s; padding-bottom: 70px; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; max-width: 450px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
-        
         header { text-align: center; margin-bottom: 20px; }
-        .logo-text { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
-        .logo-subtext { font-size: 14px; color: var(--text); opacity: 0.8; }
-        
-        #tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
-        
-        .tab-tile {
-            background: var(--card); border-radius: 16px; aspect-ratio: 1/1;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s;
-            cursor: pointer; text-align: center; box-sizing: border-box; padding: 10px;
-        }
-        .tab-tile:active { transform: scale(0.96); }
-        .tab-tile.active { border-color: var(--active-tile-border); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        
-        .tile-emoji { font-size: 28px; margin-bottom: 5px; }
-        .tile-label { font-size: 11px; font-weight: bold; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
-        .switch-label { font-size: 10px; opacity: 0.7; margin-bottom: 2px; }
-        
-        main { display: flex; flex-direction: column; }
+        .logo-text { font-size: 24px; font-weight: bold; color: var(--accent); }
+        #tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .tab-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid transparent; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
+        .tab-tile.active { border-color: var(--active-tile-border); }
+        .tile-emoji { font-size: 24px; }
+        .tile-label { font-size: 10px; font-weight: bold; text-transform: uppercase; }
         .page { display: none; }
         .page.active { display: block; }
-        
-        .card { background: var(--card); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
-        .timer-banner { background: var(--timer-bg); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; border: 1px solid var(--accent); font-weight: bold; font-size: 15px; }
-        .section-header { margin-top: 0; font-size: 20px; color: var(--accent); }
-        .sub-header { margin-top: 0; margin-bottom: 10px; font-size: 14px; color: var(--text); opacity: 0.9; }
-
-        input { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; transition: 0.2s; }
-        input:focus { outline: none; border-color: var(--active-tile-border); }
-        .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; text-transform: uppercase; }
-        .save-btn:active { opacity: 0.8; }
-        
-        .side-btn { flex:1; padding:10px; border-radius:10px; border:1px solid var(--accent); background: var(--card); color: var(--text); cursor:pointer; font-size: 14px; text-align: center; transition: 0.2s; }
-        .side-btn.active { background: var(--accent); color: white !important; font-weight:bold; border-color: var(--accent); }
-        
-        .hist-item { display:flex; justify-content:space-between; align-items:center; padding:10px; border-bottom:1px solid rgba(128,128,128,0.2); font-size:14px; }
-        .hist-info { display: flex; flex-direction: column; }
-        .hist-time { color: var(--text); opacity: 0.7; font-size: 11px; margin-top: 2px; }
-        .del-btn { color: #ff5252; background: none; border: none; font-size: 22px; cursor: pointer; padding: 0 10px; opacity: 0.6; }
-        .del-btn:hover { opacity: 1; }
-        
-        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
-        .fixed-action { display: flex; align-items: center; color: var(--text); opacity: 0.8; font-size: 14px; text-decoration: none; cursor: pointer; padding: 10px; transition: 0.2s; }
-        .fixed-action:active { transform: scale(0.95); opacity: 1; }
-        .fixed-action span { font-size: 20px; margin-right: 8px; }
-        .footer-divider { width: 1px; height: 30px; background: var(--text); opacity: 0.2; }
-
+        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
+        .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
+        .side-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--card); color: var(--text); cursor: pointer; }
+        .side-btn.active { background: var(--accent); color: white; }
+        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); }
+        .fixed-action { cursor: pointer; font-size: 14px; display: flex; align-items: center; }
     </style>
 </head>
 <body>
@@ -112,132 +73,75 @@
 </div>
 
 <div id="app-interface">
-    <header>
-        <div class="logo-text">Eco Family Flow</div>
-        <div class="logo-subtext">Baby & Parent Tracking</div>
-    </header>
+    <header><div class="logo-text">Eco Family Flow</div></header>
 
     <section id="tab-grid">
-        <div id="tile-milk" class="tab-tile active" onclick="window.showPage('milk', this)">
-            <span class="tile-emoji">🤱</span>
-            <span class="tile-label" data-units="Milk (ML)">Milk (ML)</span>
-        </div>
-        <div id="tile-formula" class="tab-tile" onclick="window.showPage('formula', this)">
-            <span class="tile-emoji">🥛</span>
-            <span class="tile-label" data-units="Formula (ML)">Formula (ML)</span>
-        </div>
-        <div id="tile-combined" class="tab-tile" onclick="window.showPage('combined', this)">
-            <span class="tile-emoji">📈</span>
-            <span class="tile-label" data-units="Combined (ML)">Combined (ML)</span>
-        </div>
-        
-        <div class="tab-tile" style="opacity: 0.2; cursor: default">
-            <span class="tile-emoji">😴</span>
-            <span class="tile-label">Sleep</span>
-        </div>
-        <div class="tab-tile" style="opacity: 0.2; cursor: default">
-            <span class="tile-emoji">🚼</span>
-            <span class="tile-label">Nappy</span>
-        </div>
-        <div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)">
-            <span class="tile-emoji">🫂</span>
-            <span class="tile-label">Skin to Skin</span>
-        </div>
-       
-        <div class="tab-tile" onclick="window.switchUnits()">
-            <span class="switch-label">Version:</span>
-            <span id="switcher-flag" class="tile-emoji">🇬🇧</span>
-            <span id="switcher-label" class="tile-label">British</span>
-        </div>
+        <div id="tile-milk" class="tab-tile active" onclick="window.showPage('milk', this)"><span class="tile-emoji">🤱</span><span class="tile-label">Milk</span></div>
+        <div id="tile-formula" class="tab-tile" onclick="window.showPage('formula', this)"><span class="tile-emoji">🥛</span><span class="tile-label">Formula</span></div>
+        <div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)"><span class="tile-emoji">🫂</span><span class="tile-label">Skin</span></div>
     </section>
 
     <main>
         <div id="milk" class="page active">
-            <div id="milk-timer" class="timer-banner">Calculating last feed...</div>
             <div class="card">
                 <input type="datetime-local" id="feedTime">
-                <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                    <button id="mode-pump" class="side-btn active" onclick="setMilkMode('Pump')">Pump</button>
-                    <button id="mode-feed" class="side-btn" onclick="setMilkMode('Feed')">Feed</button>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="mode-pump" class="side-btn active" onclick="window.setMilkMode('Pump')">Pump</button>
+                    <button id="mode-feed" class="side-btn" onclick="window.setMilkMode('Feed')">Feed</button>
                 </div>
-                <div style="display: flex; gap: 5px; margin-bottom: 15px;">
-                    <button id="sideL" class="side-btn active" onclick="setSide('Left')">Left</button>
-                    <button id="sideR" class="side-btn" onclick="setSide('Right')">Right</button>
-                    <button id="sideB" class="side-btn" onclick="setSide('Both')">Both</button>
+                <div style="display: flex; gap: 5px; margin-bottom: 10px;">
+                    <button id="sideL" class="side-btn active" onclick="window.setSide('Left')">Left</button>
+                    <button id="sideR" class="side-btn" onclick="window.setSide('Right')">Right</button>
                 </div>
-                <input type="number" id="milkAmt" placeholder="Amount (ml)" style="font-size: 20px; text-align: center;">
-                <button class="save-btn" id="saveBtn" onclick="submitLog('Milk')">Confirm & Save</button>
+                <input type="number" id="milkAmt" placeholder="Amount (ml)">
+                <button class="save-btn" id="saveBtn" onclick="window.submitLog('Milk')">Save Milk</button>
             </div>
-            <div id="milk-stats-area"></div>
-            <div class="card"><div style="height: 250px;"><canvas id="milkChart"></canvas></div></div>
-            <div class="card"><small><strong>Recent History</strong></small><div id="milk-history"></div></div>
+            <div class="card"><canvas id="milkChart" style="height:200px;"></canvas></div>
         </div>
 
         <div id="formula" class="page">
-            <div id="formula-timer" class="timer-banner">Calculating last bottle...</div>
             <div class="card">
                 <input type="datetime-local" id="formulaTime">
-                <input type="number" id="formulaAmt" placeholder="Bottle (ml)" style="font-size: 20px; text-align: center;">
-                <button class="save-btn" id="formulaSaveBtn" onclick="submitLog('Formula')">Save Bottle</button>
+                <input type="number" id="formulaAmt" placeholder="Bottle (ml)">
+                <button class="save-btn" id="formulaSaveBtn" onclick="window.submitLog('Formula')">Save Bottle</button>
             </div>
-            <div id="formula-stats-area"></div>
-            <div class="card"><div style="height: 250px;"><canvas id="formulaChart"></canvas></div></div>
-            <div class="card"><small><strong>Recent History</strong></small><div id="formula-history"></div></div>
+            <div class="card"><canvas id="formulaChart" style="height:200px;"></canvas></div>
         </div>
 
-        <div id="combined" class="page">
-            <h2 class="section-header">📈 Combined Intake</h2>
-            <div id="combined-stats-area"></div>
+        <div id="skin-to-skin" class="page">
             <div class="card">
-                <div class="sub-header">Daily Feed + Formula Volume</div>
-                <div style="height: 250px; margin-top:10px;"><canvas id="combinedChart"></canvas></div>
-            </div>
-        </div>
-
-       <div id="skin-to-skin" class="page">
-            <h2 class="section-header">🫂 Skin to Skin</h2>
-            <div class="card">
-                <label class="sub-header">Start Time</label>
-                <input type="datetime-local" id="skinStart">
-                
-                <label class="sub-header">End Time</label>
-                <input type="datetime-local" id="skinEnd">
-                
+                <label>Start</label><input type="datetime-local" id="skinStart">
+                <label>End</label><input type="datetime-local" id="skinEnd">
                 <button class="save-btn" id="skinSaveBtn" onclick="window.submitSkinLog()">Log Session</button>
             </div>
-            <div class="card">
-                <small><strong>Recent History</strong></small>
-                <div id="skin-history"></div>
-            </div>
-       </div>
+        </div>
     </main>
 </div>
 
 <footer id="fixed-bottom">
-    <div class="fixed-action" onclick="window.toggleNight()">
-        <span id="night-icon">🌙</span> Night Mode
-    </div>
-    <div class="footer-divider"></div>
-    <div class="fixed-action" onclick="window.logout()">
-        <span>🏃</span> Logout
-    </div>
+    <div class="fixed-action" onclick="window.toggleNight()"><span id="night-icon">🌙</span> Night Mode</div>
+    <div class="fixed-action" onclick="window.logout()">🏃 Logout</div>
 </footer>
 
 <script>
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zj15xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
     
-    const ML_TO_OZ = 0.033814;
-    const OZ_TO_ML = 29.5735;
-    window.currentUnits = 'UK'; 
     window.currentSide = 'Left';
     window.currentMode = 'Pump';
     window.activeTab = 'milk';
-    
-    let milkChart = null, formulaChart = null, combinedChart = null;
 
-    function setSide(s) { window.currentSide = s; document.querySelectorAll('#sideL, #sideR, #sideB').forEach(b => b.classList.toggle('active', b.id === `side${s.charAt(0)}`)); }
-    function setMilkMode(m) { window.currentMode = m; document.querySelectorAll('#mode-pump, #mode-feed').forEach(b => b.classList.toggle('active', b.id === `mode-${m.toLowerCase()}`)); }
-    
+    window.setSide = (s) => { 
+        window.currentSide = s; 
+        document.getElementById('sideL').classList.toggle('active', s === 'Left');
+        document.getElementById('sideR').classList.toggle('active', s === 'Right');
+    };
+
+    window.setMilkMode = (m) => { 
+        window.currentMode = m; 
+        document.getElementById('mode-pump').classList.toggle('active', m === 'Pump');
+        document.getElementById('mode-feed').classList.toggle('active', m === 'Feed');
+    };
+
     window.resetTimeInputs = () => { 
         const now = new Date(); 
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
@@ -247,103 +151,73 @@
 
     window.toggleNight = () => {
         document.body.classList.toggle('night');
-        const isNight = document.body.classList.contains('night');
-        document.getElementById('night-icon').innerText = isNight ? '☀️' : '🌙';
+        document.getElementById('night-icon').innerText = document.body.classList.contains('night') ? '☀️' : '🌙';
     };
 
     window.showPage = (id, btn) => {
         window.activeTab = id;
-        document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-tile').forEach(b => b.classList.remove('active'));
-        document.getElementById(id).style.display = 'block';
+        document.getElementById(id).classList.add('active');
         if(btn) btn.classList.add('active');
         window.refreshCurrentPage();
     };
 
     window.submitLog = async (cat) => {
-        const email = window.auth7?.currentUser?.email;
+        const email = window.auth?.currentUser?.email;
         if (!email) return;
 
-        const amtInput = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
-        const timeInput = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime');
-        const btn = document.getElementById(cat === 'Milk' ? 'saveBtn' : 'formulaSaveBtn');
-        
-        if(!amtInput.value) return;
-        btn.innerText = "⌛ Saving...";
+        const amt = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value;
+        const time = document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime').value;
+        if(!amt) return;
 
-        let mlValue = parseFloat(amtInput.value);
-        if(window.currentUnits === 'US') mlValue = (mlValue * OZ_TO_ML).toFixed(0); 
-        
         const payload = { 
-            timestamp: timeInput.value, category: cat, value: mlValue, 
-            detail1: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
+            timestamp: time, category: cat, value: amt, 
+            detail: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
             user: email 
         };
 
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            btn.innerText = "✅ Saved!";
-            amtInput.value = '';
-            setTimeout(() => { 
-                btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
-                window.refreshCurrentPage();
-            }, 1500);
-        } catch (e) { btn.innerText = "❌ Error"; }
+            alert("Saved!");
+            window.refreshCurrentPage();
+        } catch (e) { console.error(e); }
     };
 
     window.submitSkinLog = async () => {
-        const email = window.auth7?.currentUser?.email;
-        if (!email) return;
-
+        const email = window.auth?.currentUser?.email;
         const start = new Date(document.getElementById('skinStart').value);
         const end = new Date(document.getElementById('skinEnd').value);
-        const btn = document.getElementById('skinSaveBtn');
-
         const duration = Math.round((end - start) / 1000 / 60);
-        if (duration <= 0) { alert("End time must be after start time"); return; }
 
-        btn.innerText = "⌛ Saving...";
+        if (duration <= 0) { alert("Invalid duration"); return; }
+
         const payload = {
             timestamp: new Date().toISOString(),
             category: 'SkinToSkin',
             value: duration,
-            detail1: 'Session', 
+            detail: 'Session', 
             user: email
         };
 
-        try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            btn.innerText = "✅ Saved!";
-            setTimeout(() => { 
-                btn.innerText = "Log Session";
-                window.refreshCurrentPage();
-            }, 1500);
-        } catch (e) { btn.innerText = "❌ Error"; }
+        await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+        alert("Session Logged!");
+        window.refreshCurrentPage();
     };
 
     window.refreshCurrentPage = () => {
-        // Mock data logic for demonstration - replace with your actual fetch logic
-        console.log("Refreshing data for:", window.activeTab);
         if(window.activeTab === 'milk') renderChart('milkChart', 'Milk (ml)', [40, 50, 45, 60], '#81c784');
         if(window.activeTab === 'formula') renderChart('formulaChart', 'Formula (ml)', [60, 70, 65, 80], '#4caf50');
     };
 
     function renderChart(canvasId, label, data, color) {
         const ctx = document.getElementById(canvasId).getContext('2d');
-        const chartExist = Chart.getChart(canvasId);
-        if (chartExist) chartExist.destroy();
-
+        if (Chart.getChart(canvasId)) Chart.getChart(canvasId).destroy();
         new Chart(ctx, {
             type: 'line',
             data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu'],
-                datasets: [{
-                    label: label,
-                    data: data,
-                    borderColor: color,
-                    tension: 0.4, // THIS MAKES THE GRAPH SMOOTH
-                    fill: false
-                }]
+                labels: ['1', '2', '3', '4'],
+                datasets: [{ label: label, data: data, borderColor: color, tension: 0.4 }] // SMOOTH LINES
             },
             options: { responsive: true, maintainAspectRatio: false }
         });
