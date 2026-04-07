@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,39 +24,35 @@
       window.auth = auth;
 
       onAuthStateChanged(auth, (user) => {
-        const authScreen = document.getElementById('auth-screen');
-        const appInterface = document.getElementById('app-interface');
         if (user) {
-          authScreen.style.display = 'none';
-          appInterface.style.display = 'block';
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('app-interface').style.display = 'block';
           window.resetTimeInputs();
           window.refreshCurrentPage(); 
         } else {
-          authScreen.style.display = 'flex';
-          appInterface.style.display = 'none';
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('app-interface').style.display = 'none';
         }
       });
 
-      window.login = () => signInWithPopup(auth, provider).catch(e => console.error("Login Error: " + e.message));
+      window.login = () => signInWithPopup(auth, provider);
       window.logout = () => signOut(auth).then(() => location.reload());
     </script>
     
     <style>
-        :root { --bg: #f4f9f4; --card: #ffffff; --text: #2d412d; --accent: #81c784; --timer-bg: #e8f5e9; --active-tile-border: #4caf50; }
-        body.night { --bg: #000000; --card: #120000; --text: #cc0000; --accent: #880000; --timer-bg: #210000; --active-tile-border: #ff1744; }
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: 0.3s; padding-bottom: 80px; }
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        #app-interface { display: none; width: 100%; max-width: 450px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
-        header { text-align: center; margin-bottom: 20px; }
-        .logo-text { font-size: 24px; font-weight: bold; color: var(--accent); }
+        :root { --bg: #f4f9f4; --card: #ffffff; --text: #2d412d; --accent: #81c784; --active-tile-border: #4caf50; }
+        body.night { --bg: #000000; --card: #1a0000; --text: #ff4444; --accent: #cc0000; --active-tile-border: #ff1744; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 80px; transition: 0.3s; }
+        #app-interface { display: none; max-width: 450px; margin: 0 auto; padding: 15px; }
+        .logo-text { text-align: center; font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 20px; }
         #tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .tab-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid transparent; box-shadow: 0 2px 5px rgba(0,0,0,0.05); cursor: pointer; }
         .tab-tile.active { border-color: var(--active-tile-border); }
         .tile-emoji { font-size: 24px; }
-        .tile-label { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .tile-label { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-top: 5px; }
         .page { display: none; }
         .page.active { display: block; }
-        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card { background: var(--card); padding: 15px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         input { background: var(--card); color: var(--text); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; margin-bottom: 10px; font-size: 16px; }
         .save-btn { background: var(--accent); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
         .side-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--accent); background: var(--card); color: var(--text); cursor: pointer; }
@@ -64,22 +60,23 @@
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
         .stat-card { background: var(--card); padding: 10px; border-radius: 10px; text-align: center; border-top: 3px solid var(--accent); }
         #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); }
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
     </style>
 </head>
 <body>
 
 <div id="auth-screen">
     <div class="logo-text">Eco Family Flow</div>
-    <button onclick="window.login()" class="save-btn" style="width: auto; padding: 15px 30px; margin-top: 15px;">Sign in with Google</button>
+    <button onclick="window.login()" class="save-btn" style="width: auto; padding: 15px 30px;">Sign in with Google</button>
 </div>
 
 <div id="app-interface">
-    <header><div class="logo-text">Eco Family Flow</div></header>
+    <div class="logo-text">Eco Family Flow</div>
 
     <section id="tab-grid">
         <div id="tile-milk" class="tab-tile active" onclick="window.showPage('milk', this)"><span class="tile-emoji">🤱</span><span class="tile-label" data-unit="Milk (ML)">Milk (ML)</span></div>
         <div id="tile-formula" class="tab-tile" onclick="window.showPage('formula', this)"><span class="tile-emoji">🥛</span><span class="tile-label" data-unit="Formula (ML)">Formula (ML)</span></div>
-        <div id="tile-combined" class="tab-tile" onclick="window.showPage('combined', this)"><span class="tile-emoji">📉</span><span class="tile-label" data-unit="Combined (ML)">Combined (ML)</span></div>
+        <div id="tile-combined" class="tab-tile" onclick="window.showPage('combined', this)"><span class="tile-emoji">📈</span><span class="tile-label" data-unit="Combined (ML)">Combined (ML)</span></div>
         <div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)"><span class="tile-emoji">🫂</span><span class="tile-label">Skin</span></div>
         <div class="tab-tile" onclick="window.switchUnits()"><span id="flag-icon" class="tile-emoji">🇬🇧</span><span id="unit-label" class="tile-label">British</span></div>
     </section>
@@ -121,8 +118,8 @@
 
         <div id="skin-to-skin" class="page">
             <div class="card">
-                <label>Start</label><input type="datetime-local" id="skinStart">
-                <label>End</label><input type="datetime-local" id="skinEnd">
+                <label style="font-size: 12px;">Start Time</label><input type="datetime-local" id="skinStart">
+                <label style="font-size: 12px;">End Time</label><input type="datetime-local" id="skinEnd">
                 <button class="save-btn" id="skinSaveBtn" onclick="window.submitSkinLog()">Log Session</button>
             </div>
             <div id="skin-stats" class="stat-grid"></div>
@@ -142,7 +139,6 @@
     window.currentUnits = 'UK';
     window.currentSide = 'Left';
     window.currentMode = 'Pump';
-    window.activeTab = 'milk';
     let charts = {};
 
     window.setSide = (s) => { 
@@ -162,6 +158,8 @@
         window.currentUnits = (window.currentUnits === 'UK') ? 'US' : 'UK';
         document.getElementById('flag-icon').innerText = window.currentUnits === 'US' ? '🇺🇸' : '🇬🇧';
         document.getElementById('unit-label').innerText = window.currentUnits === 'US' ? 'American' : 'British';
+        document.getElementById('milkAmt').placeholder = window.currentUnits === 'US' ? "Amount (oz)" : "Amount (ml)";
+        document.getElementById('formulaAmt').placeholder = window.currentUnits === 'US' ? "Bottle (oz)" : "Bottle (ml)";
         document.querySelectorAll('.tile-label[data-unit]').forEach(l => {
             l.innerText = l.getAttribute('data-unit').replace('ML', window.currentUnits === 'US' ? 'OZ' : 'ML');
         });
@@ -176,11 +174,11 @@
     };
 
     window.showPage = (id, btn) => {
-        window.activeTab = id;
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.tab-tile').forEach(b => b.classList.remove('active'));
         document.getElementById(id).classList.add('active');
         if(btn) btn.classList.add('active');
+        window.activeTab = id;
         window.refreshCurrentPage();
     };
 
@@ -191,18 +189,24 @@
         if(!val || !email) return;
 
         btn.innerText = "Saving...";
+        // Always store ML in Sheets for consistency
         if(window.currentUnits === 'US') val = (val * 29.57).toFixed(0);
 
         const payload = { 
             timestamp: document.getElementById(cat === 'Milk' ? 'feedTime' : 'formulaTime').value, 
-            category: cat, value: val, 
-            detail: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
+            category: cat, 
+            value: val, 
+            detail1: cat === 'Milk' ? `${window.currentMode} (${window.currentSide})` : 'Bottle', 
             user: email 
         };
 
         await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         btn.innerText = "Saved!";
-        setTimeout(() => { btn.innerText = "Confirm & Save"; window.refreshCurrentPage(); }, 1000);
+        setTimeout(() => { 
+            btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle";
+            document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt').value = '';
+            window.refreshCurrentPage(); 
+        }, 1200);
     };
 
     window.submitSkinLog = async () => {
@@ -211,7 +215,13 @@
         const duration = Math.round((end - start) / 1000 / 60);
         if(duration <= 0) return;
 
-        const payload = { timestamp: new Date().toISOString(), category: 'SkinToSkin', value: duration, detail: 'Session', user: window.auth.currentUser.email };
+        const payload = { 
+            timestamp: new Date().toISOString(), 
+            category: 'SkinToSkin', 
+            value: duration, 
+            detail1: 'Session', 
+            user: window.auth.currentUser.email 
+        };
         await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
         window.refreshCurrentPage();
     };
@@ -219,14 +229,16 @@
     window.refreshCurrentPage = async () => {
         const email = window.auth?.currentUser?.email;
         if(!email) return;
-        const res = await fetch(GOOGLE_URL);
-        const data = await res.json();
-        const userLogs = data.filter(r => r.user === email);
+        try {
+            const res = await fetch(GOOGLE_URL);
+            const data = await res.json();
+            const userLogs = data.filter(r => r.user === email);
 
-        if(window.activeTab === 'milk') process(userLogs, 'Milk', 'milkChart', 'milk-stats', '#81c784');
-        if(window.activeTab === 'formula') process(userLogs, 'Formula', 'formulaChart', 'formula-stats', '#4caf50');
-        if(window.activeTab === 'combined') processCombined(userLogs);
-        if(window.activeTab === 'skin-to-skin') process(userLogs, 'SkinToSkin', 'skinChart', 'skin-stats', '#2196f3', 'mins');
+            if(window.activeTab === 'milk' || !window.activeTab) process(userLogs, 'Milk', 'milkChart', 'milk-stats', '#81c784');
+            if(window.activeTab === 'formula') process(userLogs, 'Formula', 'formulaChart', 'formula-stats', '#4caf50');
+            if(window.activeTab === 'combined') processCombined(userLogs);
+            if(window.activeTab === 'skin-to-skin') process(userLogs, 'SkinToSkin', 'skinChart', 'skin-stats', '#2196f3', 'mins');
+        } catch (e) { console.log("Fetch error:", e); }
     };
 
     function process(logs, cat, chartId, statId, color, unitSuffix) {
@@ -238,13 +250,20 @@
         });
 
         const labels = Object.keys(daily).sort().slice(-7);
-        const vals = labels.map(l => window.currentUnits === 'US' && !unitSuffix ? (daily[l] * 0.0338).toFixed(1) : daily[l]);
+        const vals = labels.map(l => {
+            let val = daily[l];
+            return window.currentUnits === 'US' && !unitSuffix ? (val * 0.0338).toFixed(1) : val;
+        });
         
-        const avg = (vals.reduce((a, b) => parseFloat(a) + parseFloat(b), 0) / (vals.length || 1)).toFixed(1);
+        const sum = vals.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+        const avg = (sum / (vals.length || 1)).toFixed(1);
         const today = vals[vals.length - 1] || 0;
         const unit = unitSuffix || (window.currentUnits === 'US' ? 'oz' : 'ml');
 
-        document.getElementById(statId).innerHTML = `<div class="stat-card"><b>Today</b><br>${today} ${unit}</div><div class="stat-card"><b>7D Avg</b><br>${avg} ${unit}</div>`;
+        document.getElementById(statId).innerHTML = `
+            <div class="stat-card"><b>Today</b><br>${today} ${unit}</div>
+            <div class="stat-card"><b>7D Avg</b><br>${avg} ${unit}</div>
+        `;
         render(chartId, cat, labels, vals, color);
     }
 
@@ -256,19 +275,41 @@
         });
         const labels = Object.keys(daily).sort().slice(-7);
         const vals = labels.map(l => window.currentUnits === 'US' ? (daily[l] * 0.0338).toFixed(1) : daily[l]);
+        
+        const sum = vals.reduce((a, b) => parseFloat(a) + parseFloat(b), 0);
+        const avg = (sum / (vals.length || 1)).toFixed(1);
+        const unit = window.currentUnits === 'US' ? 'oz' : 'ml';
+
+        document.getElementById('combined-stats').innerHTML = `
+            <div class="stat-card"><b>Avg Intake</b><br>${avg} ${unit}</div>
+            <div class="stat-card"><b>Days Logged</b><br>${labels.length}</div>
+        `;
         render('combinedChart', 'Total Intake', labels, vals, '#ff9800');
     }
 
     function render(id, label, labels, data, color) {
+        const ctx = document.getElementById(id).getContext('2d');
         if(charts[id]) charts[id].destroy();
-        charts[id] = new Chart(document.getElementById(id), {
+        charts[id] = new Chart(ctx, {
             type: 'line',
-            data: { labels: labels, datasets: [{ label: label, data: data, borderColor: color, tension: 0.4, fill: true, backgroundColor: color+'22' }] },
-            options: { responsive: true, maintainAspectRatio: false }
+            data: { 
+                labels: labels, 
+                datasets: [{ 
+                    label: label, 
+                    data: data, 
+                    borderColor: color, 
+                    backgroundColor: color + '22',
+                    fill: true,
+                    tension: 0.4 
+                }] 
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
         });
     }
 
-    window.toggleNight = () => document.body.classList.toggle('night');
+    window.toggleNight = () => {
+        document.body.classList.toggle('night');
+    };
 </script>
 </body>
 </html>
