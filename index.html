@@ -1,4 +1,4 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -49,21 +49,19 @@
             --bg: #000000; --card: #120000; --text: #cc0000; --accent: #880000; --chart-grid: #330000; --timer-bg: #210000; --active-tile-border: #ff1744;
         }
         
-        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; padding-bottom: 70px; /* Spacer for fixed bottom bar */ overflow-x: hidden; scroll-behavior: smooth; }
+        body { font-family: -apple-system, sans-serif; margin: 0; background: var(--bg); color: var(--text); transition: background 0.3s, color 0.3s; padding-bottom: 70px; overflow-x: hidden; scroll-behavior: smooth; }
         
         #auth-screen { position: fixed; inset: 0; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         #app-interface { display: none; width: 100%; max-width: 450px; margin: 0 auto; padding: 15px; box-sizing: border-box; }
         
-        /* Logo & Header */
         header { text-align: center; margin-bottom: 20px; }
         .logo-text { font-size: 24px; font-weight: bold; color: var(--accent); margin-bottom: 5px; }
         .logo-subtext { font-size: 14px; color: var(--text); opacity: 0.8; }
         
-        /* Tab Grid Layout */
         #tab-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-bottom: 25px; }
         
         .tab-tile {
-            background: var(--card); border-radius: 16px; aspect-ratio: 1/1; /* Square shape */
+            background: var(--card); border-radius: 16px; aspect-ratio: 1/1;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             border: 2px solid transparent; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.2s;
             cursor: pointer; text-align: center; box-sizing: border-box; padding: 10px;
@@ -75,7 +73,6 @@
         .tile-label { font-size: 11px; font-weight: bold; color: var(--text); text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
         .switch-label { font-size: 10px; opacity: 0.7; margin-bottom: 2px; }
         
-        /* Page Content Area */
         main { display: flex; flex-direction: column; }
         .page { display: none; }
         .page.active { display: block; }
@@ -102,7 +99,6 @@
         .stat-grid { display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:15px; }
         .stat-card { background: var(--card); padding: 12px; border-radius: 12px; text-align: center; border-top: 4px solid var(--accent); font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         
-                /* Fixed Bottom Bar */
         #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 60px; background: var(--card); display: flex; align-items: center; justify-content: space-evenly; border-top: 1px solid rgba(0,0,0,0.1); z-index: 100; box-shadow: 0 -4px 10px rgba(0,0,0,0.03); }
         .fixed-action { display: flex; align-items: center; color: var(--text); opacity: 0.8; font-size: 14px; text-decoration: none; cursor: pointer; padding: 10px; transition: 0.2s; }
         .fixed-action:active { transform: scale(0.95); opacity: 1; }
@@ -146,10 +142,10 @@
             <span class="tile-emoji">🚼</span>
             <span class="tile-label">Nappy</span>
         </div>
-<div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)">
-    <span class="tile-emoji">🫂</span>
-    <span class="tile-label">Skin to Skin</span>
-</div>
+        <div id="tile-skin" class="tab-tile" onclick="window.showPage('skin-to-skin', this)">
+            <span class="tile-emoji">🫂</span>
+            <span class="tile-label">Skin to Skin</span>
+        </div>
        
         <div class="tab-tile" onclick="window.switchUnits()">
             <span class="switch-label">Version:</span>
@@ -201,28 +197,28 @@
             </div>
             <div id="combined-insights-area"></div>
         </div>
-       <div id="skin-to-skin" class="page">
-    <h2 class="section-header">🫂 Skin to Skin</h2>
-    <div class="card">
-        <label class="sub-header">Start Time</label>
-        <input type="datetime-local" id="skinStart">
-        
-        <label class="sub-header">End Time</label>
-        <input type="datetime-local" id="skinEnd">
 
-        <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
-            <button id="person-mama" class="side-btn active" onclick="setSkinPerson('Mama')">Mama</button>
-            <button id="person-papa" class="side-btn" onclick="setSkinPerson('Papa')">Papa</button>
-        </div>
-        
-        <button class="save-btn" id="skinSaveBtn" onclick="submitSkinLog()">Log Session</button>
-    </div>
-    <div class="card">
-        <small><strong>Recent History</strong></small>
-        <div id="skin-history"></div>
-    </div>
+       <div id="skin-to-skin" class="page">
+            <h2 class="section-header">🫂 Skin to Skin</h2>
+            <div class="card">
+                <label class="sub-header">Start Time</label>
+                <input type="datetime-local" id="skinStart">
+                
+                <label class="sub-header">End Time</label>
+                <input type="datetime-local" id="skinEnd">
+
+                <div style="display: flex; gap: 10px; margin-top: 10px; margin-bottom: 15px;">
+                    <button id="person-mama" class="side-btn active" onclick="setSkinPerson('Mama')">Mama</button>
+                    <button id="person-papa" class="side-btn" onclick="setSkinPerson('Papa')">Papa</button>
+                </div>
+                
+                <button class="save-btn" id="skinSaveBtn" onclick="submitSkinLog()">Log Session</button>
+            </div>
+            <div class="card">
+                <small><strong>Recent History</strong></small>
+                <div id="skin-history"></div>
+            </div>
        </div>
-       
     </main>
 </div>
 
@@ -238,28 +234,22 @@
     </div>
 </footer>
 
-
-<button class="night-toggle" onclick="toggleNight()">🌙</button>
-
 <script>
-    // Bulletproof JS Section
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
+    // 1. Core Config & Data Setup
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zj15xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D20F/exec';
     
-    // Core Conversions: Google Sheet data is always ML. US units are display-only.
-    // 1 ML = 0.033814 OZ.  1 OZ = 29.5735 ML
     const ML_TO_OZ = 0.033814;
     const OZ_TO_ML = 29.5735;
-
-    // Unit State Manager (UK = ML, US = OZ)
     window.currentUnits = 'UK'; 
-
     window.currentSide = 'Left';
     window.currentMode = 'Pump';
+    window.currentSkinPerson = 'Mama';
     window.activeTab = 'milk';
+    
     let milkChart = null, formulaChart = null, combinedChart = null;
     let lastMilkTime = null, lastFormulaTime = null;
 
-    // Utility to get/set value based on units
+    // 2. Utility Functions
     function valToDisplay(mlVal) {
         if(window.currentUnits === 'US') return (mlVal * ML_TO_OZ).toFixed(1);
         return mlVal;
@@ -273,28 +263,38 @@
         return `${h}h ${m}m ago`;
     }
 
-    // Unit Switching Logic
+    function setSide(s) { window.currentSide = s; document.querySelectorAll('#sideL, #sideR, #sideB').forEach(b => b.classList.toggle('active', b.id === `side${s.charAt(0)}`)); }
+    function setMilkMode(m) { window.currentMode = m; document.querySelectorAll('#mode-pump, #mode-feed').forEach(b => b.classList.toggle('active', b.id === `mode-${m.toLowerCase()}`)); }
+    
+    window.setSkinPerson = (p) => {
+        window.currentSkinPerson = p;
+        document.getElementById('person-mama').classList.toggle('active', p === 'Mama');
+        document.getElementById('person-papa').classList.toggle('active', p === 'Papa');
+    };
+
+    function resetTimeInputs() { 
+        const now = new Date(); 
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+        const timeStr = now.toISOString().slice(0, 16); 
+        document.querySelectorAll('#feedTime, #formulaTime, #skinStart, #skinEnd').forEach(i => i.value = timeStr); 
+    }
+    const getUserEmail = () => window.auth?.currentUser?.email;
+
+    // 3. Navigation & Theme Logic
     window.switchUnits = () => {
         window.currentUnits = (window.currentUnits === 'UK') ? 'US' : 'UK';
-        
-        // 1. Update Switcher Tile
         const isUS = (window.currentUnits === 'US');
         document.getElementById('switcher-flag').innerText = isUS ? '🇺🇸' : '🇬🇧';
         document.getElementById('switcher-label').innerText = isUS ? 'American' : 'British';
         
-        // 2. Update all UI text labels/placeholders (ML -> OZ)
         const unitSuffix = isUS ? '(oz)' : '(ml)';
-        
-        // Input Placeholders
         document.getElementById('milkAmt').placeholder = isUS ? "Amount (oz)" : "Amount (ml)";
         document.getElementById('formulaAmt').placeholder = isUS ? "Bottle (oz)" : "Bottle (ml)";
         
-        // Tile Labels (using data-units attribute)
         document.querySelectorAll('.tile-label[data-units]').forEach(label => {
             label.innerText = label.getAttribute('data-units').replace('(ML)', isUS ? '(OZ)' : '(ML)');
         });
 
-        // 3. Update Chart Y-Axis labels (ML -> OZ)
         if(milkChart) {
             milkChart.options.scales.y.title.text = unitSuffix;
             milkChart.data.datasets[0].label = `Pump ${unitSuffix}`;
@@ -311,20 +311,16 @@
             combinedChart.data.datasets[0].label = isUS ? 'Intake (oz)' : 'Intake (ml)';
             combinedChart.update();
         }
-
-        // 4. Reload data to re-calculate stats
         refreshCurrentPage();
     };
 
-        window.toggleNight = () => {
+    window.toggleNight = () => {
         document.body.classList.toggle('night');
         const isNight = document.body.classList.contains('night');
-        // This ensures the button in the bottom bar changes icons
         const iconEl = document.getElementById('night-icon');
         if (iconEl) iconEl.innerText = isNight ? '☀️' : '🌙';
         refreshCurrentPage();
     };
-
 
     window.showPage = (id, btn) => {
         try {
@@ -332,22 +328,21 @@
             document.querySelectorAll('.page').forEach(p => p.style.display = 'none');
             document.querySelectorAll('.tab-tile').forEach(b => b.classList.remove('active'));
             document.getElementById(id).style.display = 'block';
-            btn.classList.add('active');
+            if(btn) btn.classList.add('active');
             refreshCurrentPage();
-        } catch (error) {
-            console.error("Navigation error:", error);
-            alert("Oops! Navigation hiccup. Check console for details.");
-        }
+        } catch (error) { console.error("Navigation error:", error); }
     };
 
-    function refreshCurrentPage() {
+    window.refreshCurrentPage = () => {
         if(window.activeTab === 'milk') loadMilkData();
         else if(window.activeTab === 'formula') loadFormulaData();
-        else loadCombinedData();
-    }
+        else if(window.activeTab === 'combined') loadCombinedData();
+        else if(window.activeTab === 'skin-to-skin') loadSkinData();
+    };
 
+    // 4. Data Saving Logic
     window.submitLog = async (cat) => {
-        const email = window.auth?.currentUser?.email;
+        const email = getUserEmail();
         if (!email) { alert("Waiting for user authorization..."); return; }
 
         const amtInput = document.getElementById(cat === 'Milk' ? 'milkAmt' : 'formulaAmt');
@@ -357,10 +352,9 @@
         if(!amtInput.value) return;
         btn.innerText = "⌛ Saving...";
 
-        // Handle Unit Conversion before saving (convert OZ input back to ML)
         let mlValue = parseFloat(amtInput.value);
         if(window.currentUnits === 'US') {
-            mlValue = (mlValue * OZ_TO_ML).toFixed(0); // Convert OZ to ML and round
+            mlValue = (mlValue * OZ_TO_ML).toFixed(0); 
         }
         
         const payload = { 
@@ -378,185 +372,23 @@
                 refreshCurrentPage();
             }, 1500);
         } catch (e) { 
-            console.error("Save Error:", e);
             btn.innerText = "❌ Error"; 
             setTimeout(() => btn.innerText = cat === 'Milk' ? "Confirm & Save" : "Save Bottle", 2000);
         }
     };
 
-    // Helper functions (remain UK/ML data logic)
-    function setSide(s) { window.currentSide = s; document.querySelectorAll('#sideL, #sideR, #sideB').forEach(b => b.classList.toggle('active', b.id === `side${s.charAt(0)}`)); }
-    function setMilkMode(m) { window.currentMode = m; document.querySelectorAll('#mode-pump, #mode-feed').forEach(b => b.classList.toggle('active', b.id === `mode-${m.toLowerCase()}`)); }
-    function resetTimeInputs() { const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); const timeStr = now.toISOString().slice(0, 16); document.querySelectorAll('#feedTime, #formulaTime').forEach(i => i.value = timeStr); }
-    const getUserEmail = () => window.auth?.currentUser?.email;
-
-    // Loading data & implementing unit conversion
-    window.loadMilkData = async () => {
+    window.submitSkinLog = async () => {
         const email = getUserEmail();
-        if(!email) return;
-        
-        try {
-            const res = await fetch(GOOGLE_URL);
-            const data = await res.json();
-            const myLogs = data.filter(r => r.user === email && r.category === 'Milk').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-            
-            // Last Feed Logic (only counts 'Feed', not 'Pump')
-            const feeds = myLogs.filter(r => r.detail1 && r.detail1.includes('Feed'));
-            if(feeds.length > 0) { lastMilkTime = feeds[feeds.length - 1].timestamp; document.getElementById('milk-timer').innerText = `Last Feed: ${timeAgoHelper(lastMilkTime)}`; } else { document.getElementById('milk-timer').innerText = "Last Feed: Never logged"; }
-            
-            let dailyObj = {};
-            myLogs.forEach(r => {
-                const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
-                if(!dailyObj[dtStr]) dailyObj[dtStr] = { pump: 0, feed: 0 };
-                let val = parseFloat(r.value) || 0;
-                if(r.detail1 && r.detail1.includes('Pump')) dailyObj[dtStr].pump += val; else dailyObj[dtStr].feed += val;
-            });
-            const labels = Object.keys(dailyObj).slice(-10);
-            
-            const todayPumpML = dailyObj[labels[labels.length-1]]?.pump || 0;
-            const todayFeedML = dailyObj[labels[labels.length-1]]?.feed || 0;
-            const unitsSuffixDisplay = (window.currentUnits === 'US') ? 'oz' : 'ml';
-            
-            document.getElementById('milk-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card">Today's Pump<br><strong>${valToDisplay(todayPumpML)}${unitsSuffixDisplay}</strong></div><div class="stat-card">Today's Feed<br><strong>${valToDisplay(todayFeedML)}${unitsSuffixDisplay}</strong></div></div>`;
-            
-            document.getElementById('milk-history').innerHTML = myLogs.slice(-8).reverse().map(r => `
-                <div class="hist-item">
-                    <div class="hist-info">
-                        <span>${valToDisplay(r.value)}${unitsSuffixDisplay}</span>
-                        <span class="hist-time">${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <span>(${r.detail1})</span>
-                    <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'milk')">✕</button>
-                </div>`).join('');
-            
-            renderChart('milkChart', labels, [
-                { label: `Pump`, data: labels.map(l => valToDisplay(dailyObj[l].pump)), borderColor: '#81c784', backgroundColor: 'rgba(129, 199, 132, 0.2)', tension: 0.4, fill: true },
-                { label: `Feed`, data: labels.map(l => valToDisplay(dailyObj[l].feed)), borderColor: '#ffb74d', backgroundColor: 'rgba(255, 183, 77, 0.2)', tension: 0.4, fill: true }
-            ]);
-        } catch(e) { console.error("Load Milk Failed:", e); }
-    };
+        if (!email) return;
 
-    window.loadFormulaData = async () => {
-        const email = getUserEmail();
-        if(!email) return;
+        const start = new Date(document.getElementById('skinStart').value);
+        const end = new Date(document.getElementById('skinEnd').value);
+        const btn = document.getElementById('skinSaveBtn');
 
-        try {
-            const res = await fetch(GOOGLE_URL);
-            const data = await res.json();
-            const myLogs = data.filter(r => r.user === email && r.category === 'Formula').sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
-            if(myLogs.length > 0) { lastFormulaTime = myLogs[myLogs.length - 1].timestamp; document.getElementById('formula-timer').innerText = `Last Bottle: ${timeAgoHelper(lastFormulaTime)}`; } else { document.getElementById('formula-timer').innerText = "Last Bottle: Never logged"; }
-            
-            let dailyObj = {};
-            myLogs.forEach(r => {
-                const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
-                dailyObj[dtStr] = (dailyObj[dtStr] || 0) + (parseFloat(r.value) || 0);
-            });
-            const labels = Object.keys(dailyObj).slice(-10);
-            
-            const todayFormulaML = dailyObj[labels[labels.length-1]] || 0;
-            const unitsSuffixDisplay = (window.currentUnits === 'US') ? 'oz' : 'ml';
-            
-            document.getElementById('formula-stats-area').innerHTML = `<div class="stat-grid"><div class="stat-card" style="grid-column: span 2;">Today's Formula Total<br><strong>${valToDisplay(todayFormulaML)}${unitsSuffixDisplay}</strong></div></div>`;
-            document.getElementById('formula-history').innerHTML = myLogs.slice(-8).reverse().map(r => `
-                <div class="hist-item">
-                    <div class="hist-info">
-                        <span>${valToDisplay(r.value)}${unitsSuffixDisplay}</span>
-                        <span class="hist-time">${new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <button class="del-btn" onclick="deleteItem('${r.timestamp}', 'formula')">✕</button>
-                </div>`).join('');
-            
-            renderChart('formulaChart', labels, [{ label: unitsSuffixDisplay, data: labels.map(l => valToDisplay(dailyObj[l])), borderColor: '#64b5f6', backgroundColor: 'rgba(100, 181, 246, 0.2)', tension: 0.4, fill: true }]);
-        } catch(e) { console.error("Load Formula Failed:", e); }
-    };
+        if (!start || !end || end <= start) {
+            alert("Please check your times! End must be after start.");
+            return;
+        }
 
-    window.loadCombinedData = async () => {
-        const email = getUserEmail();
-        const statsArea = document.getElementById('combined-stats-area');
-        const insightsArea = document.getElementById('combined-insights-area');
-        if(!email) { statsArea.innerHTML = "Authenticating..."; return; }
-
-        try {
-            const res = await fetch(GOOGLE_URL);
-            const data = await res.json();
-            const myLogs = data.filter(r => r.user === email);
-            
-            let dailyTotal = {};
-            let feedCount = {};
-            
-            myLogs.forEach(r => {
-                if (r.category === 'Formula' || (r.category === 'Milk' && r.detail1 && r.detail1.includes('Feed'))) {
-                    const dtStr = new Date(r.timestamp).toLocaleDateString([], {day:'2-digit', month:'short'});
-                    dailyTotal[dtStr] = (dailyTotal[dtStr] || 0) + (parseFloat(r.value) || 0);
-                    feedCount[dtStr] = (feedCount[dtStr] || 0) + 1;
-                }
-            });
-
-            const labels = Object.keys(dailyTotal).sort((a,b) => new Date(a) - new Date(b)).slice(-10);
-            if(labels.length === 0) { statsArea.innerHTML = "<div class='card'>No feeding data to combine yet!</div>"; return; }
-
-            const combinedValuesML = labels.map(l => dailyTotal[l]);
-            const last7_ML = combinedValuesML.slice(-7);
-            const avg_ML = (last7_ML.reduce((a, b) => a + b, 0) / (last7_ML.length || 1)).toFixed(0);
-            
-            const todayTotalML = dailyTotal[labels[labels.length-1]] || 0;
-            const todayCount = feedCount[labels[labels.length-1]] || 0;
-            const unitsSuffixDisplay = (window.currentUnits === 'US') ? 'oz' : 'ml';
-
-            statsArea.innerHTML = `<div class="stat-grid"><div class="stat-card">Today's Intake<br><strong>${valToDisplay(todayTotalML)}${unitsSuffixDisplay}</strong></div><div class="stat-card">7-Day Average<br><strong>${valToDisplay(avg_ML)}${unitsSuffixDisplay}</strong></div></div>`;
-            
-            insightsArea.innerHTML = `<div class="card"><small><strong>Daily Insights</strong></small><div style="display:flex; justify-content:space-around; margin-top:10px;"><div style="text-align:center"><small>Feeds Today</small><br><strong>${todayCount}</strong></div><div style="text-align:center"><small>Avg Session</small><br><strong>${todayCount ? valToDisplay((todayTotalML/todayCount).toFixed(0)) : 0}${unitsSuffixDisplay}</strong></div></div></div>`;
-
-            renderChart('combinedChart', labels, [{ label: unitsSuffixDisplay, data: combinedValuesML.map(val => valToDisplay(val)), borderColor: '#9575cd', backgroundColor: 'rgba(149, 117, 205, 0.2)', tension: 0.4, fill: true }]);
-        } catch(e) { console.error("Combine Load Failed:", e); statsArea.innerHTML = "⚠️ Load Failed - check console"; }
-    };
-
-    function renderChart(canvasId, labels, datasets) {
-        try {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            const isNight = document.body.classList.contains('night');
-            const textColor = isNight ? '#cc0000' : '#2d412d';
-            const gridColor = isNight ? '#330000' : '#eeeeee';
-            
-            if(canvasId === 'milkChart' && milkChart) milkChart.destroy();
-            if(canvasId === 'formulaChart' && formulaChart) formulaChart.destroy();
-            if(canvasId === 'combinedChart' && combinedChart) combinedChart.destroy();
-            
-            const currentDisplayUnit = (window.currentUnits === 'US') ? '(oz)' : '(ml)';
-
-            const chartObj = new Chart(ctx, {
-                type: 'line', data: { labels: labels, datasets: datasets },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { 
-                        x: { grid: { display: false }, ticks: { color: textColor, font: { size: 10 } } },
-                        y: { 
-                            title: { display: true, text: currentDisplayUnit, color: textColor, font: { size: 10 } },
-                            grid: { color: gridColor }, ticks: { color: textColor, beginAtZero: true, font: { size: 10 } } 
-                        }
-                    },
-                    plugins: { 
-                        legend: { labels: { color: textColor, font: { size: 11 }, boxWidth: 12, boxHeight: 12 } } 
-                    }
-                }
-            });
-            
-            if (canvasId === 'milkChart') milkChart = chartObj;
-            else if (canvasId === 'formulaChart') formulaChart = chartObj;
-            else combinedChart = chartObj;
-        } catch (e) { console.error("Chart Rendering Error:", e); }
-    }
-
-    window.deleteItem = async (ts, type) => {
-        if(!confirm("Delete this log permanently?")) return;
-        try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: 'delete', timestamp: ts, user: getUserEmail() }) });
-            setTimeout(() => { refreshCurrentPage(); }, 1000);
-        } catch (e) { alert("Failed to delete. Check connection."); }
-    };
-
-    // Initialize time on load
-    window.onload = resetTimeInputs;
-</script>
-</body>
-</html>
+        const duration = Math.round((end - start) / 1000 / 60);
+      
