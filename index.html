@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eco Family Flow</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Firebase SDK -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
       import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -39,7 +39,7 @@
       window.login = () => signInWithPopup(auth, provider);
       window.logout = () => signOut(auth).then(() => location.reload());
     </script>
-    
+
     <style>
         /* Light Theme */
         :root { 
@@ -52,7 +52,6 @@
             --btn-text: #ffffff;
             --delete: #ff6b6b;
         }
-        
         /* Night Vision Mode */
         body.night { 
             --bg: #000000; 
@@ -64,7 +63,6 @@
             --btn-text: #ffcccc;
             --delete: #ff1a1a;
         }
-
         body { 
             font-family: -apple-system, system-ui, sans-serif; 
             margin: 0; 
@@ -73,47 +71,34 @@
             padding-bottom: 90px; 
             transition: background-color 0.5s ease, color 0.5s ease;
         }
-        
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
         .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; transition: color 0.5s ease;}
-        
-        /* Navigation */
         #nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .nav-tile { background: var(--card); border-radius: 14px; aspect-ratio: 1.2/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
         .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
         .nav-emoji { font-size: 26px; margin-bottom: 4px; }
         .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-        
-        /* Pages & Cards */
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
         .card { background: var(--card); padding: 18px; border-radius: 16px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .input-group { margin-bottom: 12px; }
-        input { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--accent); }
-        
-        /* Buttons */
+        input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus, select:focus { border-color: var(--accent); }
         .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .toggle-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); background: var(--card); color: var(--accent-dark); font-weight: 600; cursor: pointer; }
         .toggle-btn.active { background: var(--accent); color: var(--btn-text); }
         .save-btn { background: var(--accent-dark); color: var(--btn-text); border: none; padding: 16px; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
-
-        /* Stats & History */
         .stat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
         .stat-box { background: var(--card); padding: 15px; border-radius: 14px; text-align: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .stat-val { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
         .stat-lbl { font-size: 11px; text-transform: uppercase; opacity: 0.7; font-weight: 600; }
-        
         .history-list { margin-top: 5px; }
-        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .history-item:last-child { border-bottom: none; }
-
-        /* Footer & Auth */
+        .delete-btn { cursor: pointer; opacity: 0.6; font-size: 18px; margin-left: 10px; }
         #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--card); display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border); z-index: 100; }
         .footer-action { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 12px; font-weight: 600; opacity: 0.8; }
-        
         #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
         .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--accent); display: none; }
     </style>
@@ -132,7 +117,7 @@
         <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label unit-display">Milk (ML)</span></div>
         <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label unit-display">Formula (ML)</span></div>
         <div id="tab-combined" class="nav-tile" onclick="window.switchTab('combined')"><span class="nav-emoji">📈</span><span class="nav-label">Combined</span></div>
-        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">🫂</span><span class="nav-label">Skin</span></div>
+        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin-to-Skin</span></div>
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
         <div class="nav-tile" onclick="window.toggleUnits()"><span id="flag-emoji" class="nav-emoji">🇬🇧</span><span id="unit-label" class="nav-label">UK Units</span></div>
     </section>
@@ -140,6 +125,7 @@
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
+        <!-- MILK PAGE -->
         <div id="page-milk" class="page active">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="milkTime"></div>
@@ -156,10 +142,11 @@
                 <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
             </div>
             <div id="stats-milk" class="stat-container"></div>
-            <div class="card"><canvas id="chart-milk" style="height:220px;"></canvas></div>
+            <div class="card"><div style="height:220px;"><canvas id="chart-milk"></canvas></div></div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
+        <!-- FORMULA PAGE -->
         <div id="page-formula" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
@@ -167,31 +154,35 @@
                 <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button>
             </div>
             <div id="stats-formula" class="stat-container"></div>
-            <div class="card"><canvas id="chart-formula" style="height:220px;"></canvas></div>
+            <div class="card"><div style="height:220px;"><canvas id="chart-formula"></canvas></div></div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
+        <!-- COMBINED PAGE -->
         <div id="page-combined" class="page">
             <div class="card" style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 15px;">
                 Shows Total Fed (Milk Feeds + Formula). Pumping is excluded from this chart.
             </div>
             <div id="stats-combined" class="stat-container"></div>
-            <div class="card"><canvas id="chart-combined" style="height:250px;"></canvas></div>
+            <div class="card"><div style="height:250px;"><canvas id="chart-combined"></canvas></div></div>
         </div>
 
+        <!-- SKIN-TO-SKIN PAGE -->
         <div id="page-skin" class="page">
             <div class="card">
                 <div class="stat-lbl" style="margin-bottom: 5px;">Start Time</div>
                 <div class="input-group"><input type="datetime-local" id="skinStart"></div>
                 <div class="stat-lbl" style="margin-bottom: 5px;">End Time</div>
                 <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
+                <!-- Removed "Mama/Papa" toggle; single save button is more inclusive -->
                 <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Session</button>
             </div>
             <div id="stats-skin" class="stat-container"></div>
-            <div class="card"><canvas id="chart-skin" style="height:220px;"></canvas></div>
+            <div class="card"><div style="height:220px;"><canvas id="chart-skin"></canvas></div></div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
         </div>
 
+        <!-- NAPPY PAGE -->
         <div id="page-nappy" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
@@ -203,7 +194,7 @@
                 <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button>
             </div>
             <div id="stats-nappy" class="stat-container"></div>
-            <div class="card"><canvas id="chart-nappy" style="height:220px;"></canvas></div>
+            <div class="card"><div style="height:220px;"><canvas id="chart-nappy"></canvas></div></div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
     </main>
@@ -220,7 +211,7 @@
 
 <script>
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
-    
+
     let state = {
         units: 'UK', 
         tab: 'milk',
@@ -229,9 +220,10 @@
         nappyType: 'Wee',
         logs: []
     };
-    
+
     let charts = {};
 
+    // --- UTILS ---
     window.resetTimeInputs = () => { 
         const now = new Date(); 
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
@@ -248,12 +240,13 @@
         state.units = state.units === 'UK' ? 'US' : 'UK';
         document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
         document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
-        
-        const unitText = state.units === 'UK' ? 'ml' : 'oz';
-        document.querySelectorAll('.unit-display').forEach(el => el.innerText = el.innerText.replace(/ML|OZ/i, unitText.toUpperCase()));
-        document.getElementById('milkAmt').placeholder = `Amount (${unitText})`;
-        document.getElementById('formulaAmt').placeholder = `Amount (${unitText})`;
-        
+        const unitText = state.units === 'UK' ? 'ML' : 'OZ';
+        document.querySelectorAll('.unit-display').forEach(el => {
+            const base = el.innerText.split(' ')[0];
+            el.innerText = `${base} (${unitText})`;
+        });
+        document.getElementById('milkAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
+        document.getElementById('formulaAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
         window.renderUI();
     };
 
@@ -268,23 +261,18 @@
     window.setParam = (param, value) => {
         state[param] = value;
         const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
-        const btnId = `${prefix}-${value.toLowerCase()}`;
-        const clickedBtn = document.getElementById(btnId);
-        if (clickedBtn) {
-            const parent = clickedBtn.parentElement;
-            parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-            clickedBtn.classList.add('active');
-        }
+        const parent = document.getElementById(`${prefix}-${value.toLowerCase()}`).parentElement;
+        parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
     };
 
-    // --- FETCH & SAVE DATA ---
+    // --- DATA FETCHING ---
     window.refreshData = async () => {
-        if(!window.auth || !window.auth.currentUser) return;
+        if(!window.auth?.currentUser) return;
         document.getElementById('loading-indicator').style.display = 'block';
         try {
             const response = await fetch(GOOGLE_URL);
             const data = await response.json();
-            // Filters based on the logged in Google account
             state.logs = data.filter(row => row.user === window.auth.currentUser.email);
             window.renderUI();
         } catch (error) {
@@ -299,7 +287,7 @@
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             btn.innerText = "Saved!";
-            state.logs.push(payload); 
+            state.logs.push(payload);
             setTimeout(() => { btn.innerText = defaultText; window.renderUI(); }, 1000);
         } catch(e) {
             btn.innerText = "Error!";
@@ -307,17 +295,25 @@
         }
     };
 
+    window.deleteEntry = (timestamp) => {
+        if(!confirm('Delete this entry?')) return;
+        const payload = { action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email };
+        fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(() => {
+            state.logs = state.logs.filter(l => l.timestamp !== timestamp);
+            window.renderUI();
+        });
+    };
+
+    // --- SAVE FUNCTIONS ---
     window.saveData = (category) => {
-        const amtInput = document.getElementById(category === 'Milk' ? 'milkAmt' : 'formulaAmt');
+        const isMilk = category === 'Milk';
+        const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
         let val = parseFloat(amtInput.value);
         if(!val) return alert("Please enter an amount");
-
-        // Convert US oz input into standard ML for the database
         if(state.units === 'US') val = val * 29.5735;
-
-        const detail = category === 'Formula' ? 'Bottle' : `${state.milkMode} (${state.milkSide})`;
-        const timeId = category === 'Milk' ? 'milkTime' : 'formulaTime';
-
+        const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
+        const timeId = isMilk ? 'milkTime' : 'formulaTime';
+        
         const payload = {
             action: 'save',
             timestamp: new Date(document.getElementById(timeId).value).toISOString(),
@@ -326,7 +322,6 @@
             detail: detail,
             user: window.auth.currentUser.email
         };
-
         amtInput.value = ''; 
         pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
@@ -336,7 +331,7 @@
         const end = new Date(document.getElementById('skinEnd').value);
         const mins = Math.round((end - start) / 60000);
         if(mins <= 0) return alert("End time must be after start time");
-
+        
         const payload = { action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: 'Session', user: window.auth.currentUser.email };
         pushToSheet(payload, 'btn-save-skin', 'Save Session');
         window.resetTimeInputs();
@@ -348,13 +343,13 @@
         pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
     };
 
-    // --- RENDER UI & CHARTS ---
+    // --- RENDERING ---
     const drawChart = (canvasId, label, dataArray, color) => {
-        const ctx = document.getElementById(canvasId);
-        if(!ctx) return;
+        const canvas = document.getElementById(canvasId);
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
         if(charts[canvasId]) charts[canvasId].destroy();
-        
-        // Group data by Date for the chart
+
         const grouped = {};
         dataArray.forEach(log => {
             const date = new Date(log.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
@@ -376,11 +371,40 @@
         const displayVal = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
         const unit = isUS ? 'oz' : 'ml';
 
-        // 1. MILK
-        const milkLogs = state.logs.filter(l => l.category === 'Milk').reverse();
-        const milkTotal = milkLogs.reduce((s, l) => s + l.value, 0);
-        document.getElementById('stats-milk').innerHTML = `
-            <div class="stat-box"><div class="stat-val">${displayVal(milkTotal)}${unit}</div><div class="stat-lbl">Total Logged</div></div>
-            <div class="stat-box"><div class="stat-val">${milkLogs.length}</div><div class="stat-lbl">Sessions</div></div>
+        const renderSection = (category, containerPrefix, chartId, color, filterFn) => {
+            const logs = state.logs.filter(filterFn).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const total = logs.reduce((s, l) => s + l.value, 0);
+            document.getElementById(`stats-${containerPrefix}`).innerHTML = `
+                <div class="stat-box"><div class="stat-val">${displayVal(total)}${unit}</div><div class="stat-lbl">Total</div></div>
+                <div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>
+            `;
+            document.getElementById(`history-${containerPrefix}`).innerHTML = logs.slice(0, 5).map(l => `
+                <div class="history-item">
+                    <span>${new Date(l.timestamp).toLocaleString()} - ${l.detail || ''} (${displayVal(l.value)}${unit})</span>
+                    <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
+                </div>
+            `).join('');
+            drawChart(chartId, category, logs, color);
+        };
+
+        // Render each category
+        renderSection('Milk', 'milk', 'chart-milk', '#8fbca0', l => l.category === 'Milk');
+        renderSection('Formula', 'formula', 'chart-formula', '#6a9c7d', l => l.category === 'Formula');
+        renderSection('Skin-to-Skin', 'skin', 'chart-skin', '#b30000', l => l.category === 'SkinToSkin');
+        renderSection('Nappy', 'nappy', 'chart-nappy', '#ffb347', l => l.category === 'Nappy');
+
+        // Combined (Feeds only)
+        const feedLogs = state.logs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
+        const totalFed = feedLogs.reduce((s, l) => s + l.value, 0);
+        document.getElementById('stats-combined').innerHTML = `
+            <div class="stat-box"><div class="stat-val">${displayVal(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
+            <div class="stat-box"><div class="stat-val">${feedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
         `;
-        document.getElementById('history-milk').innerHTML = milkLogs.slice(0, 5).map(l
+        drawChart('chart-combined', 'Total Fed (ml)', feedLogs, '#4a90e2');
+    };
+
+    // Initial reset
+    window.resetTimeInputs();
+</script>
+</body>
+</html>
