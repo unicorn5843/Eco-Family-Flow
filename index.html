@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -70,7 +70,7 @@
             background: var(--bg); 
             color: var(--text); 
             padding-bottom: 90px; 
-            transition: background-color 0.5s ease, color 0.5s ease; /* Smooth fade */
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
         
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
@@ -195,10 +195,6 @@
                 <div class="input-group"><input type="datetime-local" id="skinStart"></div>
                 <div class="stat-lbl">End Time</div>
                 <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
-                <div class="btn-row">
-                    <button id="skin-person-mama" class="toggle-btn active" onclick="window.setParam('skinPerson', 'Mama')">Mama</button>
-                    <button id="skin-person-papa" class="toggle-btn" onclick="window.setParam('skinPerson', 'Papa')">Papa</button>
-                </div>
                 <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Session</button>
             </div>
             <div id="stats-skin" class="stat-container"></div>
@@ -242,14 +238,14 @@
 
 <script>
     // --- APP STATE & CONFIG ---
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec'; // <--- PASTE NEW URL HERE
+    // Make sure your Google Apps Script Web App URL is correctly pasted below:
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
     
     let state = {
         units: 'UK', // UK=ml, US=oz
         tab: 'milk',
         milkMode: 'Pump',
         milkSide: 'Left',
-        skinPerson: 'Mama',
         nappyType: 'Wee',
         logs: []
     };
@@ -287,8 +283,7 @@
 
     window.setParam = (param, value) => {
         state[param] = value;
-        // Update UI buttons visually
-        const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase(); // e.g., milkMode -> milk-mode
+        const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
         document.querySelectorAll(`[id^="${prefix}-"]`).forEach(btn => btn.classList.remove('active'));
         document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
     };
@@ -300,7 +295,6 @@
         try {
             const response = await fetch(GOOGLE_URL);
             const data = await response.json();
-            // Store only this user's logs
             state.logs = data.filter(row => row.user === window.auth.currentUser.email);
             window.renderUI();
         } catch (error) {
@@ -317,7 +311,6 @@
         
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            // Optimistically remove from local state
             state.logs = state.logs.filter(l => l.timestamp !== timestamp);
             window.renderUI();
         } catch (e) { alert("Failed to delete"); }
@@ -330,7 +323,6 @@
         try {
             await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
             btn.innerText = "Saved!";
-            // Optimistically add to local state
             state.logs.push(payload); 
             setTimeout(() => { btn.innerText = defaultText; window.renderUI(); }, 1000);
         } catch(e) {
@@ -344,7 +336,6 @@
         let val = parseFloat(amtInput.value);
         if(!val) return alert("Please enter an amount");
 
-        // Convert US oz input to ML for backend storage
         if(state.units === 'US') val = val * 29.5735;
 
         let detail = category === 'Formula' ? 'Bottle' : `${state.milkMode} (${state.milkSide})`;
@@ -354,12 +345,12 @@
             action: 'save',
             timestamp: new Date(document.getElementById(timeId).value).toISOString(),
             category: category,
-            value: Math.round(val), // store integers for ML
+            value: Math.round(val),
             detail: detail,
             user: window.auth.currentUser.email
         };
 
-        amtInput.value = ''; // clear input
+        amtInput.value = ''; 
         pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
 
@@ -369,7 +360,8 @@
         const mins = Math.round((end - start) / 60000);
         if(mins <= 0) return alert("End time must be after start time");
 
-        const payload = { action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: state.skinPerson, user: window.auth.currentUser.email };
+        // Changed 'detail' to simply log 'Session' for all caregivers
+        const payload = { action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: 'Session', user: window.auth.currentUser.email };
         pushToSheet(payload, 'btn-save-skin', 'Save Session');
     };
 
@@ -388,11 +380,9 @@
         if(state.tab === 'nappy') renderNappy();
     };
 
-    // Helper: Convert stored ML to preferred display unit
     const displayVal = (ml) => state.units === 'US' ? (ml * 0.033814).toFixed(1) : Math.round(ml);
     const getUnitStr = () => state.units === 'US' ? 'oz' : 'ml';
     
-    // Helper: Build past 7 days array
     const getLast7Days = () => {
         const dates = [];
         for(let i=6; i>=0; i--) {
@@ -406,8 +396,13 @@
     const buildHistoryHTML = (logs, unitStr = '') => {
         return logs.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0, 5).map(l => {
             const time = new Date(l.timestamp).toLocaleString('en-GB', {weekday: 'short', hour: '2-digit', minute:'2-digit'});
+            
+            // Bulletproof detail reading (filters out literal 'undefined' strings from old bugged data)
+            let logDetail = String(l.detail || l.details || '').replace('undefined', '').trim();
+            
             let valStr = l.category === 'SkinToSkin' ? `${l.value} mins` : l.category === 'Nappy' ? l.detail : `${displayVal(l.value)}${unitStr}`;
-            let detailStr = l.category === 'Nappy' ? '' : ` | ${l.detail}`;
+            let detailStr = (l.category === 'Nappy' || logDetail === '') ? '' : ` | ${logDetail}`;
+            
             return `<div class="history-item">
                 <div><b>${valStr}</b> <span style="opacity:0.6">${detailStr}</span><br><small style="opacity:0.8">${time}</small></div>
                 <button class="del-btn" onclick="window.deleteLog('${l.timestamp}')">❌</button>
@@ -426,7 +421,6 @@
         const ctx = document.getElementById(canvasId).getContext('2d');
         if(charts[canvasId]) charts[canvasId].destroy();
         
-        // Use document styles to match night/day mode natively
         const isNight = document.body.classList.contains('night');
         const gridColor = isNight ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)';
         const textColor = isNight ? '#ff4d4d' : '#2f4f2f';
@@ -455,8 +449,14 @@
             const dateStr = new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
             const idx = days.indexOf(dateStr);
             if(idx > -1) {
-                if(l.detail.includes('Pump')) pumpData[idx] += parseFloat(l.value);
-                if(l.detail.includes('Feed')) feedData[idx] += parseFloat(l.value);
+                // Bulletproof check to avoid crashing if detail is missing from sheet
+                const dStr = String(l.detail || l.details || '').toLowerCase();
+                if(dStr.includes('pump')) {
+                    pumpData[idx] += parseFloat(l.value || 0);
+                } else {
+                    // Defaults to feed if not specifically labelled 'pump' so old data still plots
+                    feedData[idx] += parseFloat(l.value || 0);
+                }
             }
         });
 
@@ -483,7 +483,7 @@
         logs.forEach(l => {
             const dateStr = new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
             const idx = days.indexOf(dateStr);
-            if(idx > -1) data[idx] += parseFloat(l.value);
+            if(idx > -1) data[idx] += parseFloat(l.value || 0);
         });
 
         const todayTotal = data[6];
@@ -498,7 +498,12 @@
     }
 
     function renderCombined() {
-        const milkLogs = state.logs.filter(l => l.category === 'Milk' && l.detail.includes('Feed')); // Only feeds!
+        // Only include milk logs that aren't pumping
+        const milkLogs = state.logs.filter(l => {
+            if (l.category !== 'Milk') return false;
+            const dStr = String(l.detail || l.details || '').toLowerCase();
+            return !dStr.includes('pump');
+        });
         const formulaLogs = state.logs.filter(l => l.category === 'Formula');
         const days = getLast7Days();
         
@@ -507,11 +512,11 @@
 
         milkLogs.forEach(l => {
             const idx = days.indexOf(new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
-            if(idx > -1) milkData[idx] += parseFloat(l.value);
+            if(idx > -1) milkData[idx] += parseFloat(l.value || 0);
         });
         formulaLogs.forEach(l => {
             const idx = days.indexOf(new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
-            if(idx > -1) formulaData[idx] += parseFloat(l.value);
+            if(idx > -1) formulaData[idx] += parseFloat(l.value || 0);
         });
 
         const totalData = days.map((_, i) => milkData[i] + formulaData[i]);
@@ -534,7 +539,7 @@
         
         logs.forEach(l => {
             const idx = days.indexOf(new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
-            if(idx > -1) data[idx] += parseFloat(l.value); // value is in minutes
+            if(idx > -1) data[idx] += parseFloat(l.value || 0); 
         });
 
         updateStats('skin', data[6], Math.round(data.reduce((a,b)=>a+b,0)/7), 'm');
@@ -548,7 +553,7 @@
     function renderNappy() {
         const logs = state.logs.filter(l => l.category === 'Nappy');
         const days = getLast7Days();
-        const data = days.map(() => 0); // Count total nappies per day
+        const data = days.map(() => 0); 
         
         logs.forEach(l => {
             const idx = days.indexOf(new Date(l.timestamp).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'}));
