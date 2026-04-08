@@ -5,460 +5,382 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eco Family Flow</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
+        authDomain: "ecofamilyflow.firebaseapp.com",
+        projectId: "ecofamilyflow",
+        storageBucket: "ecofamilyflow.firebasestorage.app",
+        messagingSenderId: "1013479772757",
+        appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const provider = new GoogleAuthProvider();
+      window.auth = auth;
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('app-interface').style.display = 'block';
+          window.resetTimeInputs();
+          window.refreshData(); 
+        } else {
+          document.getElementById('auth-screen').style.display = 'flex';
+          document.getElementById('app-interface').style.display = 'none';
+        }
+      });
+
+      window.login = () => signInWithPopup(auth, provider);
+      window.logout = () => signOut(auth).then(() => location.reload());
+    </script>
+    
     <style>
-        :root {
-            --primary: #82b384;
-            --bg: #f4f7f4;
-            --card-bg: #ffffff;
-            --text: #333333;
-            --border: #e0e0e0;
-            --active-bg: #82b384;
-            --active-text: white;
-            --skin-color: #f4a261;
+        /* Light Theme */
+        :root { 
+            --bg: #f2f7f4; 
+            --card: #ffffff; 
+            --text: #2f4f2f; 
+            --accent: #8fbca0; 
+            --accent-dark: #6a9c7d;
+            --border: #e0ebe3;
+            --btn-text: #ffffff;
+            --delete: #ff6b6b;
         }
-
-        /* Night Mode Variables */
-        body.night {
-            --bg: #121212;
-            --card-bg: #1e1e1e;
-            --text: #e0e0e0;
-            --border: #333;
-            --primary: #5c805e;
-            --active-bg: #5c805e;
-            --active-text: #ffffff;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 15px;
-            padding-bottom: 80px;
-            transition: background-color 0.3s, color 0.3s;
-        }
-
-        h2 { text-align: center; color: var(--primary); margin-top: 0; }
-
-        .nav-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .nav-tile {
-            background: var(--card-bg);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 15px 5px;
-            text-align: center;
-            font-size: 12px;
-            font-weight: bold;
-            color: var(--text);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .nav-tile.active {
-            border-color: var(--primary);
-            background: rgba(130, 179, 132, 0.1);
-        }
-
-        .nav-icon { font-size: 24px; margin-bottom: 5px; display: block; }
-
-        .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-
-        .input-group { margin-bottom: 15px; }
         
-        input[type="datetime-local"], input[type="number"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            box-sizing: border-box;
-            background: var(--card-bg);
-            color: var(--text);
-            font-size: 16px;
+        /* Night Vision Mode */
+        body.night { 
+            --bg: #000000; 
+            --card: #0a0000; 
+            --text: #ff4d4d; 
+            --accent: #b30000; 
+            --accent-dark: #800000;
+            --border: #330000;
+            --btn-text: #ffcccc;
+            --delete: #ff1a1a;
         }
 
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            margin: 0; 
+            background: var(--bg); 
+            color: var(--text); 
+            padding-bottom: 90px; 
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
-
-        .toggle-btn {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            background: var(--card-bg);
-            color: var(--text);
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .toggle-btn.active {
-            background: var(--active-bg);
-            color: var(--active-text);
-            border-color: var(--active-bg);
-        }
-
-        .save-btn {
-            width: 100%;
-            padding: 15px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .page { display: none; }
+        
+        #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
+        .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; transition: color 0.5s ease;}
+        
+        /* Navigation */
+        #nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .nav-tile { background: var(--card); border-radius: 14px; aspect-ratio: 1.2/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
+        .nav-emoji { font-size: 26px; margin-bottom: 4px; }
+        .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        
+        /* Pages & Cards */
+        .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        .stat-container {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
+        .card { background: var(--card); padding: 18px; border-radius: 16px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
+        .input-group { margin-bottom: 12px; }
+        input { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--accent); }
+        
+        /* Buttons */
+        .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
+        .toggle-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); background: var(--card); color: var(--accent-dark); font-weight: 600; cursor: pointer; }
+        .toggle-btn.active { background: var(--accent); color: var(--btn-text); }
+        .save-btn { background: var(--accent-dark); color: var(--btn-text); border: none; padding: 16px; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
 
-        .stat-box {
-            flex: 1;
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            border-bottom: 3px solid var(--primary);
-        }
+        /* Stats & History */
+        .stat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
+        .stat-box { background: var(--card); padding: 15px; border-radius: 14px; text-align: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
+        .stat-val { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
+        .stat-lbl { font-size: 11px; text-transform: uppercase; opacity: 0.7; font-weight: 600; }
+        
+        .history-list { margin-top: 5px; }
+        .history-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+        .history-item:last-child { border-bottom: none; }
 
-        .stat-val { font-size: 24px; font-weight: bold; }
-        .stat-lbl { font-size: 12px; color: #777; margin-top: 5px; }
-
-        .history-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 14px;
-        }
-
-        .footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--card-bg);
-            padding: 15px;
-            display: flex;
-            justify-content: space-around;
-            border-top: 1px solid var(--border);
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-        }
-
-        .footer-btn {
-            background: none;
-            border: none;
-            color: var(--text);
-            font-size: 14px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-        }
+        /* Footer & Auth */
+        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--card); display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border); z-index: 100; }
+        .footer-action { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 12px; font-weight: 600; opacity: 0.8; }
+        
+        #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
+        .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--accent); display: none; }
     </style>
 </head>
 <body>
 
-    <h2>Eco Family Flow</h2>
+<div id="auth-screen">
+    <div class="header-title">Eco Family Flow</div>
+    <button onclick="window.login()" class="save-btn" style="width: auto; padding: 15px 40px;">Sign in with Google</button>
+</div>
 
-    <div class="nav-grid">
-        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')">
-            <span class="nav-icon">👩‍🍼</span>MILK (<span class="unit-label-short">ML</span>)
+<div id="app-interface">
+    <div class="header-title">Eco Family Flow</div>
+
+    <section id="nav-grid">
+        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label unit-display">Milk (ML)</span></div>
+        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label unit-display">Formula (ML)</span></div>
+        <div id="tab-combined" class="nav-tile" onclick="window.switchTab('combined')"><span class="nav-emoji">📈</span><span class="nav-label">Combined</span></div>
+        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">🫂</span><span class="nav-label">Skin</span></div>
+        <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
+        <div class="nav-tile" onclick="window.toggleUnits()"><span id="flag-emoji" class="nav-emoji">🇬🇧</span><span id="unit-label" class="nav-label">UK Units</span></div>
+    </section>
+
+    <div id="loading-indicator" class="loading">Syncing Data...</div>
+
+    <main>
+        <div id="page-milk" class="page active">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="milkTime"></div>
+                <div class="btn-row">
+                    <button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button>
+                    <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
+                </div>
+                <div class="btn-row">
+                    <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
+                    <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
+                    <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
+                </div>
+                <div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
+            </div>
+            <div id="stats-milk" class="stat-container"></div>
+            <div class="card"><canvas id="chart-milk" style="height:220px;"></canvas></div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
-        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')">
-            <span class="nav-icon">🍼</span>FORMULA (<span class="unit-label-short">ML</span>)
+
+        <div id="page-formula" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
+                <div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button>
+            </div>
+            <div id="stats-formula" class="stat-container"></div>
+            <div class="card"><canvas id="chart-formula" style="height:220px;"></canvas></div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
-        <div id="tab-combined" class="nav-tile" onclick="window.switchTab('combined')">
-            <span class="nav-icon">📈</span>COMBINED
+
+        <div id="page-combined" class="page">
+            <div class="card" style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 15px;">
+                Shows Total Fed (Milk Feeds + Formula). Pumping is excluded from this chart.
+            </div>
+            <div id="stats-combined" class="stat-container"></div>
+            <div class="card"><canvas id="chart-combined" style="height:250px;"></canvas></div>
         </div>
-        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')">
-            <span class="nav-icon">🫂</span>SKIN
+
+        <div id="page-skin" class="page">
+            <div class="card">
+                <div class="stat-lbl" style="margin-bottom: 5px;">Start Time</div>
+                <div class="input-group"><input type="datetime-local" id="skinStart"></div>
+                <div class="stat-lbl" style="margin-bottom: 5px;">End Time</div>
+                <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
+                <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Session</button>
+            </div>
+            <div id="stats-skin" class="stat-container"></div>
+            <div class="card"><canvas id="chart-skin" style="height:220px;"></canvas></div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
         </div>
-        <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')">
-            <span class="nav-icon">🧻</span>NAPPY
+
+        <div id="page-nappy" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
+                <div class="btn-row">
+                    <button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button>
+                    <button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button>
+                    <button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button>
+                </div>
+                <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button>
+            </div>
+            <div id="stats-nappy" class="stat-container"></div>
+            <div class="card"><canvas id="chart-nappy" style="height:220px;"></canvas></div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
-        <div id="tab-units" class="nav-tile" onclick="window.toggleUnits()">
-            <span class="nav-icon" id="flag-emoji">🇬🇧</span><span id="unit-label">UK UNITS</span>
-        </div>
+    </main>
+</div>
+
+<footer id="fixed-bottom">
+    <div class="footer-action" onclick="window.toggleNight()">
+        <span style="font-size: 24px; margin-bottom: 2px;">🌗</span><span>Night Mode</span>
     </div>
-
-    <div id="page-milk" class="page active">
-        <div class="card">
-            <div class="input-group"><input type="datetime-local" id="milkTime"></div>
-            <div class="btn-row">
-                <button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button>
-                <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
-            </div>
-            <div class="btn-row">
-                <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
-                <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
-                <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
-            </div>
-            <div class="input-group">
-                <input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal">
-            </div>
-            <button class="save-btn" onclick="window.saveData('Milk')">Save Milk Log</button>
-        </div>
-        <div id="stats-milk" class="stat-container"></div>
-        <div class="card"><div style="font-size: 12px; color: #777; margin-bottom: 10px;">Recent History</div><div id="history-milk"></div></div>
+    <div class="footer-action" onclick="window.logout()">
+        <span style="font-size: 24px; margin-bottom: 2px;">🚪</span><span>Logout</span>
     </div>
+</footer>
 
-    <div id="page-formula" class="page">
-        <div class="card">
-            <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
-            <div class="input-group">
-                <input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal">
-            </div>
-            <button class="save-btn" onclick="window.saveData('Formula')">Save Formula Log</button>
-        </div>
-        <div id="stats-formula" class="stat-container"></div>
-        <div class="card"><div style="font-size: 12px; color: #777; margin-bottom: 10px;">Recent History</div><div id="history-formula"></div></div>
-    </div>
+<script>
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
+    
+    let state = {
+        units: 'UK', 
+        tab: 'milk',
+        milkMode: 'Pump',
+        milkSide: 'Left',
+        nappyType: 'Wee',
+        logs: []
+    };
+    
+    let charts = {};
 
-    <div id="page-skin" class="page">
-        <div class="card">
-            <div class="input-group">
-                <label style="font-size: 12px; color: #777;">Start Time</label>
-                <input type="datetime-local" id="skinStart">
-            </div>
-            <div class="input-group">
-                <label style="font-size: 12px; color: #777;">End Time</label>
-                <input type="datetime-local" id="skinEnd">
-            </div>
-            <div class="btn-row">
-                <button id="skin-person-mama" class="toggle-btn active" onclick="window.setParam('skinPerson', 'Mama')">Mama</button>
-                <button id="skin-person-papa" class="toggle-btn" onclick="window.setParam('skinPerson', 'Papa')">Papa</button>
-            </div>
-            <button class="save-btn" onclick="window.saveData('Skin')">Save Session</button>
-        </div>
-        <div id="stats-skin" class="stat-container"></div>
-        <div class="card"><div style="font-size: 12px; color: #777; margin-bottom: 10px;">Recent History</div><div id="history-skin"></div></div>
-    </div>
+    window.resetTimeInputs = () => { 
+        const now = new Date(); 
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
+        const t = now.toISOString().slice(0, 16); 
+        ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = t;
+        });
+    };
 
-    <div class="footer">
-        <button class="footer-btn" onclick="window.toggleNight()">
-            <span id="night-icon">🌓</span> Night Mode
-        </button>
-        <button class="footer-btn">
-            <span>🚪</span> Logout
-        </button>
-    </div>
+    window.toggleNight = () => document.body.classList.toggle('night');
 
-    <script>
-        const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
+    window.toggleUnits = () => {
+        state.units = state.units === 'UK' ? 'US' : 'UK';
+        document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
+        document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
         
-        let state = {
-            units: 'UK', 
-            tab: 'milk',
-            milkMode: 'Pump',
-            milkSide: 'Left',
-            skinPerson: 'Mama',
-            logs: []
-        };
-
-        window.resetTimeInputs = () => { 
-            const now = new Date(); 
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
-            const t = now.toISOString().slice(0, 16); 
-            ['milkTime', 'formulaTime', 'skinStart', 'skinEnd'].forEach(id => {
-                const el = document.getElementById(id);
-                if(el) el.value = t;
-            });
-        };
-
-        window.toggleNight = () => {
-            document.body.classList.toggle('night');
-        };
-
-        window.toggleUnits = () => {
-            state.units = state.units === 'UK' ? 'US' : 'UK';
-            document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
-            document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK UNITS' : 'US UNITS';
-            
-            const unitText = state.units === 'UK' ? 'ml' : 'oz';
-            document.querySelectorAll('.unit-label-short').forEach(el => el.innerText = unitText.toUpperCase());
-            document.getElementById('milkAmt').placeholder = `Amount (${unitText})`;
-            document.getElementById('formulaAmt').placeholder = `Amount (${unitText})`;
-            
-            window.renderUI();
-        };
-
-        window.switchTab = (tabId) => {
-            state.tab = tabId;
-            document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.nav-tile').forEach(el => el.classList.remove('active'));
-            
-            const pageEl = document.getElementById(`page-${tabId}`);
-            if(pageEl) pageEl.classList.add('active');
-            
-            const tabEl = document.getElementById(`tab-${tabId}`);
-            if(tabEl) tabEl.classList.add('active');
-            
-            window.renderUI();
-        };
-
-        window.setParam = (param, value) => {
-            state[param] = value;
-            const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
-            const buttonId = `${prefix}-${value.toLowerCase()}`;
-            
-            const clickedBtn = document.getElementById(buttonId);
-            if (clickedBtn) {
-                const parent = clickedBtn.parentElement;
-                parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
-                clickedBtn.classList.add('active');
-            }
-        };
-
-        window.saveData = (category) => {
-            let logEntry = {
-                id: Date.now(),
-                category: category,
-                timestamp: new Date().toISOString(),
-                // Safety check for auth: If auth exists, use it, otherwise default to a string
-                user: (window.auth && window.auth.currentUser) ? window.auth.currentUser.email : 'LocalUser' 
-            };
-
-            const isUS = state.units === 'US';
-            const convertToMl = (val) => isUS ? val / 0.033814 : val;
-
-            if (category === 'Milk') {
-                const amt = parseFloat(document.getElementById('milkAmt').value);
-                if(!amt) return alert("Please enter an amount.");
-                logEntry.value = convertToMl(amt);
-                logEntry.detail = `${state.milkMode} (${state.milkSide})`;
-                document.getElementById('milkAmt').value = '';
-            } 
-            else if (category === 'Formula') {
-                const amt = parseFloat(document.getElementById('formulaAmt').value);
-                if(!amt) return alert("Please enter an amount.");
-                logEntry.value = convertToMl(amt);
-                logEntry.detail = 'Bottle'; // Fixes the undefined bug
-                document.getElementById('formulaAmt').value = '';
-            }
-            else if (category === 'Skin') {
-                const start = new Date(document.getElementById('skinStart').value);
-                const end = new Date(document.getElementById('skinEnd').value);
-                const diffMins = Math.round((end - start) / 60000);
-                if(diffMins <= 0) return alert("End time must be after start time.");
-                logEntry.value = diffMins;
-                logEntry.detail = state.skinPerson;
-                window.resetTimeInputs();
-            }
-
-            // Save locally for immediate UI update
-            state.logs.push(logEntry);
-            window.renderUI();
-
-            // Attempt to send to Google Sheets invisibly
-            try {
-                let formData = new FormData();
-                formData.append('data', JSON.stringify(logEntry));
-                fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: formData });
-            } catch(e) {
-                console.log("Sheet save failed, but UI updated.", e);
-            }
-        };
-
-        window.renderUI = () => {
-            const isUS = state.units === 'US';
-            // Conversion math: 1 ml = 0.033814 oz
-            const displayVal = (val, isTime) => {
-                if(isTime) return val;
-                return isUS ? (val * 0.033814).toFixed(1) : Math.round(val);
-            };
-            const unit = isUS ? 'oz' : 'ml';
-
-            // Filter Logs
-            const milkLogs = state.logs.filter(l => l.category === 'Milk').reverse();
-            const formulaLogs = state.logs.filter(l => l.category === 'Formula').reverse();
-            const skinLogs = state.logs.filter(l => l.category === 'Skin').reverse();
-
-            // Render Milk
-            const milkTotal = milkLogs.reduce((s, l) => s + l.value, 0);
-            const statsMilk = document.getElementById('stats-milk');
-            if(statsMilk) {
-                statsMilk.innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${displayVal(milkTotal, false)}${unit}</div><div class="stat-lbl">Today</div></div>
-                    <div class="stat-box"><div class="stat-val">${milkLogs.length}</div><div class="stat-lbl">Sessions</div></div>
-                `;
-            }
-            const histMilk = document.getElementById('history-milk');
-            if(histMilk) {
-                histMilk.innerHTML = milkLogs.slice(0, 5).map(l => `
-                    <div class="history-item">
-                        <span>${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} | ${l.detail}</span>
-                        <strong>${displayVal(l.value, false)}${unit}</strong>
-                    </div>
-                `).join('');
-            }
-
-            // Render Formula
-            const formTotal = formulaLogs.reduce((s, l) => s + l.value, 0);
-            const statsForm = document.getElementById('stats-formula');
-            if(statsForm) {
-                statsForm.innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${displayVal(formTotal, false)}${unit}</div><div class="stat-lbl">Today</div></div>
-                    <div class="stat-box"><div class="stat-val">${formulaLogs.length}</div><div class="stat-lbl">Bottles</div></div>
-                `;
-            }
-            const histForm = document.getElementById('history-formula');
-            if(histForm) {
-                histForm.innerHTML = formulaLogs.slice(0, 5).map(l => `
-                    <div class="history-item">
-                        <span>${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} | ${l.detail || 'Bottle'}</span>
-                        <strong>${displayVal(l.value, false)}${unit}</strong>
-                    </div>
-                `).join('');
-            }
-
-            // Render Skin
-            const skinTotal = skinLogs.reduce((s, l) => s + l.value, 0);
-            const statsSkin = document.getElementById('stats-skin');
-            if(statsSkin) {
-                statsSkin.innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${skinTotal}m</div><div class="stat-lbl">Today</div></div>
-                    <div class="stat-box"><div class="stat-val">${skinLogs.length}</div><div class="stat-lbl">Sessions</div></div>
-                `;
-            }
-            const histSkin = document.getElementById('history-skin');
-            if(histSkin) {
-                histSkin.innerHTML = skinLogs.slice(0, 5).map(l => `
-                    <div class="history-item">
-                        <span>${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} | ${l.detail}</span>
-                        <strong>${l.value} mins</strong>
-                    </div>
-                `).join('');
-            }
-        };
-
-        // Initialize on load
-        window.resetTimeInputs();
+        const unitText = state.units === 'UK' ? 'ml' : 'oz';
+        document.querySelectorAll('.unit-display').forEach(el => el.innerText = el.innerText.replace(/ML|OZ/i, unitText.toUpperCase()));
+        document.getElementById('milkAmt').placeholder = `Amount (${unitText})`;
+        document.getElementById('formulaAmt').placeholder = `Amount (${unitText})`;
+        
         window.renderUI();
-    </script>
-</body>
-</html>
+    };
+
+    window.switchTab = (tabId) => {
+        state.tab = tabId;
+        document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
+        document.getElementById(`page-${tabId}`).classList.add('active');
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        window.renderUI();
+    };
+
+    window.setParam = (param, value) => {
+        state[param] = value;
+        const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
+        const btnId = `${prefix}-${value.toLowerCase()}`;
+        const clickedBtn = document.getElementById(btnId);
+        if (clickedBtn) {
+            const parent = clickedBtn.parentElement;
+            parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            clickedBtn.classList.add('active');
+        }
+    };
+
+    // --- FETCH & SAVE DATA ---
+    window.refreshData = async () => {
+        if(!window.auth || !window.auth.currentUser) return;
+        document.getElementById('loading-indicator').style.display = 'block';
+        try {
+            const response = await fetch(GOOGLE_URL);
+            const data = await response.json();
+            // Filters based on the logged in Google account
+            state.logs = data.filter(row => row.user === window.auth.currentUser.email);
+            window.renderUI();
+        } catch (error) {
+            console.error("Data fetch error", error);
+        }
+        document.getElementById('loading-indicator').style.display = 'none';
+    };
+
+    const pushToSheet = async (payload, btnId, defaultText) => {
+        const btn = document.getElementById(btnId);
+        btn.innerText = "Saving...";
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            btn.innerText = "Saved!";
+            state.logs.push(payload); 
+            setTimeout(() => { btn.innerText = defaultText; window.renderUI(); }, 1000);
+        } catch(e) {
+            btn.innerText = "Error!";
+            setTimeout(() => btn.innerText = defaultText, 2000);
+        }
+    };
+
+    window.saveData = (category) => {
+        const amtInput = document.getElementById(category === 'Milk' ? 'milkAmt' : 'formulaAmt');
+        let val = parseFloat(amtInput.value);
+        if(!val) return alert("Please enter an amount");
+
+        // Convert US oz input into standard ML for the database
+        if(state.units === 'US') val = val * 29.5735;
+
+        const detail = category === 'Formula' ? 'Bottle' : `${state.milkMode} (${state.milkSide})`;
+        const timeId = category === 'Milk' ? 'milkTime' : 'formulaTime';
+
+        const payload = {
+            action: 'save',
+            timestamp: new Date(document.getElementById(timeId).value).toISOString(),
+            category: category,
+            value: Math.round(val),
+            detail: detail,
+            user: window.auth.currentUser.email
+        };
+
+        amtInput.value = ''; 
+        pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+    };
+
+    window.saveSkin = () => {
+        const start = new Date(document.getElementById('skinStart').value);
+        const end = new Date(document.getElementById('skinEnd').value);
+        const mins = Math.round((end - start) / 60000);
+        if(mins <= 0) return alert("End time must be after start time");
+
+        const payload = { action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: 'Session', user: window.auth.currentUser.email };
+        pushToSheet(payload, 'btn-save-skin', 'Save Session');
+        window.resetTimeInputs();
+    };
+
+    window.saveNappy = () => {
+        const time = new Date(document.getElementById('nappyTime').value).toISOString();
+        const payload = { action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: state.nappyType, user: window.auth.currentUser.email };
+        pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
+    };
+
+    // --- RENDER UI & CHARTS ---
+    const drawChart = (canvasId, label, dataArray, color) => {
+        const ctx = document.getElementById(canvasId);
+        if(!ctx) return;
+        if(charts[canvasId]) charts[canvasId].destroy();
+        
+        // Group data by Date for the chart
+        const grouped = {};
+        dataArray.forEach(log => {
+            const date = new Date(log.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+            grouped[date] = (grouped[date] || 0) + log.value;
+        });
+
+        charts[canvasId] = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: Object.keys(grouped),
+                datasets: [{ label: label, data: Object.values(grouped), backgroundColor: color, borderRadius: 4 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+        });
+    };
+
+    window.renderUI = () => {
+        const isUS = state.units === 'US';
+        const displayVal = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
+        const unit = isUS ? 'oz' : 'ml';
+
+        // 1. MILK
+        const milkLogs = state.logs.filter(l => l.category === 'Milk').reverse();
+        const milkTotal = milkLogs.reduce((s, l) => s + l.value, 0);
+        document.getElementById('stats-milk').innerHTML = `
+            <div class="stat-box"><div class="stat-val">${displayVal(milkTotal)}${unit}</div><div class="stat-lbl">Total Logged</div></div>
+            <div class="stat-box"><div class="stat-val">${milkLogs.length}</div><div class="stat-lbl">Sessions</div></div>
+        `;
+        document.getElementById('history-milk').innerHTML = milkLogs.slice(0, 5).map(l
