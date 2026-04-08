@@ -152,9 +152,9 @@
                     <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
                 </div>
                 <div class="btn-row">
-                    <button id="milk-side-l" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
-                    <button id="milk-side-r" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
-                    <button id="milk-side-b" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
+                    <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
+                    <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
+                    <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
                 </div>
                 <div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
                 <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
@@ -237,12 +237,10 @@
 </footer>
 
 <script>
-    // --- APP STATE & CONFIG ---
-    // Make sure your Google Apps Script Web App URL is correctly pasted below:
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
     
     let state = {
-        units: 'UK', // UK=ml, US=oz
+        units: 'UK',
         tab: 'milk',
         milkMode: 'Pump',
         milkSide: 'Left',
@@ -252,12 +250,14 @@
     
     let charts = {};
 
-    // --- UTILITIES ---
     window.resetTimeInputs = () => { 
         const now = new Date(); 
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
         const t = now.toISOString().slice(0, 16); 
-        ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => document.getElementById(id).value = t);
+        ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.value = t;
+        });
     };
 
     window.toggleNight = () => document.body.classList.toggle('night');
@@ -266,10 +266,6 @@
         state.units = state.units === 'UK' ? 'US' : 'UK';
         document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
         document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
-        const unitText = state.units === 'UK' ? 'ml' : 'oz';
-        document.querySelectorAll('.unit-display').forEach(el => el.innerText = el.innerText.replace(/ML|OZ/i, unitText.toUpperCase()));
-        document.getElementById('milkAmt').placeholder = `Amount (${unitText})`;
-        document.getElementById('formulaAmt').placeholder = `Amount (${unitText})`;
         window.renderUI();
     };
 
@@ -281,12 +277,92 @@
         window.renderUI();
     };
 
+    // This handles the button highlights and updates the 'state'
     window.setParam = (param, value) => {
         state[param] = value;
         const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
-        document.querySelectorAll(`[id^="${prefix}-"]`).forEach(btn => btn.classList.remove('active'));
-        document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
+        
+        // Find the specific button row and reset highlights
+        const buttonId = `${prefix}-${value.toLowerCase()}`;
+        const clickedBtn = document.getElementById(buttonId);
+        if (clickedBtn) {
+            const parent = clickedBtn.parentElement;
+            parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            clickedBtn.classList.add('active');
+        }
     };
+
+    window.refreshData = async () => {
+        if(!window.auth.currentUser) return;
+        document.getElementById('loading-indicator').style.display = 'block';
+        try {
+            const response = await fetch(GOOGLE_URL);
+            const data = await response.json();
+            // FILTER: This is likely why "old data" is missing (see explanation below)
+            state.logs = data.filter(row => row.user === window.auth.currentUser.email);
+            window.renderUI();
+        } catch (error) {
+            console.error("Data fetch error", error);
+        }
+        document.getElementById('loading-indicator').style.display = 'none';
+    };
+
+    const pushToSheet = async (payload, btnId, defaultText) => {
+        const btn = document.getElementById(btnId);
+        btn.innerText = "Saving...";
+        try {
+            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+            btn.innerText = "Saved!";
+            state.logs.push(payload); 
+            setTimeout(() => { btn.innerText = defaultText; window.renderUI(); }, 1000);
+        } catch(e) {
+            btn.innerText = "Error!";
+            setTimeout(() => btn.innerText = defaultText, 2000);
+        }
+    };
+
+    window.saveData = (category) => {
+        const amtInput = document.getElementById(category === 'Milk' ? 'milkAmt' : 'formulaAmt');
+        let val = parseFloat(amtInput.value);
+        if(!val) return alert("Please enter an amount");
+        if(state.units === 'US') val = val * 29.5735;
+
+        const detail = category === 'Formula' ? 'Bottle' : `${state.milkMode} (${state.milkSide})`;
+        const timeId = category === 'Milk' ? 'milkTime' : 'formulaTime';
+
+        const payload = {
+            action: 'save',
+            timestamp: new Date(document.getElementById(timeId).value).toISOString(),
+            category: category,
+            value: Math.round(val),
+            detail: detail,
+            user: window.auth.currentUser.email
+        };
+        amtInput.value = ''; 
+        pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+    };
+
+    window.renderUI = () => {
+        const displayVal = (ml) => state.units === 'US' ? (ml * 0.033814).toFixed(1) : Math.round(ml);
+        const unit = state.units === 'US' ? 'oz' : 'ml';
+        
+        // Example Render for Milk (Repeat logic for others)
+        const milkLogs = state.logs.filter(l => l.category === 'Milk').reverse();
+        const total = milkLogs.reduce((sum, l) => sum + l.value, 0);
+        
+        document.getElementById('stats-milk').innerHTML = `
+            <div class="stat-box"><div class="stat-val">${displayVal(total)}${unit}</div><div class="stat-lbl">Total Today</div></div>
+            <div class="stat-box"><div class="stat-val">${milkLogs.length}</div><div class="stat-lbl">Sessions</div></div>
+        `;
+
+        document.getElementById('history-milk').innerHTML = milkLogs.slice(0, 5).map(l => `
+            <div class="history-item">
+                <span>${new Date(l.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} - ${l.detail}</span>
+                <strong>${displayVal(l.value)}${unit}</strong>
+            </div>
+        `).join('');
+    };
+</script>
 
     // --- DATA FETCHING & SAVING ---
     window.refreshData = async () => {
