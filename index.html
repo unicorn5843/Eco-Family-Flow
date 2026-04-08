@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eco Family Flow</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Use stable Chart.js version -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <!-- Firebase SDK -->
     <script type="module">
       import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -41,7 +42,7 @@
     </script>
 
     <style>
-        /* Light Theme */
+        /* [Keep all styles exactly as in previous working version] */
         :root { 
             --bg: #f2f7f4; 
             --card: #ffffff; 
@@ -54,7 +55,6 @@
             --warning: #ff9800;
             --success: #4caf50;
         }
-        /* Night Vision Mode */
         body.night { 
             --bg: #000000; 
             --card: #0a0000; 
@@ -76,7 +76,7 @@
             transition: background-color 0.5s ease, color 0.5s ease;
         }
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
-        .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; transition: color 0.5s ease;}
+        .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; }
         #nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
         .nav-tile { background: var(--card); border-radius: 14px; aspect-ratio: 1.2/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
         .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
@@ -97,8 +97,6 @@
         .stat-box { background: var(--card); padding: 15px; border-radius: 14px; text-align: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
         .stat-val { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
         .stat-lbl { font-size: 11px; text-transform: uppercase; opacity: 0.7; font-weight: 600; }
-        
-        /* Supply Status Card */
         .supply-card {
             background: var(--card);
             padding: 15px;
@@ -135,7 +133,6 @@
         .status-balanced { background: var(--accent); color: white; }
         .status-deficit { background: var(--warning); color: white; }
         .status-critical { background: var(--delete); color: white; }
-        
         .history-list { margin-top: 5px; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
         .history-item:last-child { border-bottom: none; }
@@ -144,7 +141,6 @@
         .footer-action { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 12px; font-weight: 600; opacity: 0.8; }
         #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
         .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--accent); display: none; }
-        
         .chart-legend {
             display: flex;
             justify-content: center;
@@ -161,10 +157,6 @@
             width: 12px;
             height: 12px;
             border-radius: 3px;
-        }
-        .trend-indicator {
-            font-size: 14px;
-            margin-left: 5px;
         }
     </style>
 </head>
@@ -192,10 +184,9 @@
     <main>
         <!-- MILK PAGE -->
         <div id="page-milk" class="page active">
-            <!-- Supply Status Card -->
             <div id="supply-status-card" class="supply-card">
                 <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
-                <div id="supply-status-content"></div>
+                <div id="supply-status-content">Loading...</div>
             </div>
             
             <div class="card">
@@ -244,7 +235,7 @@
         <!-- COMBINED PAGE -->
         <div id="page-combined" class="page">
             <div class="card" style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 15px;">
-                Shows Total Fed (Milk Feeds + Formula). Pumping is excluded from this chart.
+                Shows Total Fed (Milk Feeds + Formula). Pumping is excluded.
             </div>
             <div id="stats-combined" class="stat-container"></div>
             <div class="card">
@@ -310,367 +301,395 @@
 </footer>
 
 <script>
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec'; 
+    (function() {
+        // --- CONFIG ---
+        const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbxWaFBab4zjl5xLmmWeXu0wLE7V0a7p-K3_d__J64RhEivaAQdhZgyPvQhbLGn_D2OF/exec';
 
-    let state = {
-        units: 'UK', 
-        tab: 'milk',
-        milkMode: 'Pump',
-        milkSide: 'Left',
-        nappyType: 'Wee',
-        logs: []
-    };
-
-    let charts = {};
-
-    // --- UTILS ---
-    window.resetTimeInputs = () => { 
-        const now = new Date(); 
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); 
-        const t = now.toISOString().slice(0, 16); 
-        ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => {
-            const el = document.getElementById(id);
-            if(el) el.value = t;
-        });
-    };
-
-    window.toggleNight = () => document.body.classList.toggle('night');
-
-    window.toggleUnits = () => {
-        state.units = state.units === 'UK' ? 'US' : 'UK';
-        document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
-        document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
-        const unitText = state.units === 'UK' ? 'ML' : 'OZ';
-        document.querySelectorAll('.unit-display').forEach(el => {
-            const base = el.innerText.split(' ')[0];
-            el.innerText = `${base} (${unitText})`;
-        });
-        document.getElementById('milkAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
-        document.getElementById('formulaAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
-        window.renderUI();
-    };
-
-    window.switchTab = (tabId) => {
-        state.tab = tabId;
-        document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
-        document.getElementById(`page-${tabId}`).classList.add('active');
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        window.renderUI();
-    };
-
-    window.setParam = (param, value) => {
-        state[param] = value;
-        const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
-        const parent = document.getElementById(`${prefix}-${value.toLowerCase()}`).parentElement;
-        parent.querySelectorAll('.    // --- DATA FETCHING ---
-    window.refreshData = async () => {
-        if(!window.auth?.currentUser) return;
-        document.getElementById('loading-indicator').style.display = 'block';
-        try {
-            const response = await fetch(GOOGLE_URL);
-            const data = await response.json();
-            state.logs = data.filter(row => row.user === window.auth.currentUser.email);
-            window.renderUI();
-        } catch (error) {
-            console.error("Data fetch error", error);
-        }
-        document.getElementById('loading-indicator').style.display = 'none';
-    };
-
-    const pushToSheet = async (payload, btnId, defaultText) => {
-        const btn = document.getElementById(btnId);
-        btn.innerText = "Saving...";
-        try {
-            await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
-            btn.innerText = "Saved!";
-            state.logs.push(payload);
-            setTimeout(() => { btn.innerText = defaultText; window.renderUI(); }, 1000);
-        } catch(e) {
-            btn.innerText = "Error!";
-            setTimeout(() => btn.innerText = defaultText, 2000);
-        }
-    };
-
-    window.deleteEntry = (timestamp) => {
-        if(!confirm('Delete this entry?')) return;
-        const payload = { action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email };
-        fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(() => {
-            state.logs = state.logs.filter(l => l.timestamp !== timestamp);
-            window.renderUI();
-        });
-    };
-
-    // --- SAVE FUNCTIONS ---
-    window.saveData = (category) => {
-        const isMilk = category === 'Milk';
-        const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
-        let val = parseFloat(amtInput.value);
-        if(!val) return alert("Please enter an amount");
-        if(state.units === 'US') val = val * 29.5735;
-        const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
-        const timeId = isMilk ? 'milkTime' : 'formulaTime';
-        
-        const payload = {
-            action: 'save',
-            timestamp: new Date(document.getElementById(timeId).value).toISOString(),
-            category: category,
-            value: Math.round(val),
-            detail: detail,
-            user: window.auth.currentUser.email
+        // --- STATE ---
+        let state = {
+            units: 'UK',
+            tab: 'milk',
+            milkMode: 'Pump',
+            milkSide: 'Left',
+            nappyType: 'Wee',
+            logs: []
         };
-        amtInput.value = ''; 
-        pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
-    };
 
-    window.saveSkin = () => {
-        const start = new Date(document.getElementById('skinStart').value);
-        const end = new Date(document.getElementById('skinEnd').value);
-        const mins = Math.round((end - start) / 60000);
-        if(mins <= 0) return alert("End time must be after start time");
-        
-        const payload = { action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: 'Session', user: window.auth.currentUser.email };
-        pushToSheet(payload, 'btn-save-skin', 'Save Session');
-        window.resetTimeInputs();
-    };
+        let charts = {};
 
-    window.saveNappy = () => {
-        const time = new Date(document.getElementById('nappyTime').value).toISOString();
-        const payload = { action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: state.nappyType, user: window.auth.currentUser.email };
-        pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
-    };
+        // --- UTILITIES ---
+        window.resetTimeInputs = () => {
+            try {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                const t = now.toISOString().slice(0, 16);
+                ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if(el) el.value = t;
+                });
+            } catch(e) { console.warn('resetTimeInputs error:', e); }
+        };
 
-    // --- CALCULATE MOVING AVERAGE ---
-    const calculateMovingAverage = (dailyData, days = 7) => {
-        const dates = Object.keys(dailyData).sort();
-        const values = dates.map(d => dailyData[d]);
-        const movingAvg = [];
-        
-        for (let i = 0; i < values.length; i++) {
-            if (i < days - 1) {
-                movingAvg.push(null);
-            } else {
-                const sum = values.slice(i - days + 1, i + 1).reduce((a, b) => a + b, 0);
-                movingAvg.push(sum / days);
+        window.toggleNight = () => document.body.classList.toggle('night');
+
+        window.toggleUnits = () => {
+            state.units = state.units === 'UK' ? 'US' : 'UK';
+            document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
+            document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
+            const unitText = state.units === 'UK' ? 'ML' : 'OZ';
+            document.querySelectorAll('.unit-display').forEach(el => {
+                const base = el.innerText.split(' ')[0];
+                el.innerText = `${base} (${unitText})`;
+            });
+            document.getElementById('milkAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
+            document.getElementById('formulaAmt').placeholder = `Amount (${unitText.toLowerCase()})`;
+            renderUI();
+        };
+
+        window.switchTab = (tabId) => {
+            state.tab = tabId;
+            document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
+            document.getElementById(`page-${tabId}`).classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+            renderUI();
+        };
+
+        window.setParam = (param, value) => {
+            state[param] = value;
+            const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
+            const parent = document.getElementById(`${prefix}-${value.toLowerCase()}`).parentElement;
+            parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
+        };
+
+        // --- DATA FETCHING ---
+        window.refreshData = async () => {
+            if(!window.auth?.currentUser) return;
+            document.getElementById('loading-indicator').style.display = 'block';
+            try {
+                const response = await fetch(GOOGLE_URL);
+                const data = await response.json();
+                state.logs = data.filter(row => row.user === window.auth.currentUser.email);
+                renderUI();
+            } catch (error) {
+                console.error("Data fetch error", error);
+            } finally {
+                document.getElementById('loading-indicator').style.display = 'none';
             }
-        }
-        return { dates, movingAvg };
-    };
+        };
 
-    // --- SUPPLY STATUS CALCULATION ---
-    const calculateSupplyStatus = (pumpLogs, feedLogs) => {
-        // Get last 7 days of data
-        const getDailyTotals = (logs, days = 7) => {
-            const daily = {};
-            const today = new Date();
-            for (let i = days - 1; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toLocaleDateString();
-                daily[dateStr] = 0;
+        const pushToSheet = async (payload, btnId, defaultText) => {
+            const btn = document.getElementById(btnId);
+            btn.innerText = "Saving...";
+            try {
+                await fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) });
+                btn.innerText = "Saved!";
+                state.logs.push(payload);
+                setTimeout(() => { btn.innerText = defaultText; renderUI(); }, 1000);
+            } catch(e) {
+                btn.innerText = "Error!";
+                setTimeout(() => btn.innerText = defaultText, 2000);
             }
+        };
+
+        window.deleteEntry = (timestamp) => {
+            if(!confirm('Delete this entry?')) return;
+            const payload = { action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email };
+            fetch(GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }).then(() => {
+                state.logs = state.logs.filter(l => l.timestamp !== timestamp);
+                renderUI();
+            });
+        };
+
+        // --- SAVE FUNCTIONS ---
+        window.saveData = (category) => {
+            const isMilk = category === 'Milk';
+            const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
+            let val = parseFloat(amtInput.value);
+            if(isNaN(val)) return alert("Please enter a valid amount");
+            if(state.units === 'US') val = val * 29.5735;
+            const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
+            const timeId = isMilk ? 'milkTime' : 'formulaTime';
             
+            const payload = {
+                action: 'save',
+                timestamp: new Date(document.getElementById(timeId).value).toISOString(),
+                category: category,
+                value: Math.round(val),
+                detail: detail,
+                user: window.auth.currentUser.email
+            };
+            amtInput.value = '';
+            pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+        };
+
+        window.saveSkin = () => {
+            const start = new Date(document.getElementById('skinStart').value);
+            const end = new Date(document.getElementById('skinEnd').value);
+            const mins = Math.round((end - start) / 60000);
+            if(mins <= 0) return alert("End time must be after start time");
+            
+            const payload = {
+                action: 'save',
+                timestamp: start.toISOString(),
+                category: 'SkinToSkin',
+                value: mins,
+                detail: 'Session',
+                user: window.auth.currentUser.email
+            };
+            pushToSheet(payload, 'btn-save-skin', 'Save Session');
+            resetTimeInputs();
+        };
+
+        window.saveNappy = () => {
+            const time = new Date(document.getElementById('nappyTime').value).toISOString();
+            const payload = {
+                action: 'save',
+                timestamp: time,
+                category: 'Nappy',
+                value: 1,
+                detail: state.nappyType,
+                user: window.auth.currentUser.email
+            };
+            pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
+        };
+
+        // --- DATA PROCESSING ---
+        const groupByDay = (logs) => {
+            const daily = {};
             logs.forEach(log => {
-                const dateStr = new Date(log.timestamp).toLocaleDateString();
-                if (daily.hasOwnProperty(dateStr)) {
-                    daily[dateStr] += log.value;
-                }
+                const d = new Date(log.timestamp);
+                const dateKey = d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+                daily[dateKey] = (daily[dateKey] || 0) + log.value;
             });
             return daily;
         };
 
-        const pumpDaily = getDailyTotals(pumpLogs);
-        const feedDaily = getDailyTotals(feedLogs);
-        
-        const pumpTotal = Object.values(pumpDaily).reduce((a, b) => a + b, 0);
-        const feedTotal = Object.values(feedDaily).reduce((a, b) => a + b, 0);
-        
-        const difference = pumpTotal - feedTotal;
-        const ratio = pumpTotal > 0 ? (feedTotal / pumpTotal) * 100 : 0;
-        
-        let status, statusClass, message;
-        if (difference > 100) {
-            status = 'Surplus';
-            statusClass = 'status-surplus';
-            message = `👍 Surplus: +${Math.round(difference)}ml`;
-        } else if (difference > 0) {
-            status = 'Balanced';
-            statusClass = 'status-balanced';
-            message = `✓ Balanced: +${Math.round(difference)}ml`;
-        } else if (difference > -50) {
-            status = 'Slight Deficit';
-            statusClass = 'status-deficit';
-            message = `⚠️ Slight Deficit: ${Math.round(difference)}ml`;
-        } else {
-            status = 'Critical Deficit';
-            statusClass = 'status-critical';
-            message = `🚨 Critical Deficit: ${Math.round(difference)}ml`;
-        }
-        
-        return {
-            pumpTotal,
-            feedTotal,
-            difference,
-            ratio: Math.min(ratio, 100),
-            status,
-            statusClass,
-            message,
-            pumpDaily,
-            feedDaily
-        };
-    };
-
-    // --- ENHANCED CHART DRAWING ---
-    const drawEnhancedChart = (canvasId, label, dataArray, color) => {
-        const canvas = document.getElementById(canvasId);
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if(charts[canvasId]) charts[canvasId].destroy();
-
-        // Group by day
-        const dailyData = {};
-        dataArray.forEach(log => {
-            const date = new Date(log.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
-            dailyData[date] = (dailyData[date] || 0) + log.value;
-        });
-
-        const { dates, movingAvg } = calculateMovingAverage(dailyData);
-        const dailyValues = dates.map(d => dailyData[d]);
-
-        charts[canvasId] = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: dates,
-                datasets: [
-                    {
-                        label: 'Daily Total',
-                        data: dailyValues,
-                        borderColor: color,
-                        backgroundColor: color + '20',
-                        borderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        tension: 0.3,
-                        fill: false
-                    },
-                    {
-                        label: '7-Day Moving Average',
-                        data: movingAvg,
-                        borderColor: '#ff9800',
-                        backgroundColor: '#ff980020',
-                        borderWidth: 3,
-                        pointRadius: 0,
-                        borderDash: [5, 5],
-                        tension: 0.4,
-                        fill: false
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                interaction: {
-                    mode: 'index',
-                    intersect: false,
-                },
-                plugins: {
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                let label = context.dataset.label || '';
-                                if (label) label += ': ';
-                                if (context.parsed.y !== null) {
-                                    label += Math.round(context.parsed.y) + (state.units === 'US' ? ' oz' : ' ml');
-                                }
-                                return label;
-                            }
-                        }
-                    },
-                    legend: {
-                        display: false
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: {
-                            color: 'rgba(200, 200, 200, 0.2)'
-                        }
-                    },
-                    x: {
-                        grid: {
-                            display: false
-                        }
-                    }
+        const calculateMovingAverage = (dailyObj, days = 7) => {
+            const sortedDates = Object.keys(dailyObj).sort((a,b) => {
+                // Parse dates like "Apr 8, 2026"
+                return new Date(a) - new Date(b);
+            });
+            const values = sortedDates.map(d => dailyObj[d]);
+            const movingAvg = [];
+            for (let i = 0; i < values.length; i++) {
+                if (i < days - 1) {
+                    movingAvg.push(null);
+                } else {
+                    const sum = values.slice(i - days + 1, i + 1).reduce((a,b) => a + b, 0);
+                    movingAvg.push(sum / days);
                 }
             }
-        });
-    };
-
-    // --- RENDER UI ---
-    window.renderUI = () => {
-        const isUS = state.units === 'US';
-        const displayVal = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
-        const unit = isUS ? 'oz' : 'ml';
-
-        // Milk Supply Status
-        const pumpLogs = state.logs.filter(l => l.category === 'Milk' && l.detail.includes('Pump'));
-        const feedLogs = state.logs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
-        const supplyStatus = calculateSupplyStatus(pumpLogs, feedLogs);
-        
-        const supplyContent = document.getElementById('supply-status-content');
-        if (supplyContent) {
-            supplyContent.innerHTML = `
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div><strong>Pumped:</strong> ${displayVal(supplyStatus.pumpTotal)}${unit}</div>
-                    <div><strong>Fed:</strong> ${displayVal(supplyStatus.feedTotal)}${unit}</div>
-                </div>
-                <div class="supply-indicator">
-                    <span>${Math.round(supplyStatus.ratio)}% used</span>
-                    <div class="supply-bar">
-                        <div class="supply-bar-fill" style="width: ${supplyStatus.ratio}%;"></div>
-                    </div>
-                    <span class="supply-status ${supplyStatus.statusClass}">${supplyStatus.status}</span>
-                </div>
-                <div style="margin-top: 10px; font-size: 14px; text-align: center; font-weight: bold;">
-                    ${supplyStatus.message}
-                    ${supplyStatus.difference < 0 ? ' <span class="trend-indicator">📉</span>' : ' <span class="trend-indicator">📈</span>'}
-                </div>
-            `;
-        }
-
-        const renderSection = (category, containerPrefix, chartId, color, filterFn) => {
-            const logs = state.logs.filter(filterFn).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-            const total = logs.reduce((s, l) => s + l.value, 0);
-            document.getElementById(`stats-${containerPrefix}`).innerHTML = `
-                <div class="stat-box"><div class="stat-val">${displayVal(total)}${unit}</div><div class="stat-lbl">Total</div></div>
-                <div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>
-            `;
-            document.getElementById(`history-${containerPrefix}`).innerHTML = logs.slice(0, 5).map(l => `
-                <div class="history-item">
-                    <span>${new Date(l.timestamp).toLocaleString()} - ${l.detail || ''} (${displayVal(l.value)}${unit})</span>
-                    <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
-                </div>
-            `).join('');
-            drawEnhancedChart(chartId, category, logs, color);
+            return { dates: sortedDates, movingAvg };
         };
 
-        // Render each category
-        renderSection('Milk', 'milk', 'chart-milk', '#8fbca0', l => l.category === 'Milk');
-        renderSection('Formula', 'formula', 'chart-formula', '#6a9c7d', l => l.category === 'Formula');
-        renderSection('Skin-to-Skin', 'skin', 'chart-skin', '#b30000', l => l.category === 'SkinToSkin');
-        renderSection('Nappy', 'nappy', 'chart-nappy', '#ffb347', l => l.category === 'Nappy');
+        const calculateSupplyStatus = (pumpLogs, feedLogs) => {
+            const today = new Date();
+            const sevenDaysAgo = new Date(today);
+            sevenDaysAgo.setDate(today.getDate() - 6);
+            
+            const filterLast7Days = (log) => new Date(log.timestamp) >= sevenDaysAgo;
+            const recentPump = pumpLogs.filter(filterLast7Days);
+            const recentFeed = feedLogs.filter(filterLast7Days);
+            
+            const pumpTotal = recentPump.reduce((s, l) => s + l.value, 0);
+            const feedTotal = recentFeed.reduce((s, l) => s + l.value, 0);
+            
+            const difference = pumpTotal - feedTotal;
+            const ratio = pumpTotal > 0 ? Math.min((feedTotal / pumpTotal) * 100, 100) : 0;
+            
+            let status, statusClass, message;
+            if (difference > 100) {
+                status = 'Surplus'; statusClass = 'status-surplus';
+                message = `👍 Surplus: +${Math.round(difference)}ml`;
+            } else if (difference > 0) {
+                status = 'Balanced'; statusClass = 'status-balanced';
+                message = `✓ Balanced: +${Math.round(difference)}ml`;
+            } else if (difference > -50) {
+                status = 'Slight Deficit'; statusClass = 'status-deficit';
+                message = `⚠️ Slight Deficit: ${Math.round(difference)}ml`;
+            } else {
+                status = 'Critical Deficit'; statusClass = 'status-critical';
+                message = `🚨 Critical Deficit: ${Math.round(difference)}ml`;
+            }
+            
+            return { pumpTotal, feedTotal, difference, ratio, status, statusClass, message };
+        };
 
-        // Combined (Feeds only)
-        const totalFed = feedLogs.reduce((s, l) => s + l.value, 0);
-        document.getElementById('stats-combined').innerHTML = `
-            <div class="stat-box"><div class="stat-val">${displayVal(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
-            <div class="stat-box"><div class="stat-val">${feedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
-        `;
-        drawEnhancedChart('chart-combined', 'Total Fed', feedLogs, '#4a90e2');
-    };
+        // --- CHART DRAWING ---
+        const drawEnhancedChart = (canvasId, label, logs, color) => {
+            try {
+                const canvas = document.getElementById(canvasId);
+                if(!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if(charts[canvasId]) charts[canvasId].destroy();
 
-    // Initial reset
-    window.resetTimeInputs();
+                if(logs.length === 0) {
+                    // Draw empty chart with message
+                    charts[canvasId] = new Chart(ctx, {
+                        type: 'line',
+                        data: { labels: ['No data yet'], datasets: [] },
+                        options: { plugins: { title: { display: true, text: 'Add entries to see chart' } } }
+                    });
+                    return;
+                }
+
+                const dailyObj = groupByDay(logs);
+                const { dates, movingAvg } = calculateMovingAverage(dailyObj);
+                const dailyValues = dates.map(d => dailyObj[d]);
+
+                const unit = state.units === 'US' ? 'oz' : 'ml';
+                const convert = (ml) => state.units === 'US' ? (ml / 29.5735).toFixed(1) : Math.round(ml);
+
+                charts[canvasId] = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [
+                            {
+                                label: 'Daily Total',
+                                data: dailyValues,
+                                borderColor: color,
+                                backgroundColor: color + '20',
+                                borderWidth: 2,
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                tension: 0.3,
+                                fill: false
+                            },
+                            {
+                                label: '7-Day Moving Average',
+                                data: movingAvg,
+                                borderColor: '#ff9800',
+                                backgroundColor: '#ff980020',
+                                borderWidth: 3,
+                                pointRadius: 0,
+                                borderDash: [5, 5],
+                                tension: 0.4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        let label = context.dataset.label || '';
+                                        if (label) label += ': ';
+                                        if (context.parsed.y !== null) {
+                                            label += convert(context.parsed.y) + ' ' + unit;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            },
+                            legend: { display: false }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                });
+            } catch(e) {
+                console.error(`Chart error (${canvasId}):`, e);
+            }
+        };
+
+        // --- RENDER UI ---
+        const renderUI = () => {
+            try {
+                const isUS = state.units === 'US';
+                const displayVal = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
+                const unit = isUS ? 'oz' : 'ml';
+
+                // Filter logs by category
+                const milkLogs = state.logs.filter(l => l.category === 'Milk');
+                const formulaLogs = state.logs.filter(l => l.category === 'Formula');
+                const skinLogs = state.logs.filter(l => l.category === 'SkinToSkin');
+                const nappyLogs = state.logs.filter(l => l.category === 'Nappy');
+                
+                const pumpLogs = milkLogs.filter(l => l.detail.includes('Pump'));
+                const feedLogs = state.logs.filter(l => 
+                    (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula'
+                );
+
+                // Supply Status (only on milk page)
+                const supplyContent = document.getElementById('supply-status-content');
+                if (supplyContent) {
+                    const status = calculateSupplyStatus(pumpLogs, feedLogs);
+                    supplyContent.innerHTML = `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div><strong>Pumped:</strong> ${displayVal(status.pumpTotal)}${unit}</div>
+                            <div><strong>Fed:</strong> ${displayVal(status.feedTotal)}${unit}</div>
+                        </div>
+                        <div class="supply-indicator">
+                            <span>${Math.round(status.ratio)}% used</span>
+                            <div class="supply-bar">
+                                <div class="supply-bar-fill" style="width: ${status.ratio}%;"></div>
+                            </div>
+                            <span class="supply-status ${status.statusClass}">${status.status}</span>
+                        </div>
+                        <div style="margin-top: 10px; font-size: 14px; text-align: center; font-weight: bold;">
+                            ${status.message}
+                            ${status.difference < 0 ? ' 📉' : ' 📈'}
+                        </div>
+                    `;
+                }
+
+                // Helper to render a section
+                const renderSection = (title, logs, containerPrefix, chartId, color) => {
+                    const total = logs.reduce((s, l) => s + l.value, 0);
+                    const statsEl = document.getElementById(`stats-${containerPrefix}`);
+                    if (statsEl) {
+                        statsEl.innerHTML = `
+                            <div class="stat-box"><div class="stat-val">${displayVal(total)}${unit}</div><div class="stat-lbl">Total</div></div>
+                            <div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>
+                        `;
+                    }
+                    const historyEl = document.getElementById(`history-${containerPrefix}`);
+                    if (historyEl) {
+                        const sorted = [...logs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                        historyEl.innerHTML = sorted.slice(0,5).map(l => `
+                            <div class="history-item">
+                                <span>${new Date(l.timestamp).toLocaleString()} - ${l.detail || ''} (${displayVal(l.value)}${unit})</span>
+                                <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
+                            </div>
+                        `).join('');
+                    }
+                    drawEnhancedChart(chartId, title, logs, color);
+                };
+
+                renderSection('Milk', milkLogs, 'milk', 'chart-milk', '#8fbca0');
+                renderSection('Formula', formulaLogs, 'formula', 'chart-formula', '#6a9c7d');
+                renderSection('Skin-to-Skin', skinLogs, 'skin', 'chart-skin', '#b30000');
+                renderSection('Nappy', nappyLogs, 'nappy', 'chart-nappy', '#ffb347');
+
+                // Combined feed total
+                const totalFed = feedLogs.reduce((s, l) => s + l.value, 0);
+                const statsCombined = document.getElementById('stats-combined');
+                if (statsCombined) {
+                    statsCombined.innerHTML = `
+                        <div class="stat-box"><div class="stat-val">${displayVal(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
+                        <div class="stat-box"><div class="stat-val">${feedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
+                    `;
+                }
+                drawEnhancedChart('chart-combined', 'Total Fed', feedLogs, '#4a90e2');
+
+            } catch(e) {
+                console.error('RenderUI error:', e);
+            }
+        };
+
+        // Initialize
+        window.resetTimeInputs();
+        // Expose renderUI globally for potential calls
+        window.renderUI = renderUI;
+    })();
 </script>
 </body>
 </html>
