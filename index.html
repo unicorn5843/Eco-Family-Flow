@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -41,7 +41,6 @@
     </script>
 
     <style>
-        /* Same styles as before, plus error banner */
         :root { 
             --bg: #f2f7f4; --card: #ffffff; --text: #2f4f2f; --accent: #8fbca0; 
             --accent-dark: #6a9c7d; --border: #e0ebe3; --btn-text: #ffffff; 
@@ -55,18 +54,19 @@
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 90px; transition: background-color 0.5s, color 0.5s; }
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
         .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; }
-        #nav-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
-        .nav-tile { background: var(--card); border-radius: 14px; aspect-ratio: 1.2/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        #nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
+        .nav-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); padding: 4px; }
         .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
-        .nav-emoji { font-size: 26px; margin-bottom: 4px; }
-        .nav-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+        .nav-emoji { font-size: 24px; margin-bottom: 2px; }
+        .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; }
         .page { display: none; animation: fadeIn 0.3s; }
         .page.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .card { background: var(--card); padding: 18px; border-radius: 16px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
         .input-group { margin-bottom: 12px; }
-        input, select { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; }
-        input:focus, select:focus { border-color: var(--accent); }
+        input, select, textarea { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; width: 100%; box-sizing: border-box; font-size: 16px; outline: none; font-family: inherit; }
+        textarea { min-height: 80px; resize: vertical; }
+        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
         .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
         .toggle-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); background: var(--card); color: var(--accent-dark); font-weight: 600; cursor: pointer; }
         .toggle-btn.active { background: var(--accent); color: var(--btn-text); }
@@ -95,15 +95,15 @@
         .chart-legend { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 12px; }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 12px; height: 12px; border-radius: 3px; }
-        .error-banner {
-            background: #ff6b6b;
-            color: white;
-            padding: 12px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-            display: none;
-            font-size: 14px;
-        }
+        .error-banner { background: #ff6b6b; color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; font-size: 14px; }
+        .med-timer-card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
+        .med-name { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+        .med-dosage { font-size: 14px; opacity: 0.8; margin-bottom: 4px; }
+        .med-time { font-size: 13px; font-weight: 600; color: var(--accent-dark); }
+        .hospital-note-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
+        .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; }
+        .hospital-timestamp { font-size: 12px; opacity: 0.7; }
     </style>
 </head>
 <body>
@@ -116,22 +116,24 @@
 <div id="app-interface">
     <div class="header-title">Eco Family Flow</div>
 
-    <!-- Error display area -->
     <div id="error-banner" class="error-banner"></div>
 
+    <!-- Navigation Grid (8 tiles) -->
     <section id="nav-grid">
-        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label unit-display">Milk (ML)</span></div>
-        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label unit-display">Formula (ML)</span></div>
+        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label unit-display">Milk</span></div>
+        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label unit-display">Formula</span></div>
         <div id="tab-combined" class="nav-tile" onclick="window.switchTab('combined')"><span class="nav-emoji">📈</span><span class="nav-label">Combined</span></div>
-        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin-to-Skin</span></div>
+        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin</span></div>
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
-        <div class="nav-tile" onclick="window.toggleUnits()"><span id="flag-emoji" class="nav-emoji">🇬🇧</span><span id="unit-label" class="nav-label">UK Units</span></div>
+        <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
+        <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
+        <div class="nav-tile" onclick="window.toggleUnits()"><span id="flag-emoji" class="nav-emoji">🇬🇧</span><span id="unit-label" class="nav-label">Units</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- MILK PAGE -->
+        <!-- MILK PAGE (existing) -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card">
                 <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
@@ -163,7 +165,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
-        <!-- FORMULA PAGE -->
+        <!-- FORMULA PAGE (existing) -->
         <div id="page-formula" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
@@ -181,7 +183,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
-        <!-- COMBINED PAGE -->
+        <!-- COMBINED PAGE (existing) -->
         <div id="page-combined" class="page">
             <div class="card" style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 15px;">
                 Total Fed (Milk Feeds + Formula). Pumping excluded.
@@ -196,7 +198,7 @@
             </div>
         </div>
 
-        <!-- SKIN-TO-SKIN PAGE -->
+        <!-- SKIN-TO-SKIN PAGE (existing) -->
         <div id="page-skin" class="page">
             <div class="card">
                 <div class="stat-lbl" style="margin-bottom: 5px;">Start Time</div>
@@ -216,7 +218,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
         </div>
 
-        <!-- NAPPY PAGE -->
+        <!-- NAPPY PAGE (existing) -->
         <div id="page-nappy" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
@@ -237,12 +239,47 @@
             </div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
+
+        <!-- NEW: MEDICATION TRACKER PAGE -->
+        <div id="page-meds" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="medTime"></div>
+                <div class="input-group"><input type="text" id="medName" placeholder="Medication name (e.g., Paracetamol)" autocomplete="off"></div>
+                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage / amount (e.g., 2.5ml)" autocomplete="off"></div>
+                <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
+            </div>
+            
+            <div class="card">
+                <div class="stat-lbl" style="margin-bottom: 15px;">💊 Time Since Last Dose</div>
+                <div id="med-timers-container"></div>
+            </div>
+            
+            <div class="card">
+                <div class="stat-lbl">Recent Medication History</div>
+                <div id="history-meds" class="history-list"></div>
+            </div>
+        </div>
+
+        <!-- NEW: HOSPITAL NOTES PAGE -->
+        <div id="page-hospital" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
+                <div class="input-group"><input type="text" id="hospitalName" placeholder="Hospital name" autocomplete="off"></div>
+                <div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div>
+                <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button>
+            </div>
+            
+            <div class="card">
+                <div class="stat-lbl" style="margin-bottom: 10px;">📋 Recent Hospital Notes</div>
+                <div id="history-hospital" class="history-list"></div>
+            </div>
+        </div>
     </main>
 </div>
 
 <footer id="fixed-bottom">
     <div class="footer-action" onclick="window.toggleNight()">
-        <span style="font-size: 24px; margin-bottom: 2px;">🌗</span><span>Night Mode</span>
+        <span style="font-size: 24px; margin-bottom: 2px;">🌗</span><span>Night</span>
     </div>
     <div class="footer-action" onclick="window.logout()">
         <span style="font-size: 24px; margin-bottom: 2px;">🚪</span><span>Logout</span>
@@ -263,8 +300,8 @@
         };
 
         let charts = {};
+        let timerInterval = null;
 
-        // Show error to user
         function showError(msg) {
             const banner = document.getElementById('error-banner');
             banner.style.display = 'block';
@@ -277,11 +314,11 @@
                 const now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 const t = now.toISOString().slice(0, 16);
-                ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime'].forEach(id => {
+                ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime', 'medTime', 'hospitalTime'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.value = t;
                 });
-            } catch(e) { console.warn(e); }
+            } catch(e) {}
         };
 
         window.toggleNight = () => document.body.classList.toggle('night');
@@ -323,7 +360,6 @@
                 const response = await fetch(GOOGLE_URL);
                 const text = await response.text();
                 const data = JSON.parse(text);
-                // Your Apps Script returns array directly if successful, or object with error
                 if (Array.isArray(data)) {
                     state.logs = data.filter(row => row.user === window.auth.currentUser.email);
                 } else if (data.error) {
@@ -345,10 +381,7 @@
             const btn = document.getElementById(btnId);
             btn.innerText = "Saving...";
             try {
-                const response = await fetch(GOOGLE_URL, { 
-                    method: 'POST', 
-                    body: JSON.stringify(payload) 
-                });
+                const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
                 const result = await response.json();
                 if (result.success) {
                     btn.innerText = "Saved!";
@@ -434,7 +467,102 @@
             pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
         };
 
-        // Helper: group logs by day
+        window.saveMedication = () => {
+            const name = document.getElementById('medName').value.trim();
+            const dosage = document.getElementById('medDosage').value.trim();
+            if (!name) return alert("Please enter medication name");
+            const time = new Date(document.getElementById('medTime').value).toISOString();
+            const detail = `${name}|${dosage}`; // Store both in detail field separated by |
+            
+            const payload = {
+                action: 'save',
+                timestamp: time,
+                category: 'Medication',
+                value: 0, // Not used for meds
+                detail: detail,
+                user: window.auth.currentUser.email
+            };
+            document.getElementById('medName').value = '';
+            document.getElementById('medDosage').value = '';
+            pushToSheet(payload, 'btn-save-med', 'Log Medication');
+            resetTimeInputs();
+        };
+
+        window.saveHospitalNote = () => {
+            const hospital = document.getElementById('hospitalName').value.trim();
+            const notes = document.getElementById('hospitalNotes').value.trim();
+            if (!hospital) return alert("Please enter hospital name");
+            const time = new Date(document.getElementById('hospitalTime').value).toISOString();
+            const detail = `${hospital}|${notes}`;
+            
+            const payload = {
+                action: 'save',
+                timestamp: time,
+                category: 'HospitalNote',
+                value: 0,
+                detail: detail,
+                user: window.auth.currentUser.email
+            };
+            document.getElementById('hospitalName').value = '';
+            document.getElementById('hospitalNotes').value = '';
+            pushToSheet(payload, 'btn-save-hospital', 'Save Note');
+            resetTimeInputs();
+        };
+
+        // Helper: format time ago
+        function formatTimeAgo(timestamp) {
+            const now = new Date();
+            const then = new Date(timestamp);
+            const diffMs = now - then;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays === 1) return '1 day ago';
+            if (diffDays === 2) return '2 days ago';
+            return '>2 days';
+        }
+
+        // Render medication timers (live update every minute)
+        function renderMedicationTimers() {
+            const container = document.getElementById('med-timers-container');
+            if (!container) return;
+            
+            const medLogs = state.logs.filter(l => l.category === 'Medication').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            // Group by medication name (case-insensitive)
+            const latestByMed = {};
+            medLogs.forEach(log => {
+                const parts = log.detail.split('|');
+                const medName = parts[0].toLowerCase();
+                if (!latestByMed[medName] || new Date(log.timestamp) > new Date(latestByMed[medName].timestamp)) {
+                    latestByMed[medName] = log;
+                }
+            });
+            
+            const timersHtml = Object.values(latestByMed).map(log => {
+                const parts = log.detail.split('|');
+                const medName = parts[0];
+                const dosage = parts[1] || '';
+                const timeAgo = formatTimeAgo(log.timestamp);
+                return `
+                    <div class="med-timer-card">
+                        <div class="med-name">${medName}</div>
+                        ${dosage ? `<div class="med-dosage">${dosage}</div>` : ''}
+                        <div class="med-time">⏱️ ${timeAgo}</div>
+                    </div>
+                `;
+            }).join('');
+            
+            container.innerHTML = timersHtml || '<div style="text-align:center; padding:15px; opacity:0.6;">No medications logged yet</div>';
+        }
+
+        // ... (rest of existing functions: groupByDay, calculateMovingAverage, calculateSupplyStatus, drawChart, renderUI)
+
+        // We'll include the full renderUI function with new sections
         const groupByDay = (logs, valueKey = 'value') => {
             const daily = {};
             logs.forEach(log => {
@@ -450,9 +578,8 @@
             const values = sortedDates.map(d => dailyObj[d]);
             const movingAvg = [];
             for (let i = 0; i < values.length; i++) {
-                if (i < days - 1) {
-                    movingAvg.push(null);
-                } else {
+                if (i < days - 1) movingAvg.push(null);
+                else {
                     const sum = values.slice(i - days + 1, i + 1).reduce((a,b) => a + b, 0);
                     movingAvg.push(sum / days);
                 }
@@ -464,32 +591,18 @@
             const today = new Date();
             const sevenDaysAgo = new Date(today);
             sevenDaysAgo.setDate(today.getDate() - 6);
-            
             const filterLast7Days = (log) => new Date(log.timestamp) >= sevenDaysAgo;
             const recentPump = pumpLogs.filter(filterLast7Days);
             const recentFeed = feedLogs.filter(filterLast7Days);
-            
             const pumpTotal = recentPump.reduce((s, l) => s + Number(l.value), 0);
             const feedTotal = recentFeed.reduce((s, l) => s + Number(l.value), 0);
-            
             const difference = pumpTotal - feedTotal;
             const ratio = pumpTotal > 0 ? Math.min((feedTotal / pumpTotal) * 100, 100) : 0;
-            
             let status, statusClass, message;
-            if (difference > 100) {
-                status = 'Surplus'; statusClass = 'status-surplus';
-                message = `👍 Surplus: +${Math.round(difference)}ml`;
-            } else if (difference > 0) {
-                status = 'Balanced'; statusClass = 'status-balanced';
-                message = `✓ Balanced: +${Math.round(difference)}ml`;
-            } else if (difference > -50) {
-                status = 'Slight Deficit'; statusClass = 'status-deficit';
-                message = `⚠️ Slight Deficit: ${Math.round(difference)}ml`;
-            } else {
-                status = 'Critical Deficit'; statusClass = 'status-critical';
-                message = `🚨 Critical Deficit: ${Math.round(difference)}ml`;
-            }
-            
+            if (difference > 100) { status = 'Surplus'; statusClass = 'status-surplus'; message = `👍 Surplus: +${Math.round(difference)}ml`; }
+            else if (difference > 0) { status = 'Balanced'; statusClass = 'status-balanced'; message = `✓ Balanced: +${Math.round(difference)}ml`; }
+            else if (difference > -50) { status = 'Slight Deficit'; statusClass = 'status-deficit'; message = `⚠️ Slight Deficit: ${Math.round(difference)}ml`; }
+            else { status = 'Critical Deficit'; statusClass = 'status-critical'; message = `🚨 Critical Deficit: ${Math.round(difference)}ml`; }
             return { pumpTotal, feedTotal, difference, ratio, status, statusClass, message };
         };
 
@@ -499,55 +612,36 @@
                 if(!canvas) return;
                 const ctx = canvas.getContext('2d');
                 if(charts[canvasId]) charts[canvasId].destroy();
-
                 if(datasets.every(ds => ds.data.length === 0)) {
-                    charts[canvasId] = new Chart(ctx, {
-                        type: 'line',
-                        data: { labels: ['No data yet'], datasets: [] },
-                        options: { plugins: { title: { display: true, text: 'Add entries to see chart' } } }
-                    });
+                    charts[canvasId] = new Chart(ctx, { type: 'line', data: { labels: ['No data yet'], datasets: [] }, options: { plugins: { title: { display: true, text: 'Add entries to see chart' } } } });
                     return;
                 }
-
                 charts[canvasId] = new Chart(ctx, {
                     type: 'line',
                     data: { labels: options.labels, datasets: datasets },
                     options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
+                        responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            tooltip: {
-                                callbacks: {
-                                    label: (context) => {
-                                        let label = context.dataset.label || '';
-                                        if (label) label += ': ';
-                                        const val = context.parsed.y;
-                                        if (val !== null) {
-                                            if (options.unit === 'min') {
-                                                label += val + ' min';
-                                            } else if (options.unit === 'count') {
-                                                label += val;
-                                            } else {
-                                                const converted = state.units === 'US' ? (val / 29.5735).toFixed(1) : Math.round(val);
-                                                label += converted + ' ' + (state.units === 'US' ? 'oz' : 'ml');
-                                            }
-                                        }
-                                        return label;
+                            tooltip: { callbacks: { label: (context) => {
+                                let label = context.dataset.label || ''; if (label) label += ': ';
+                                const val = context.parsed.y;
+                                if (val !== null) {
+                                    if (options.unit === 'min') label += val + ' min';
+                                    else if (options.unit === 'count') label += val;
+                                    else {
+                                        const converted = state.units === 'US' ? (val / 29.5735).toFixed(1) : Math.round(val);
+                                        label += converted + ' ' + (state.units === 'US' ? 'oz' : 'ml');
                                     }
                                 }
-                            },
+                                return label;
+                            }}},
                             legend: { display: false }
                         },
-                        scales: {
-                            y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } },
-                            x: { grid: { display: false } }
-                        }
+                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } }, x: { grid: { display: false } } }
                     }
                 });
-            } catch(e) {
-                console.error(`Chart error (${canvasId}):`, e);
-            }
+            } catch(e) { console.error(`Chart error (${canvasId}):`, e); }
         };
 
         const renderUI = () => {
@@ -560,14 +654,14 @@
                 const formulaLogs = state.logs.filter(l => l.category === 'Formula');
                 const skinLogs = state.logs.filter(l => l.category === 'SkinToSkin');
                 const nappyLogs = state.logs.filter(l => l.category === 'Nappy');
+                const medLogs = state.logs.filter(l => l.category === 'Medication');
+                const hospitalLogs = state.logs.filter(l => l.category === 'HospitalNote');
                 
                 const pumpLogs = milkLogs.filter(l => l.detail.includes('Pump'));
                 const feedMilkLogs = milkLogs.filter(l => l.detail.includes('Feed'));
-                const allFeedLogs = state.logs.filter(l => 
-                    (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula'
-                );
+                const allFeedLogs = state.logs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
 
-                // Supply Status Card
+                // Supply Status Card (milk page)
                 const supplyContent = document.getElementById('supply-status-content');
                 if (supplyContent) {
                     const status = calculateSupplyStatus(pumpLogs, allFeedLogs);
@@ -578,17 +672,14 @@
                         </div>
                         <div class="supply-indicator">
                             <span>${Math.round(status.ratio)}% used</span>
-                            <div class="supply-bar">
-                                <div class="supply-bar-fill" style="width: ${status.ratio}%;"></div>
-                            </div>
+                            <div class="supply-bar"><div class="supply-bar-fill" style="width: ${status.ratio}%;"></div></div>
                             <span class="supply-status ${status.statusClass}">${status.status}</span>
                         </div>
-                        <div style="margin-top: 10px; font-size: 14px; text-align: center; font-weight: bold;">
-                            ${status.message} ${status.difference < 0 ? '📉' : '📈'}
-                        </div>
+                        <div style="margin-top: 10px; font-size: 14px; text-align: center; font-weight: bold;">${status.message} ${status.difference < 0 ? '📉' : '📈'}</div>
                     `;
                 }
 
+                // Helper for stats/history
                 const renderSection = (logs, containerPrefix, valueFormatter) => {
                     const total = logs.reduce((s, l) => s + Number(l.value), 0);
                     const statsEl = document.getElementById(`stats-${containerPrefix}`);
@@ -610,17 +701,14 @@
                     }
                 };
 
-                // Milk stats (show both)
+                // Milk stats and chart (special handling)
                 const milkTotalPump = pumpLogs.reduce((s,l) => s + Number(l.value), 0);
                 const milkTotalFeed = feedMilkLogs.reduce((s,l) => s + Number(l.value), 0);
                 const milkStatsEl = document.getElementById('stats-milk');
-                if (milkStatsEl) {
-                    milkStatsEl.innerHTML = `
-                        <div class="stat-box"><div class="stat-val">${convert(milkTotalPump)}${unit}</div><div class="stat-lbl">Pumped</div></div>
-                        <div class="stat-box"><div class="stat-val">${convert(milkTotalFeed)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
-                    `;
-                }
-                // Milk history
+                if (milkStatsEl) milkStatsEl.innerHTML = `
+                    <div class="stat-box"><div class="stat-val">${convert(milkTotalPump)}${unit}</div><div class="stat-lbl">Pumped</div></div>
+                    <div class="stat-box"><div class="stat-val">${convert(milkTotalFeed)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
+                `;
                 const milkHistoryEl = document.getElementById('history-milk');
                 if (milkHistoryEl) {
                     const sorted = [...milkLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -631,16 +719,12 @@
                         </div>
                     `).join('');
                 }
-
-                // Milk Chart: separate pump and feed
                 const pumpDaily = groupByDay(pumpLogs);
                 const feedDaily = groupByDay(feedMilkLogs);
                 const allDates = [...new Set([...Object.keys(pumpDaily), ...Object.keys(feedDaily)])].sort((a,b) => new Date(a) - new Date(b));
-                const pumpData = allDates.map(d => pumpDaily[d] || 0);
-                const feedData = allDates.map(d => feedDaily[d] || 0);
                 drawChart('chart-milk', [
-                    { label: 'Pumped', data: pumpData, borderColor: '#4caf50', backgroundColor: '#4caf5020', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: 'Fed (Milk)', data: feedData, borderColor: '#f44336', backgroundColor: '#f4433620', borderWidth: 2, tension: 0.3, fill: false }
+                    { label: 'Pumped', data: allDates.map(d => pumpDaily[d] || 0), borderColor: '#4caf50', backgroundColor: '#4caf5020', borderWidth: 2, tension: 0.3, fill: false },
+                    { label: 'Fed (Milk)', data: allDates.map(d => feedDaily[d] || 0), borderColor: '#f44336', backgroundColor: '#f4433620', borderWidth: 2, tension: 0.3, fill: false }
                 ], { labels: allDates, unit: 'ml' });
 
                 // Formula
@@ -674,18 +758,59 @@
                 // Combined
                 const totalFed = allFeedLogs.reduce((s,l) => s + Number(l.value), 0);
                 const combinedStats = document.getElementById('stats-combined');
-                if (combinedStats) {
-                    combinedStats.innerHTML = `
-                        <div class="stat-box"><div class="stat-val">${convert(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
-                        <div class="stat-box"><div class="stat-val">${allFeedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
-                    `;
-                }
+                if (combinedStats) combinedStats.innerHTML = `
+                    <div class="stat-box"><div class="stat-val">${convert(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
+                    <div class="stat-box"><div class="stat-val">${allFeedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
+                `;
                 const combinedDaily = groupByDay(allFeedLogs);
                 const { dates: cDates, movingAvg: cMA } = calculateMovingAverage(combinedDaily);
                 drawChart('chart-combined', [
                     { label: 'Daily Total', data: cDates.map(d => combinedDaily[d]), borderColor: '#4a90e2', backgroundColor: '#4a90e220', borderWidth: 2, tension: 0.3, fill: false },
                     { label: '7-Day Avg', data: cMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
                 ], { labels: cDates, unit: 'ml' });
+
+                // NEW: Medication Timers
+                renderMedicationTimers();
+                
+                // Medication History
+                const medHistoryEl = document.getElementById('history-meds');
+                if (medHistoryEl) {
+                    const sortedMeds = [...medLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    medHistoryEl.innerHTML = sortedMeds.slice(0,5).map(l => {
+                        const parts = l.detail.split('|');
+                        const medName = parts[0];
+                        const dosage = parts[1] || '';
+                        return `
+                            <div class="history-item">
+                                <span>${new Date(l.timestamp).toLocaleString()} - ${medName} ${dosage ? '('+dosage+')' : ''}</span>
+                                <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // NEW: Hospital Notes History
+                const hospHistoryEl = document.getElementById('history-hospital');
+                if (hospHistoryEl) {
+                    const sortedHosp = [...hospitalLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+                    hospHistoryEl.innerHTML = sortedHosp.slice(0,10).map(l => {
+                        const parts = l.detail.split('|');
+                        const hospName = parts[0];
+                        const notes = parts[1] || '';
+                        return `
+                            <div class="hospital-note-item">
+                                <div class="hospital-name">🏥 ${hospName}</div>
+                                <div class="hospital-note-text">${notes.replace(/\n/g, '<br>')}</div>
+                                <div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div>
+                                <div style="text-align:right; margin-top:5px;"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // Update timers every minute
+                if (timerInterval) clearInterval(timerInterval);
+                timerInterval = setInterval(renderMedicationTimers, 60000);
 
             } catch(e) {
                 console.error('RenderUI error:', e);
