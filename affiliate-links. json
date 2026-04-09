@@ -1,0 +1,30 @@
+{
+  "lastUpdated": "2026-04-09",
+  "categories": [
+    {
+      "name": "Nappies",
+      "icon": "🧻",
+      "items": [
+        { "name": "Pampers Baby-Dry (Size 1)", "url": "https://www.awin1.com/cread.php?..." },
+        { "name": "Kit & Kin Eco Nappies", "url": "https://..." },
+        { "name": "Amazon Brand Mama Bear", "url": "https://amzn.to/..." }
+      ]
+    },
+    {
+      "name": "Formula",
+      "icon": "🍼",
+      "items": [
+        { "name": "Aptamil First Infant Milk", "url": "https://..." },
+        { "name": "HiPP Organic Combiotic", "url": "https://..." }
+      ]
+    },
+    {
+      "name": "Medicines",
+      "icon": "💊",
+      "items": [
+        { "name": "Calpol Infant Suspension", "url": "https://..." },
+        { "name": "Nurofen for Children", "url": "https://..." }
+      ]
+    }
+  ]
+}
