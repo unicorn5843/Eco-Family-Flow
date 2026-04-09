@@ -54,6 +54,12 @@
         body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 90px; transition: background-color 0.5s, color 0.5s; }
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
         .header-title { text-align: center; font-size: 26px; font-weight: bold; color: var(--accent-dark); margin-bottom: 20px; }
+        .sync-banner { position: fixed; top: 0; left: 0; right: 0; padding: 8px; text-align: center; font-size: 14px; font-weight: bold; z-index: 200; transition: 0.3s; }
+        .banner-offline { background: #ff9800; color: white; }
+        .banner-synced { background: #4caf50; color: white; }
+        .child-selector { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; gap: 5px; }
+        .child-btn { padding: 8px 12px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 14px; }
+        .child-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         #nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .nav-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); padding: 4px; }
         .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
@@ -104,6 +110,8 @@
         .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
         .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; }
         .hospital-timestamp { font-size: 12px; opacity: 0.7; }
+        .shop-category { margin-bottom: 20px; }
+        .shop-item { display: block; padding: 12px; background: var(--card); border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--text); border: 1px solid var(--border); }
     </style>
 </head>
 <body>
@@ -114,32 +122,41 @@
 </div>
 
 <div id="app-interface">
+    <div id="sync-banner" class="sync-banner" style="display: none;"></div>
+    
     <div class="header-title">Eco Family Flow</div>
+
+    <!-- Child Profile Selector (5 children) -->
+    <div class="child-selector">
+        <button id="child-a-btn" class="child-btn active" onclick="window.setChild('Child A')">👶 A</button>
+        <button id="child-b-btn" class="child-btn" onclick="window.setChild('Child B')">👶 B</button>
+        <button id="child-c-btn" class="child-btn" onclick="window.setChild('Child C')">👶 C</button>
+        <button id="child-d-btn" class="child-btn" onclick="window.setChild('Child D')">👶 D</button>
+        <button id="child-e-btn" class="child-btn" onclick="window.setChild('Child E')">👶 E</button>
+    </div>
 
     <div id="error-banner" class="error-banner"></div>
 
-    <!-- Navigation Grid (8 tiles) -->
     <section id="nav-grid">
-        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label unit-display">Milk</span></div>
-        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label unit-display">Formula</span></div>
-        <div id="tab-combined" class="nav-tile" onclick="window.switchTab('combined')"><span class="nav-emoji">📈</span><span class="nav-label">Combined</span></div>
-        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin</span></div>
+        <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
+        <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
+        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin</span></div>
         <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
         <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
-        <div class="nav-tile" onclick="window.toggleUnits()"><span id="flag-emoji" class="nav-emoji">🇬🇧</span><span id="unit-label" class="nav-label">Units</span></div>
+        <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
+        <div id="tab-shop" class="nav-tile" onclick="window.switchTab('shop')"><span class="nav-emoji">🛒</span><span class="nav-label">Shop</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- MILK PAGE (existing) -->
+        <!-- MILK PAGE -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card">
                 <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
                 <div id="supply-status-content">Loading...</div>
             </div>
-            
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="milkTime"></div>
                 <div class="btn-row">
@@ -165,7 +182,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
-        <!-- FORMULA PAGE (existing) -->
+        <!-- FORMULA PAGE -->
         <div id="page-formula" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
@@ -183,42 +200,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
-        <!-- COMBINED PAGE (existing) -->
-        <div id="page-combined" class="page">
-            <div class="card" style="text-align: center; font-size: 14px; opacity: 0.8; margin-bottom: 15px;">
-                Total Fed (Milk Feeds + Formula). Pumping excluded.
-            </div>
-            <div id="stats-combined" class="stat-container"></div>
-            <div class="card">
-                <div style="height:250px;"><canvas id="chart-combined"></canvas></div>
-                <div class="chart-legend">
-                    <div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span> Daily Total</div>
-                    <div class="legend-item"><span class="legend-color" style="background: #ff9800;"></span> 7-Day Avg</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- SKIN-TO-SKIN PAGE (existing) -->
-        <div id="page-skin" class="page">
-            <div class="card">
-                <div class="stat-lbl" style="margin-bottom: 5px;">Start Time</div>
-                <div class="input-group"><input type="datetime-local" id="skinStart"></div>
-                <div class="stat-lbl" style="margin-bottom: 5px;">End Time</div>
-                <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
-                <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Session</button>
-            </div>
-            <div id="stats-skin" class="stat-container"></div>
-            <div class="card">
-                <div style="height:250px;"><canvas id="chart-skin"></canvas></div>
-                <div class="chart-legend">
-                    <div class="legend-item"><span class="legend-color" style="background: #b30000;"></span> Daily Minutes</div>
-                    <div class="legend-item"><span class="legend-color" style="background: #ff9800;"></span> 7-Day Avg</div>
-                </div>
-            </div>
-            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
-        </div>
-
-        <!-- NAPPY PAGE (existing) -->
+        <!-- NAPPY PAGE -->
         <div id="page-nappy" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
@@ -240,27 +222,45 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
 
-        <!-- NEW: MEDICATION TRACKER PAGE -->
+        <!-- SKIN-TO-SKIN PAGE -->
+        <div id="page-skin" class="page">
+            <div class="card">
+                <div class="stat-lbl" style="margin-bottom: 5px;">Start Time</div>
+                <div class="input-group"><input type="datetime-local" id="skinStart"></div>
+                <div class="stat-lbl" style="margin-bottom: 5px;">End Time</div>
+                <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
+                <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Session</button>
+            </div>
+            <div id="stats-skin" class="stat-container"></div>
+            <div class="card">
+                <div style="height:250px;"><canvas id="chart-skin"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background: #b30000;"></span> Daily Minutes</div>
+                    <div class="legend-item"><span class="legend-color" style="background: #ff9800;"></span> 7-Day Avg</div>
+                </div>
+            </div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
+        </div>
+
+        <!-- MEDICATION PAGE -->
         <div id="page-meds" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="medTime"></div>
-                <div class="input-group"><input type="text" id="medName" placeholder="Medication name (e.g., Paracetamol)" autocomplete="off"></div>
-                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage / amount (e.g., 2.5ml)" autocomplete="off"></div>
+                <div class="input-group"><input type="text" id="medName" placeholder="Medication name" autocomplete="off"></div>
+                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage / amount" autocomplete="off"></div>
                 <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
             </div>
-            
             <div class="card">
                 <div class="stat-lbl" style="margin-bottom: 15px;">💊 Time Since Last Dose</div>
                 <div id="med-timers-container"></div>
             </div>
-            
             <div class="card">
                 <div class="stat-lbl">Recent Medication History</div>
                 <div id="history-meds" class="history-list"></div>
             </div>
         </div>
 
-        <!-- NEW: HOSPITAL NOTES PAGE -->
+        <!-- HOSPITAL NOTES PAGE -->
         <div id="page-hospital" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
@@ -268,46 +268,166 @@
                 <div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div>
                 <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button>
             </div>
-            
             <div class="card">
                 <div class="stat-lbl" style="margin-bottom: 10px;">📋 Recent Hospital Notes</div>
                 <div id="history-hospital" class="history-list"></div>
             </div>
+        </div>
+
+        <!-- STATS PAGE (Combined Feeding Trends) -->
+        <div id="page-stats" class="page">
+            <div class="card" style="text-align: center;">
+                <h3>📊 Feeding & Growth Trends</h3>
+                <p style="opacity:0.7;">7‑day moving averages</p>
+            </div>
+            <div id="stats-stats" class="stat-container"></div>
+            <div class="card">
+                <div style="height:250px;"><canvas id="chart-stats"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span> Daily Total</div>
+                    <div class="legend-item"><span class="legend-color" style="background: #ff9800;"></span> 7-Day Avg</div>
+                </div>
+            </div>
+            <div class="card">
+                <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
+            </div>
+        </div>
+
+        <!-- SHOP PAGE (Affiliate Links) -->
+        <div id="page-shop" class="page">
+            <div class="card" style="text-align: center;">
+                <h3>🛒 Recommended Products</h3>
+                <p style="opacity:0.7;">We may earn a small commission if you purchase through these links.</p>
+            </div>
+            <div id="shop-content">Loading products...</div>
         </div>
     </main>
 </div>
 
 <footer id="fixed-bottom">
     <div class="footer-action" onclick="window.toggleNight()">
-        <span style="font-size: 24px; margin-bottom: 2px;">🌗</span><span>Night</span>
+        <span style="font-size: 24px;">🌗</span><span>Night</span>
+    </div>
+    <div class="footer-action" onclick="window.toggleUnits()">
+        <span style="font-size: 24px;" id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span>
     </div>
     <div class="footer-action" onclick="window.logout()">
-        <span style="font-size: 24px; margin-bottom: 2px;">🚪</span><span>Logout</span>
+        <span style="font-size: 24px;">🚪</span><span>Logout</span>
     </div>
 </footer>
 
 <script>
     (function() {
         const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
+        const AFFILIATE_JSON_URL = 'affiliate-links.json';
 
         let state = {
             units: 'UK',
             tab: 'milk',
+            currentChild: 'Child A',
             milkMode: 'Pump',
             milkSide: 'Left',
             nappyType: 'Wee',
-            logs: []
+            logs: [],
+            offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]')
         };
 
         let charts = {};
         let timerInterval = null;
 
-        function showError(msg) {
-            const banner = document.getElementById('error-banner');
+        function showBanner(text, type) {
+            const banner = document.getElementById('sync-banner');
+            banner.textContent = text;
+            banner.className = `sync-banner banner-${type}`;
             banner.style.display = 'block';
-            banner.textContent = '⚠️ ' + msg;
-            setTimeout(() => banner.style.display = 'none', 5000);
+            if (type === 'synced') setTimeout(() => banner.style.display = 'none', 3000);
         }
+
+        async function processOfflineQueue() {
+            if (!navigator.onLine) return;
+            if (state.offlineQueue.length === 0) return;
+            showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
+            const queue = [...state.offlineQueue];
+            for (const item of queue) {
+                try {
+                    const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(item) });
+                    const result = await response.json();
+                    if (result.success) {
+                        state.offlineQueue = state.offlineQueue.filter(i => i.timestamp !== item.timestamp);
+                        state.logs.push(item);
+                    }
+                } catch (e) {}
+            }
+            localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+            if (state.offlineQueue.length === 0) {
+                showBanner('All data synced ✓', 'synced');
+                renderUI();
+            } else {
+                showBanner(`${state.offlineQueue.length} items pending`, 'offline');
+            }
+        }
+
+        window.addEventListener('online', processOfflineQueue);
+        setInterval(processOfflineQueue, 30000);
+
+        function saveWithOfflineSupport(payload, btnId, defaultText) {
+            const btn = document.getElementById(btnId);
+            btn.innerText = "Saving...";
+            const attemptSave = async () => {
+                try {
+                    const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const result = await response.json();
+                    if (result.success) {
+                        btn.innerText = "Saved!";
+                        state.logs.push(payload);
+                        showBanner('Saved to cloud', 'synced');
+                        setTimeout(() => { btn.innerText = defaultText; renderUI(); }, 1000);
+                        return true;
+                    }
+                } catch (e) {}
+                return false;
+            };
+
+            if (navigator.onLine) {
+                attemptSave().then(success => {
+                    if (!success) {
+                        state.offlineQueue.push(payload);
+                        localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+                        btn.innerText = "Queued (offline)";
+                        showBanner('Saved offline – will sync later', 'offline');
+                        setTimeout(() => { btn.innerText = defaultText; renderUI(); }, 1000);
+                    }
+                });
+            } else {
+                state.offlineQueue.push(payload);
+                localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+                btn.innerText = "Queued (offline)";
+                showBanner('Saved offline – will sync later', 'offline');
+                setTimeout(() => { btn.innerText = defaultText; renderUI(); }, 1000);
+            }
+        }
+
+        window.setChild = (child) => {
+            state.currentChild = child;
+            document.querySelectorAll('.child-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`child-${child.toLowerCase().replace(' ', '-')}-btn`).classList.add('active');
+            renderUI();
+        };
+
+        window.exportData = () => {
+            const childLogs = state.logs.filter(l => l.child === state.currentChild);
+            const csvRows = [];
+            csvRows.push(['Timestamp', 'Category', 'Value', 'Detail', 'Child'].join(','));
+            childLogs.forEach(l => {
+                csvRows.push([l.timestamp, l.category, l.value, (l.detail || '').replace(/,/g, ';'), l.child].join(','));
+            });
+            const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `ecofamilyflow_${state.currentChild.replace(' ', '_')}_${new Date().toISOString().slice(0,10)}.csv`;
+            a.click();
+        };
 
         window.resetTimeInputs = () => {
             try {
@@ -370,31 +490,9 @@
                 }
                 renderUI();
             } catch (error) {
-                console.error("Fetch error:", error);
-                showError("Could not load data. Check your internet connection.");
+                showError("Could not load data.");
             } finally {
                 document.getElementById('loading-indicator').style.display = 'none';
-            }
-        };
-
-        const pushToSheet = async (payload, btnId, defaultText) => {
-            const btn = document.getElementById(btnId);
-            btn.innerText = "Saving...";
-            try {
-                const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await response.json();
-                if (result.success) {
-                    btn.innerText = "Saved!";
-                    state.logs.push(payload);
-                    setTimeout(() => { btn.innerText = defaultText; renderUI(); }, 1000);
-                } else {
-                    showError(result.error || 'Save failed');
-                    btn.innerText = defaultText;
-                }
-            } catch(e) {
-                console.error("Save error:", e);
-                showError("Network error. Data not saved.");
-                btn.innerText = defaultText;
             }
         };
 
@@ -430,10 +528,11 @@
                 category: category,
                 value: Math.round(val),
                 detail: detail,
-                user: window.auth.currentUser.email
+                user: window.auth.currentUser.email,
+                child: state.currentChild
             };
             amtInput.value = '';
-            pushToSheet(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+            saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
         };
 
         window.saveSkin = () => {
@@ -448,9 +547,10 @@
                 category: 'SkinToSkin',
                 value: mins,
                 detail: 'Session',
-                user: window.auth.currentUser.email
+                user: window.auth.currentUser.email,
+                child: state.currentChild
             };
-            pushToSheet(payload, 'btn-save-skin', 'Save Session');
+            saveWithOfflineSupport(payload, 'btn-save-skin', 'Save Session');
             resetTimeInputs();
         };
 
@@ -462,9 +562,10 @@
                 category: 'Nappy',
                 value: 1,
                 detail: state.nappyType,
-                user: window.auth.currentUser.email
+                user: window.auth.currentUser.email,
+                child: state.currentChild
             };
-            pushToSheet(payload, 'btn-save-nappy', 'Log Nappy');
+            saveWithOfflineSupport(payload, 'btn-save-nappy', 'Log Nappy');
         };
 
         window.saveMedication = () => {
@@ -472,19 +573,20 @@
             const dosage = document.getElementById('medDosage').value.trim();
             if (!name) return alert("Please enter medication name");
             const time = new Date(document.getElementById('medTime').value).toISOString();
-            const detail = `${name}|${dosage}`; // Store both in detail field separated by |
+            const detail = `${name}|${dosage}`;
             
             const payload = {
                 action: 'save',
                 timestamp: time,
                 category: 'Medication',
-                value: 0, // Not used for meds
+                value: 0,
                 detail: detail,
-                user: window.auth.currentUser.email
+                user: window.auth.currentUser.email,
+                child: state.currentChild
             };
             document.getElementById('medName').value = '';
             document.getElementById('medDosage').value = '';
-            pushToSheet(payload, 'btn-save-med', 'Log Medication');
+            saveWithOfflineSupport(payload, 'btn-save-med', 'Log Medication');
             resetTimeInputs();
         };
 
@@ -501,15 +603,15 @@
                 category: 'HospitalNote',
                 value: 0,
                 detail: detail,
-                user: window.auth.currentUser.email
+                user: window.auth.currentUser.email,
+                child: state.currentChild
             };
             document.getElementById('hospitalName').value = '';
             document.getElementById('hospitalNotes').value = '';
-            pushToSheet(payload, 'btn-save-hospital', 'Save Note');
+            saveWithOfflineSupport(payload, 'btn-save-hospital', 'Save Note');
             resetTimeInputs();
         };
 
-        // Helper: format time ago
         function formatTimeAgo(timestamp) {
             const now = new Date();
             const then = new Date(timestamp);
@@ -517,7 +619,6 @@
             const diffMins = Math.floor(diffMs / 60000);
             const diffHours = Math.floor(diffMs / 3600000);
             const diffDays = Math.floor(diffMs / 86400000);
-            
             if (diffMins < 1) return 'Just now';
             if (diffMins < 60) return `${diffMins} min ago`;
             if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
@@ -526,14 +627,11 @@
             return '>2 days';
         }
 
-        // Render medication timers (live update every minute)
         function renderMedicationTimers() {
             const container = document.getElementById('med-timers-container');
             if (!container) return;
-            
-            const medLogs = state.logs.filter(l => l.category === 'Medication').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
-            // Group by medication name (case-insensitive)
+            const childLogs = state.logs.filter(l => l.child === state.currentChild);
+            const medLogs = childLogs.filter(l => l.category === 'Medication').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
             const latestByMed = {};
             medLogs.forEach(log => {
                 const parts = log.detail.split('|');
@@ -542,27 +640,23 @@
                     latestByMed[medName] = log;
                 }
             });
-            
             const timersHtml = Object.values(latestByMed).map(log => {
                 const parts = log.detail.split('|');
                 const medName = parts[0];
                 const dosage = parts[1] || '';
                 const timeAgo = formatTimeAgo(log.timestamp);
-                return `
-                    <div class="med-timer-card">
-                        <div class="med-name">${medName}</div>
-                        ${dosage ? `<div class="med-dosage">${dosage}</div>` : ''}
-                        <div class="med-time">⏱️ ${timeAgo}</div>
-                    </div>
-                `;
+                return `<div class="med-timer-card"><div class="med-name">${medName}</div>${dosage ? `<div class="med-dosage">${dosage}</div>` : ''}<div class="med-time">⏱️ ${timeAgo}</div></div>`;
             }).join('');
-            
             container.innerHTML = timersHtml || '<div style="text-align:center; padding:15px; opacity:0.6;">No medications logged yet</div>';
         }
 
-        // ... (rest of existing functions: groupByDay, calculateMovingAverage, calculateSupplyStatus, drawChart, renderUI)
+        function showError(msg) {
+            const banner = document.getElementById('error-banner');
+            banner.style.display = 'block';
+            banner.textContent = '⚠️ ' + msg;
+            setTimeout(() => banner.style.display = 'none', 5000);
+        }
 
-        // We'll include the full renderUI function with new sections
         const groupByDay = (logs, valueKey = 'value') => {
             const daily = {};
             logs.forEach(log => {
@@ -641,27 +735,28 @@
                         scales: { y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } }, x: { grid: { display: false } } }
                     }
                 });
-            } catch(e) { console.error(`Chart error (${canvasId}):`, e); }
+            } catch(e) {}
         };
 
         const renderUI = () => {
             try {
+                const childLogs = state.logs.filter(l => l.child === state.currentChild);
                 const isUS = state.units === 'US';
                 const convert = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
                 const unit = isUS ? 'oz' : 'ml';
 
-                const milkLogs = state.logs.filter(l => l.category === 'Milk');
-                const formulaLogs = state.logs.filter(l => l.category === 'Formula');
-                const skinLogs = state.logs.filter(l => l.category === 'SkinToSkin');
-                const nappyLogs = state.logs.filter(l => l.category === 'Nappy');
-                const medLogs = state.logs.filter(l => l.category === 'Medication');
-                const hospitalLogs = state.logs.filter(l => l.category === 'HospitalNote');
+                const milkLogs = childLogs.filter(l => l.category === 'Milk');
+                const formulaLogs = childLogs.filter(l => l.category === 'Formula');
+                const skinLogs = childLogs.filter(l => l.category === 'SkinToSkin');
+                const nappyLogs = childLogs.filter(l => l.category === 'Nappy');
+                const medLogs = childLogs.filter(l => l.category === 'Medication');
+                const hospitalLogs = childLogs.filter(l => l.category === 'HospitalNote');
                 
                 const pumpLogs = milkLogs.filter(l => l.detail.includes('Pump'));
                 const feedMilkLogs = milkLogs.filter(l => l.detail.includes('Feed'));
-                const allFeedLogs = state.logs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
+                const allFeedLogs = childLogs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
 
-                // Supply Status Card (milk page)
+                // Supply Status (Milk page)
                 const supplyContent = document.getElementById('supply-status-content');
                 if (supplyContent) {
                     const status = calculateSupplyStatus(pumpLogs, allFeedLogs);
@@ -701,7 +796,7 @@
                     }
                 };
 
-                // Milk stats and chart (special handling)
+                // Milk
                 const milkTotalPump = pumpLogs.reduce((s,l) => s + Number(l.value), 0);
                 const milkTotalFeed = feedMilkLogs.reduce((s,l) => s + Number(l.value), 0);
                 const milkStatsEl = document.getElementById('stats-milk');
@@ -736,7 +831,7 @@
                     { label: '7-Day Avg', data: fMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
                 ], { labels: fDates, unit: 'ml' });
 
-                // Skin-to-Skin
+                // Skin
                 const formatTime = (mins) => mins >= 60 ? `${(mins/60).toFixed(1)}h` : `${mins} min`;
                 renderSection(skinLogs, 'skin', formatTime);
                 const skinDaily = groupByDay(skinLogs);
@@ -746,7 +841,7 @@
                     { label: '7-Day Avg', data: sMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
                 ], { labels: sDates, unit: 'min' });
 
-                // Nappies
+                // Nappy
                 renderSection(nappyLogs, 'nappy', (v) => v);
                 const nappyDaily = groupByDay(nappyLogs);
                 const { dates: nDates, movingAvg: nMA } = calculateMovingAverage(nappyDaily);
@@ -755,24 +850,22 @@
                     { label: '7-Day Avg', data: nMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
                 ], { labels: nDates, unit: 'count' });
 
-                // Combined
+                // Stats page (combined feed)
                 const totalFed = allFeedLogs.reduce((s,l) => s + Number(l.value), 0);
-                const combinedStats = document.getElementById('stats-combined');
-                if (combinedStats) combinedStats.innerHTML = `
+                const statsStatsEl = document.getElementById('stats-stats');
+                if (statsStatsEl) statsStatsEl.innerHTML = `
                     <div class="stat-box"><div class="stat-val">${convert(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
                     <div class="stat-box"><div class="stat-val">${allFeedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
                 `;
                 const combinedDaily = groupByDay(allFeedLogs);
                 const { dates: cDates, movingAvg: cMA } = calculateMovingAverage(combinedDaily);
-                drawChart('chart-combined', [
+                drawChart('chart-stats', [
                     { label: 'Daily Total', data: cDates.map(d => combinedDaily[d]), borderColor: '#4a90e2', backgroundColor: '#4a90e220', borderWidth: 2, tension: 0.3, fill: false },
                     { label: '7-Day Avg', data: cMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
                 ], { labels: cDates, unit: 'ml' });
 
-                // NEW: Medication Timers
+                // Meds timers
                 renderMedicationTimers();
-                
-                // Medication History
                 const medHistoryEl = document.getElementById('history-meds');
                 if (medHistoryEl) {
                     const sortedMeds = [...medLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -780,16 +873,11 @@
                         const parts = l.detail.split('|');
                         const medName = parts[0];
                         const dosage = parts[1] || '';
-                        return `
-                            <div class="history-item">
-                                <span>${new Date(l.timestamp).toLocaleString()} - ${medName} ${dosage ? '('+dosage+')' : ''}</span>
-                                <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
-                            </div>
-                        `;
+                        return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${medName} ${dosage ? '('+dosage+')' : ''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
                     }).join('');
                 }
 
-                // NEW: Hospital Notes History
+                // Hospital notes
                 const hospHistoryEl = document.getElementById('history-hospital');
                 if (hospHistoryEl) {
                     const sortedHosp = [...hospitalLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -797,23 +885,23 @@
                         const parts = l.detail.split('|');
                         const hospName = parts[0];
                         const notes = parts[1] || '';
-                        return `
-                            <div class="hospital-note-item">
-                                <div class="hospital-name">🏥 ${hospName}</div>
-                                <div class="hospital-note-text">${notes.replace(/\n/g, '<br>')}</div>
-                                <div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div>
-                                <div style="text-align:right; margin-top:5px;"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>
-                            </div>
-                        `;
+                        return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${hospName}</div><div class="hospital-note-text">${notes.replace(/\n/g, '<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right; margin-top:5px;"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`;
                     }).join('');
                 }
 
-                // Update timers every minute
+                // Shop page
+                if (state.tab === 'shop') {
+                    fetch(AFFILIATE_JSON_URL).then(r => r.json()).then(data => {
+                        const container = document.getElementById('shop-content');
+                        container.innerHTML = data.categories.map(cat => `
+                            <div class="shop-category"><h3>${cat.icon} ${cat.name}</h3>${cat.items.map(item => `<a class="shop-item" href="${item.url}" target="_blank" rel="nofollow">${item.name}</a>`).join('')}</div>
+                        `).join('');
+                    }).catch(() => document.getElementById('shop-content').innerHTML = '<p>Unable to load shop links.</p>');
+                }
+
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
-
             } catch(e) {
-                console.error('RenderUI error:', e);
                 showError('Display error: ' + e.message);
             }
         };
