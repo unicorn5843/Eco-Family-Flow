@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -111,8 +111,8 @@
         .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
         .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; }
         .hospital-timestamp { font-size: 12px; opacity: 0.7; }
-        .shop-category { margin-bottom: 20px; }
-        .shop-item { display: block; padding: 12px; background: var(--card); border-radius: 10px; margin-bottom: 8px; text-decoration: none; color: var(--text); border: 1px solid var(--border); }
+        .product-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .price-per-unit { background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
     </style>
 </head>
 <body>
@@ -127,7 +127,7 @@
     
     <div class="header-title">Eco Family Flow</div>
 
-    <!-- Child Profile Selector (5 children only) -->
+    <!-- Child Profile Selector (5 children) -->
     <div class="child-selector">
         <button class="child-btn active" data-child="Child A">👶 A</button>
         <button class="child-btn" data-child="Child B">👶 B</button>
@@ -295,13 +295,37 @@
             </div>
         </div>
 
-        <!-- SHOP PAGE (Affiliate Links) -->
+        <!-- SHOP PAGE (Dynamic Product Comparison) -->
         <div id="page-shop" class="page">
             <div class="card" style="text-align: center;">
-                <h3>🛒 Recommended Products</h3>
-                <p style="opacity:0.7;">We may earn a small commission if you purchase through these links.</p>
+                <h3>🛒 Find Best Value</h3>
+                <p style="opacity:0.7;">Price per unit calculated automatically</p>
             </div>
-            <div id="shop-content">Loading products...</div>
+            
+            <!-- Filters -->
+            <div class="card">
+                <div class="input-group">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Category</label>
+                    <select id="category-filter">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Brand</label>
+                    <select id="brand-filter">
+                        <option value="">All Brands</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label style="display:block; margin-bottom:5px; font-weight:600;">Size</label>
+                    <select id="size-filter">
+                        <option value="">All Sizes</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Results -->
+            <div id="product-list">Loading products...</div>
         </div>
     </main>
 </div>
@@ -321,7 +345,7 @@
 <script>
     (function() {
         const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-        const AFFILIATE_JSON_URL = 'affiliate-links.json';
+        const AFFILIATE_JSON_URL = 'affiliate-links.json'; // fallback only
 
         let state = {
             units: 'UK',
@@ -331,7 +355,8 @@
             milkSide: 'Left',
             nappyType: 'Wee',
             logs: [],
-            offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]')
+            offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
+            allProducts: []
         };
 
         let charts = {};
@@ -488,6 +513,9 @@
             document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
             document.getElementById(`page-${tabId}`).classList.add('active');
             document.getElementById(`tab-${tabId}`).classList.add('active');
+            if (tabId === 'shop') {
+                loadProducts();
+            }
             renderUI();
         };
 
@@ -681,6 +709,122 @@
             setTimeout(() => banner.style.display = 'none', 5000);
         }
 
+        // --- PRODUCT FUNCTIONS ---
+        async function loadProducts() {
+            try {
+                const response = await fetch(GOOGLE_URL + '?type=products');
+                const products = await response.json();
+                state.allProducts = products;
+                populateCategoryFilter();
+                renderProductList();
+            } catch (e) {
+                document.getElementById('product-list').innerHTML = '<p style="text-align:center; padding:20px;">Error loading products. Make sure the Products sheet exists.</p>';
+            }
+        }
+
+        function populateCategoryFilter() {
+            const categorySelect = document.getElementById('category-filter');
+            const categories = [...new Set(state.allProducts.map(p => p.category))];
+            categorySelect.innerHTML = '<option value="">All Categories</option>';
+            categories.sort().forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                categorySelect.appendChild(option);
+            });
+            
+            categorySelect.addEventListener('change', () => {
+                updateBrandFilter();
+                updateSizeFilter();
+                renderProductList();
+            });
+            document.getElementById('brand-filter').addEventListener('change', renderProductList);
+            document.getElementById('size-filter').addEventListener('change', renderProductList);
+            
+            updateBrandFilter();
+            updateSizeFilter();
+        }
+
+        function updateBrandFilter() {
+            const category = document.getElementById('category-filter').value;
+            const brandSelect = document.getElementById('brand-filter');
+            const brands = [...new Set(state.allProducts
+                .filter(p => !category || p.category === category)
+                .map(p => p.brand))];
+            brandSelect.innerHTML = '<option value="">All Brands</option>';
+            brands.sort().forEach(b => {
+                const option = document.createElement('option');
+                option.value = b;
+                option.textContent = b;
+                brandSelect.appendChild(option);
+            });
+        }
+
+        function updateSizeFilter() {
+            const category = document.getElementById('category-filter').value;
+            const brand = document.getElementById('brand-filter').value;
+            const sizeSelect = document.getElementById('size-filter');
+            const sizes = [...new Set(state.allProducts
+                .filter(p => (!category || p.category === category) && (!brand || p.brand === brand))
+                .map(p => p.size))];
+            sizeSelect.innerHTML = '<option value="">All Sizes</option>';
+            sizes.sort().forEach(s => {
+                const option = document.createElement('option');
+                option.value = s;
+                option.textContent = s;
+                sizeSelect.appendChild(option);
+            });
+        }
+
+        function renderProductList() {
+            const category = document.getElementById('category-filter').value;
+            const brand = document.getElementById('brand-filter').value;
+            const size = document.getElementById('size-filter').value;
+            
+            let filtered = state.allProducts.filter(p => 
+                (!category || p.category === category) &&
+                (!brand || p.brand === brand) &&
+                (!size || p.size === size)
+            );
+            
+            // Calculate price per unit and sort
+            filtered = filtered.map(p => {
+                p.pricePerUnit = p.price / p.quantity;
+                return p;
+            }).sort((a, b) => a.pricePerUnit - b.pricePerUnit);
+            
+            const container = document.getElementById('product-list');
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px;">No products match filters.</p>';
+                return;
+            }
+            
+            container.innerHTML = filtered.map(p => {
+                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : `per ${p.unit}`;
+                return `
+                    <div class="product-card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="flex:1;">
+                                <h4 style="margin:0 0 5px;">${p.brand} ${p.name}</h4>
+                                <div style="font-size:14px; opacity:0.8;">${p.size} • ${p.quantity} ${p.unit}s</div>
+                                <div style="margin-top:8px;">
+                                    <span style="font-size:20px; font-weight:bold;">£${p.price.toFixed(2)}</span>
+                                    <span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="${p.affiliatelink}" target="_blank" rel="nofollow" 
+                                   style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none; display:inline-block;">
+                                    Buy
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // --- CHART & RENDER HELPERS ---
         const groupByDay = (logs, valueKey = 'value') => {
             const daily = {};
             logs.forEach(log => {
@@ -920,21 +1064,6 @@
                     }).join('');
                 }
 
-                // Shop page
-                if (state.tab === 'shop') {
-                    fetch(AFFILIATE_JSON_URL).then(r => r.json()).then(data => {
-                        const container = document.getElementById('shop-content');
-                        if (container) {
-                            container.innerHTML = data.categories.map(cat => `
-                                <div class="shop-category"><h3>${cat.icon} ${cat.name}</h3>${cat.items.map(item => `<a class="shop-item" href="${item.url}" target="_blank" rel="nofollow">${item.name}</a>`).join('')}</div>
-                            `).join('');
-                        }
-                    }).catch(() => {
-                        const container = document.getElementById('shop-content');
-                        if (container) container.innerHTML = '<p>Unable to load shop links.</p>';
-                    });
-                }
-
                 if (timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
             } catch(e) {
@@ -942,15 +1071,16 @@
             }
         };
 
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/Eco-Family-Flow/sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.log('SW failed', err));
+        }
+
         window.renderUI = renderUI;
         window.resetTimeInputs();
     })();
-
- if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Eco-Family-Flow/sw.js')
-    .then(reg => console.log('SW registered'))
-    .catch(err => console.log('SW failed', err));
- }
 </script>
 </body>
 </html>
