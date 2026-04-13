@@ -945,6 +945,12 @@
         window.renderUI = renderUI;
         window.resetTimeInputs();
     })();
+
+ if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Eco-Family-Flow/sw.js')
+    .then(reg => console.log('SW registered'))
+    .catch(err => console.log('SW failed', err));
+ }
 </script>
 </body>
 </html>
