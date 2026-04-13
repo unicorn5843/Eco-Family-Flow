@@ -1,4 +1,3 @@
-// sw.js – Service Worker for Eco Family Flow
 const CACHE_NAME = 'ecofamilyflow-v1';
 const urlsToCache = [
   '/Eco-Family-Flow/',
