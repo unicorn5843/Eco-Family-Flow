@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -63,6 +63,7 @@
         .current-child-badge { text-align: center; font-size: 14px; margin-top: -10px; margin-bottom: 15px; opacity: 0.8; }
         #nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .nav-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); padding: 4px; }
+        .nav-tile.wide { grid-column: span 2; aspect-ratio: auto; height: 70px; }
         .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
         .nav-emoji { font-size: 24px; margin-bottom: 2px; }
         .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; }
@@ -139,15 +140,23 @@
 
     <div id="error-banner" class="error-banner"></div>
 
+    <!-- Navigation Grid (4x3, bottom row wide) -->
     <section id="nav-grid">
+        <!-- Row 1 -->
         <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
         <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
         <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Skin</span></div>
+        
+        <!-- Row 2 -->
         <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
         <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
         <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
         <div id="tab-shop" class="nav-tile" onclick="window.switchTab('shop')"><span class="nav-emoji">🛒</span><span class="nav-label">Shop</span></div>
+        
+        <!-- Row 3 (Wide tiles) -->
+        <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
+        <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
@@ -276,7 +285,7 @@
             </div>
         </div>
 
-        <!-- STATS PAGE (Combined Feeding Trends) -->
+        <!-- STATS PAGE -->
         <div id="page-stats" class="page">
             <div class="card" style="text-align: center;">
                 <h3>📊 Feeding & Growth Trends</h3>
@@ -295,37 +304,63 @@
             </div>
         </div>
 
-        <!-- SHOP PAGE (Dynamic Product Comparison) -->
+        <!-- SHOP PAGE -->
         <div id="page-shop" class="page">
             <div class="card" style="text-align: center;">
                 <h3>🛒 Find Best Value</h3>
                 <p style="opacity:0.7;">Price per unit calculated automatically</p>
             </div>
-            
-            <!-- Filters -->
             <div class="card">
                 <div class="input-group">
                     <label style="display:block; margin-bottom:5px; font-weight:600;">Category</label>
-                    <select id="category-filter">
-                        <option value="">All Categories</option>
-                    </select>
+                    <select id="category-filter"><option value="">All Categories</option></select>
                 </div>
                 <div class="input-group">
                     <label style="display:block; margin-bottom:5px; font-weight:600;">Brand</label>
-                    <select id="brand-filter">
-                        <option value="">All Brands</option>
-                    </select>
+                    <select id="brand-filter"><option value="">All Brands</option></select>
                 </div>
                 <div class="input-group">
                     <label style="display:block; margin-bottom:5px; font-weight:600;">Size</label>
-                    <select id="size-filter">
-                        <option value="">All Sizes</option>
-                    </select>
+                    <select id="size-filter"><option value="">All Sizes</option></select>
                 </div>
             </div>
-            
-            <!-- Results -->
             <div id="product-list">Loading products...</div>
+        </div>
+
+        <!-- PRIVATE NOTES PAGE -->
+        <div id="page-notes" class="page">
+            <div class="card" style="background: var(--accent); color: white; text-align: center;">
+                <p style="margin:0;">🔒 Information stored only on this device. Not synced to cloud.</p>
+            </div>
+            <div class="card">
+                <div class="input-group">
+                    <input type="text" id="note-title" placeholder="Title (e.g., GP, Health Visitor)" autocomplete="off">
+                </div>
+                <div class="input-group">
+                    <textarea id="note-content" placeholder="Notes..." rows="4"></textarea>
+                </div>
+                <button class="save-btn" onclick="window.savePrivateNote()">Save Note</button>
+            </div>
+            <div class="card">
+                <div class="stat-lbl">📋 Your Private Notes</div>
+                <div id="private-notes-list" class="history-list"></div>
+            </div>
+        </div>
+
+        <!-- EMERGENCY PAGE -->
+        <div id="page-emergency" class="page">
+            <div class="card" style="text-align: center;">
+                <h3>🚨 Quick Access</h3>
+                <p style="opacity:0.7;">Tap to find nearby services on a map</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <button class="save-btn" style="background: #4a90e2;" onclick="window.findNearby('pharmacy')">💊 Find Open Pharmacies</button>
+                <button class="save-btn" style="background: #e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 Accident & Emergency</button>
+                <button class="save-btn" style="background: #2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP Practices</button>
+            </div>
+            <div class="card" style="margin-top:20px;">
+                <p style="font-size:14px; opacity:0.8;">Your location is used only to show nearby results and is not stored.</p>
+            </div>
         </div>
     </main>
 </div>
@@ -345,7 +380,6 @@
 <script>
     (function() {
         const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-        const AFFILIATE_JSON_URL = 'affiliate-links.json'; // fallback only
 
         let state = {
             units: 'UK',
@@ -359,10 +393,10 @@
             allProducts: []
         };
 
+        let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
         let charts = {};
         let timerInterval = null;
 
-        // Normalize logs (ensure child field exists)
         function normalizeLogs(logs) {
             return logs.map(log => {
                 if (!log.child) log.child = 'Child A';
@@ -370,7 +404,6 @@
             });
         }
 
-        // Show sync banner
         function showBanner(text, type) {
             const banner = document.getElementById('sync-banner');
             if (!banner) return;
@@ -380,7 +413,6 @@
             if (type === 'synced') setTimeout(() => banner.style.display = 'none', 3000);
         }
 
-        // Process offline queue
         async function processOfflineQueue() {
             if (!navigator.onLine) return;
             if (state.offlineQueue.length === 0) return;
@@ -408,7 +440,6 @@
         window.addEventListener('online', processOfflineQueue);
         setInterval(processOfflineQueue, 30000);
 
-        // Save with offline support
         function saveWithOfflineSupport(payload, btnId, defaultText) {
             const btn = document.getElementById(btnId);
             if (!btn) return;
@@ -447,41 +478,30 @@
             }
         }
 
-        // Child switching
         window.setChild = (child) => {
             state.currentChild = child;
             document.querySelectorAll('.child-btn').forEach(btn => {
                 btn.classList.remove('active');
-                if (btn.getAttribute('data-child') === child) {
-                    btn.classList.add('active');
-                }
+                if (btn.getAttribute('data-child') === child) btn.classList.add('active');
             });
-            const displayEl = document.getElementById('current-child-display');
-            if (displayEl) displayEl.textContent = `👤 ${child}`;
+            document.getElementById('current-child-display').textContent = `👤 ${child}`;
             renderUI();
         };
 
-        // Attach click handlers
         document.querySelectorAll('.child-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
-                const child = e.currentTarget.getAttribute('data-child');
-                window.setChild(child);
+                window.setChild(e.currentTarget.getAttribute('data-child'));
             });
         });
 
-        // Export data
         window.exportData = () => {
             const childLogs = state.logs.filter(l => l.child === state.currentChild);
-            const csvRows = [];
-            csvRows.push(['Timestamp', 'Category', 'Value', 'Detail', 'Child'].join(','));
-            childLogs.forEach(l => {
-                csvRows.push([l.timestamp, l.category, l.value, (l.detail || '').replace(/,/g, ';'), l.child].join(','));
-            });
+            const csvRows = [['Timestamp','Category','Value','Detail','Child'].join(',')];
+            childLogs.forEach(l => csvRows.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(',')));
             const blob = new Blob([csvRows.join('\n')], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
-            a.href = url;
-            a.download = `ecofamilyflow_${state.currentChild.replace(' ', '_')}_${new Date().toISOString().slice(0,10)}.csv`;
+            a.href = URL.createObjectURL(blob);
+            a.download = `ecofamilyflow_${state.currentChild.replace(' ','_')}_${new Date().toISOString().slice(0,10)}.csv`;
             a.click();
         };
 
@@ -490,7 +510,7 @@
                 const now = new Date();
                 now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
                 const t = now.toISOString().slice(0, 16);
-                ['milkTime', 'formulaTime', 'skinStart', 'skinEnd', 'nappyTime', 'medTime', 'hospitalTime'].forEach(id => {
+                ['milkTime','formulaTime','skinStart','skinEnd','nappyTime','medTime','hospitalTime'].forEach(id => {
                     const el = document.getElementById(id);
                     if(el) el.value = t;
                 });
@@ -501,10 +521,8 @@
 
         window.toggleUnits = () => {
             state.units = state.units === 'UK' ? 'US' : 'UK';
-            const flagEl = document.getElementById('flag-emoji');
-            const labelEl = document.getElementById('unit-label');
-            if (flagEl) flagEl.innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
-            if (labelEl) labelEl.innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
+            document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
+            document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' : 'US Units';
             renderUI();
         };
 
@@ -513,9 +531,8 @@
             document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
             document.getElementById(`page-${tabId}`).classList.add('active');
             document.getElementById(`tab-${tabId}`).classList.add('active');
-            if (tabId === 'shop') {
-                loadProducts();
-            }
+            if (tabId === 'shop') loadProducts();
+            if (tabId === 'notes') renderPrivateNotes();
             renderUI();
         };
 
@@ -532,15 +549,10 @@
             document.getElementById('loading-indicator').style.display = 'block';
             try {
                 const response = await fetch(GOOGLE_URL);
-                const text = await response.text();
-                const data = JSON.parse(text);
-                if (Array.isArray(data)) {
-                    state.logs = normalizeLogs(data.filter(row => row.user === window.auth.currentUser.email));
-                } else {
-                    state.logs = [];
-                }
+                const data = await response.json();
+                state.logs = Array.isArray(data) ? normalizeLogs(data.filter(r => r.user === window.auth.currentUser.email)) : [];
                 renderUI();
-            } catch (error) {
+            } catch (e) {
                 showError("Could not load data.");
             } finally {
                 document.getElementById('loading-indicator').style.display = 'none';
@@ -549,19 +561,15 @@
 
         window.deleteEntry = async (timestamp) => {
             if(!confirm('Delete this entry?')) return;
-            const payload = { action: 'delete', timestamp: timestamp, user: window.auth.currentUser.email };
+            const payload = { action: 'delete', timestamp, user: window.auth.currentUser.email };
             try {
-                const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await response.json();
+                const resp = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await resp.json();
                 if (result.success) {
                     state.logs = state.logs.filter(l => l.timestamp !== timestamp);
                     renderUI();
-                } else {
-                    showError('Delete failed');
-                }
-            } catch(e) {
-                showError('Network error during delete');
-            }
+                } else showError('Delete failed');
+            } catch(e) { showError('Network error'); }
         };
 
         window.saveData = (category) => {
@@ -572,13 +580,10 @@
             if(state.units === 'US') val = val * 29.5735;
             const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
             const timeId = isMilk ? 'milkTime' : 'formulaTime';
-            
             const payload = {
                 action: 'save',
                 timestamp: new Date(document.getElementById(timeId).value).toISOString(),
-                category: category,
-                value: Math.round(val),
-                detail: detail,
+                category, value: Math.round(val), detail,
                 user: window.auth.currentUser.email,
                 child: state.currentChild
             };
@@ -591,15 +596,9 @@
             const end = new Date(document.getElementById('skinEnd').value);
             const mins = Math.round((end - start) / 60000);
             if(mins <= 0) return alert("End time must be after start time");
-            
             const payload = {
-                action: 'save',
-                timestamp: start.toISOString(),
-                category: 'SkinToSkin',
-                value: mins,
-                detail: 'Session',
-                user: window.auth.currentUser.email,
-                child: state.currentChild
+                action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin',
+                value: mins, detail: 'Session', user: window.auth.currentUser.email, child: state.currentChild
             };
             saveWithOfflineSupport(payload, 'btn-save-skin', 'Save Session');
             resetTimeInputs();
@@ -608,32 +607,20 @@
         window.saveNappy = () => {
             const time = new Date(document.getElementById('nappyTime').value).toISOString();
             const payload = {
-                action: 'save',
-                timestamp: time,
-                category: 'Nappy',
-                value: 1,
-                detail: state.nappyType,
-                user: window.auth.currentUser.email,
-                child: state.currentChild
+                action: 'save', timestamp: time, category: 'Nappy', value: 1,
+                detail: state.nappyType, user: window.auth.currentUser.email, child: state.currentChild
             };
             saveWithOfflineSupport(payload, 'btn-save-nappy', 'Log Nappy');
         };
 
         window.saveMedication = () => {
             const name = document.getElementById('medName').value.trim();
-            const dosage = document.getElementById('medDosage').value.trim();
             if (!name) return alert("Please enter medication name");
+            const dosage = document.getElementById('medDosage').value.trim();
             const time = new Date(document.getElementById('medTime').value).toISOString();
-            const detail = `${name}|${dosage}`;
-            
             const payload = {
-                action: 'save',
-                timestamp: time,
-                category: 'Medication',
-                value: 0,
-                detail: detail,
-                user: window.auth.currentUser.email,
-                child: state.currentChild
+                action: 'save', timestamp: time, category: 'Medication', value: 0,
+                detail: `${name}|${dosage}`, user: window.auth.currentUser.email, child: state.currentChild
             };
             document.getElementById('medName').value = '';
             document.getElementById('medDosage').value = '';
@@ -643,19 +630,12 @@
 
         window.saveHospitalNote = () => {
             const hospital = document.getElementById('hospitalName').value.trim();
-            const notes = document.getElementById('hospitalNotes').value.trim();
             if (!hospital) return alert("Please enter hospital name");
+            const notes = document.getElementById('hospitalNotes').value.trim();
             const time = new Date(document.getElementById('hospitalTime').value).toISOString();
-            const detail = `${hospital}|${notes}`;
-            
             const payload = {
-                action: 'save',
-                timestamp: time,
-                category: 'HospitalNote',
-                value: 0,
-                detail: detail,
-                user: window.auth.currentUser.email,
-                child: state.currentChild
+                action: 'save', timestamp: time, category: 'HospitalNote', value: 0,
+                detail: `${hospital}|${notes}`, user: window.auth.currentUser.email, child: state.currentChild
             };
             document.getElementById('hospitalName').value = '';
             document.getElementById('hospitalNotes').value = '';
@@ -663,18 +643,134 @@
             resetTimeInputs();
         };
 
-        function formatTimeAgo(timestamp) {
-            const now = new Date();
-            const then = new Date(timestamp);
-            const diffMs = now - then;
-            const diffMins = Math.floor(diffMs / 60000);
-            const diffHours = Math.floor(diffMs / 3600000);
-            const diffDays = Math.floor(diffMs / 86400000);
-            if (diffMins < 1) return 'Just now';
-            if (diffMins < 60) return `${diffMins} min ago`;
-            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-            if (diffDays === 1) return '1 day ago';
-            if (diffDays === 2) return '2 days ago';
+        window.savePrivateNote = () => {
+            const title = document.getElementById('note-title').value.trim();
+            const content = document.getElementById('note-content').value.trim();
+            if (!title) return alert('Please enter a title');
+            const note = { id: Date.now(), title, content, updated: new Date().toISOString() };
+            privateNotes.push(note);
+            localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+            document.getElementById('note-title').value = '';
+            document.getElementById('note-content').value = '';
+            renderPrivateNotes();
+        };
+
+        window.deletePrivateNote = (id) => {
+            if (!confirm('Delete this note?')) return;
+            privateNotes = privateNotes.filter(n => n.id !== id);
+            localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+            renderPrivateNotes();
+        };
+
+        function renderPrivateNotes() {
+            const container = document.getElementById('private-notes-list');
+            if (!container) return;
+            if (privateNotes.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:15px; opacity:0.6;">No private notes yet</div>';
+                return;
+            }
+            const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
+            container.innerHTML = sorted.map(note => `
+                <div class="history-item" style="flex-direction:column; align-items:flex-start;">
+                    <div style="display:flex; justify-content:space-between; width:100%;">
+                        <strong>${note.title}</strong>
+                        <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span>
+                    </div>
+                    <div style="font-size:14px; margin-top:5px; white-space:pre-wrap;">${note.content}</div>
+                    <div style="font-size:11px; opacity:0.6; margin-top:5px;">${new Date(note.updated).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        window.findNearby = (query) => {
+            const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            const openMap = (lat, lon) => {
+                const url = isApple
+                    ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`
+                    : `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`;
+                window.open(url, '_blank');
+            };
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    pos => openMap(pos.coords.latitude, pos.coords.longitude),
+                    () => { window.open(isApple ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}` : `https://www.google.com/maps/search/${encodeURIComponent(query)}`); }
+                );
+            } else {
+                window.open(isApple ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}` : `https://www.google.com/maps/search/${encodeURIComponent(query)}`);
+            }
+        };
+
+        async function loadProducts() {
+            try {
+                const resp = await fetch(GOOGLE_URL + '?type=products');
+                state.allProducts = await resp.json();
+                populateCategoryFilter();
+                renderProductList();
+            } catch (e) {
+                document.getElementById('product-list').innerHTML = '<p style="text-align:center;">Error loading products.</p>';
+            }
+        }
+
+        function populateCategoryFilter() {
+            const catSelect = document.getElementById('category-filter');
+            const cats = [...new Set(state.allProducts.map(p => p.category))];
+            catSelect.innerHTML = '<option value="">All Categories</option>';
+            cats.sort().forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catSelect.appendChild(opt); });
+            catSelect.addEventListener('change', () => { updateBrandFilter(); updateSizeFilter(); renderProductList(); });
+            document.getElementById('brand-filter').addEventListener('change', renderProductList);
+            document.getElementById('size-filter').addEventListener('change', renderProductList);
+            updateBrandFilter(); updateSizeFilter();
+        }
+
+        function updateBrandFilter() {
+            const cat = document.getElementById('category-filter').value;
+            const brandSelect = document.getElementById('brand-filter');
+            const brands = [...new Set(state.allProducts.filter(p => !cat || p.category === cat).map(p => p.brand))];
+            brandSelect.innerHTML = '<option value="">All Brands</option>';
+            brands.sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+        }
+
+        function updateSizeFilter() {
+            const cat = document.getElementById('category-filter').value;
+            const brand = document.getElementById('brand-filter').value;
+            const sizeSelect = document.getElementById('size-filter');
+            const sizes = [...new Set(state.allProducts.filter(p => (!cat || p.category === cat) && (!brand || p.brand === brand)).map(p => p.size))];
+            sizeSelect.innerHTML = '<option value="">All Sizes</option>';
+            sizes.sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sizeSelect.appendChild(opt); });
+        }
+
+        function renderProductList() {
+            const cat = document.getElementById('category-filter').value;
+            const brand = document.getElementById('brand-filter').value;
+            const size = document.getElementById('size-filter').value;
+            let filtered = state.allProducts.filter(p => (!cat || p.category === cat) && (!brand || p.brand === brand) && (!size || p.size === size));
+            filtered = filtered.map(p => { p.pricePerUnit = p.price / p.quantity; return p; }).sort((a,b) => a.pricePerUnit - b.pricePerUnit);
+            const container = document.getElementById('product-list');
+            if (filtered.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:20px;">No products match filters.</p>';
+                return;
+            }
+            container.innerHTML = filtered.map(p => {
+                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : `per ${p.unit}`;
+                return `
+                    <div class="product-card">
+                        <div style="display:flex; justify-content:space-between;">
+                            <div><h4 style="margin:0 0 5px;">${p.brand} ${p.name}</h4>
+                            <div style="font-size:14px;">${p.size} • ${p.quantity} ${p.unit}s</div>
+                            <div style="margin-top:8px;"><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span></div></div>
+                            <div><a href="${p.affiliatelink}" target="_blank" style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none;">Buy</a></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function formatTimeAgo(ts) {
+            const diff = (new Date() - new Date(ts)) / 1000;
+            if (diff < 60) return 'Just now';
+            if (diff < 3600) return `${Math.floor(diff/60)} min ago`;
+            if (diff < 86400) return `${Math.floor(diff/3600)} hour${diff>=7200?'s':''} ago`;
+            if (diff < 172800) return '1 day ago';
             return '>2 days';
         }
 
@@ -683,399 +779,202 @@
             if (!container) return;
             const childLogs = state.logs.filter(l => l.child === state.currentChild);
             const medLogs = childLogs.filter(l => l.category === 'Medication').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-            const latestByMed = {};
-            medLogs.forEach(log => {
-                const parts = log.detail.split('|');
-                const medName = parts[0].toLowerCase();
-                if (!latestByMed[medName] || new Date(log.timestamp) > new Date(latestByMed[medName].timestamp)) {
-                    latestByMed[medName] = log;
-                }
+            const latest = {};
+            medLogs.forEach(l => {
+                const name = l.detail.split('|')[0].toLowerCase();
+                if (!latest[name] || new Date(l.timestamp) > new Date(latest[name].timestamp)) latest[name] = l;
             });
-            const timersHtml = Object.values(latestByMed).map(log => {
-                const parts = log.detail.split('|');
-                const medName = parts[0];
-                const dosage = parts[1] || '';
-                const timeAgo = formatTimeAgo(log.timestamp);
-                return `<div class="med-timer-card"><div class="med-name">${medName}</div>${dosage ? `<div class="med-dosage">${dosage}</div>` : ''}<div class="med-time">⏱️ ${timeAgo}</div></div>`;
-            }).join('');
-            container.innerHTML = timersHtml || '<div style="text-align:center; padding:15px; opacity:0.6;">No medications logged yet</div>';
+            container.innerHTML = Object.values(latest).map(l => {
+                const [name, dosage] = l.detail.split('|');
+                return `<div class="med-timer-card"><div class="med-name">${name}</div>${dosage?`<div class="med-dosage">${dosage}</div>`:''}<div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`;
+            }).join('') || '<div style="text-align:center; padding:15px;">No medications logged yet</div>';
         }
 
         function showError(msg) {
             const banner = document.getElementById('error-banner');
-            if (!banner) return;
             banner.style.display = 'block';
             banner.textContent = '⚠️ ' + msg;
             setTimeout(() => banner.style.display = 'none', 5000);
         }
 
-        // --- PRODUCT FUNCTIONS ---
-        async function loadProducts() {
-            try {
-                const response = await fetch(GOOGLE_URL + '?type=products');
-                const products = await response.json();
-                state.allProducts = products;
-                populateCategoryFilter();
-                renderProductList();
-            } catch (e) {
-                document.getElementById('product-list').innerHTML = '<p style="text-align:center; padding:20px;">Error loading products. Make sure the Products sheet exists.</p>';
-            }
-        }
-
-        function populateCategoryFilter() {
-            const categorySelect = document.getElementById('category-filter');
-            const categories = [...new Set(state.allProducts.map(p => p.category))];
-            categorySelect.innerHTML = '<option value="">All Categories</option>';
-            categories.sort().forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat;
-                option.textContent = cat;
-                categorySelect.appendChild(option);
-            });
-            
-            categorySelect.addEventListener('change', () => {
-                updateBrandFilter();
-                updateSizeFilter();
-                renderProductList();
-            });
-            document.getElementById('brand-filter').addEventListener('change', renderProductList);
-            document.getElementById('size-filter').addEventListener('change', renderProductList);
-            
-            updateBrandFilter();
-            updateSizeFilter();
-        }
-
-        function updateBrandFilter() {
-            const category = document.getElementById('category-filter').value;
-            const brandSelect = document.getElementById('brand-filter');
-            const brands = [...new Set(state.allProducts
-                .filter(p => !category || p.category === category)
-                .map(p => p.brand))];
-            brandSelect.innerHTML = '<option value="">All Brands</option>';
-            brands.sort().forEach(b => {
-                const option = document.createElement('option');
-                option.value = b;
-                option.textContent = b;
-                brandSelect.appendChild(option);
-            });
-        }
-
-        function updateSizeFilter() {
-            const category = document.getElementById('category-filter').value;
-            const brand = document.getElementById('brand-filter').value;
-            const sizeSelect = document.getElementById('size-filter');
-            const sizes = [...new Set(state.allProducts
-                .filter(p => (!category || p.category === category) && (!brand || p.brand === brand))
-                .map(p => p.size))];
-            sizeSelect.innerHTML = '<option value="">All Sizes</option>';
-            sizes.sort().forEach(s => {
-                const option = document.createElement('option');
-                option.value = s;
-                option.textContent = s;
-                sizeSelect.appendChild(option);
-            });
-        }
-
-        function renderProductList() {
-            const category = document.getElementById('category-filter').value;
-            const brand = document.getElementById('brand-filter').value;
-            const size = document.getElementById('size-filter').value;
-            
-            let filtered = state.allProducts.filter(p => 
-                (!category || p.category === category) &&
-                (!brand || p.brand === brand) &&
-                (!size || p.size === size)
-            );
-            
-            // Calculate price per unit and sort
-            filtered = filtered.map(p => {
-                p.pricePerUnit = p.price / p.quantity;
-                return p;
-            }).sort((a, b) => a.pricePerUnit - b.pricePerUnit);
-            
-            const container = document.getElementById('product-list');
-            if (filtered.length === 0) {
-                container.innerHTML = '<p style="text-align:center; padding:20px;">No products match filters.</p>';
-                return;
-            }
-            
-            container.innerHTML = filtered.map(p => {
-                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : `per ${p.unit}`;
-                return `
-                    <div class="product-card">
-                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <div style="flex:1;">
-                                <h4 style="margin:0 0 5px;">${p.brand} ${p.name}</h4>
-                                <div style="font-size:14px; opacity:0.8;">${p.size} • ${p.quantity} ${p.unit}s</div>
-                                <div style="margin-top:8px;">
-                                    <span style="font-size:20px; font-weight:bold;">£${p.price.toFixed(2)}</span>
-                                    <span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span>
-                                </div>
-                            </div>
-                            <div>
-                                <a href="${p.affiliatelink}" target="_blank" rel="nofollow" 
-                                   style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none; display:inline-block;">
-                                    Buy
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        // --- CHART & RENDER HELPERS ---
-        const groupByDay = (logs, valueKey = 'value') => {
+        const groupByDay = (logs, key='value') => {
             const daily = {};
-            logs.forEach(log => {
-                const d = new Date(log.timestamp);
-                const dateKey = d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
-                daily[dateKey] = (daily[dateKey] || 0) + Number(log[valueKey]);
-            });
+            logs.forEach(l => { const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'}); daily[d] = (daily[d]||0) + Number(l[key]); });
             return daily;
         };
 
-        const calculateMovingAverage = (dailyObj, days = 7) => {
-            const sortedDates = Object.keys(dailyObj).sort((a,b) => new Date(a) - new Date(b));
-            const values = sortedDates.map(d => dailyObj[d]);
-            const movingAvg = [];
-            for (let i = 0; i < values.length; i++) {
-                if (i < days - 1) movingAvg.push(null);
-                else {
-                    const sum = values.slice(i - days + 1, i + 1).reduce((a,b) => a + b, 0);
-                    movingAvg.push(sum / days);
-                }
+        const movingAvg = (obj, days=7) => {
+            const dates = Object.keys(obj).sort((a,b) => new Date(a)-new Date(b));
+            const vals = dates.map(d => obj[d]);
+            const avg = [];
+            for (let i=0; i<vals.length; i++) {
+                if (i < days-1) avg.push(null);
+                else avg.push(vals.slice(i-days+1, i+1).reduce((a,b)=>a+b,0)/days);
             }
-            return { dates: sortedDates, movingAvg };
+            return { dates, movingAvg: avg };
         };
 
-        const calculateSupplyStatus = (pumpLogs, feedLogs) => {
-            const today = new Date();
-            const sevenDaysAgo = new Date(today);
-            sevenDaysAgo.setDate(today.getDate() - 6);
-            const filterLast7Days = (log) => new Date(log.timestamp) >= sevenDaysAgo;
-            const recentPump = pumpLogs.filter(filterLast7Days);
-            const recentFeed = feedLogs.filter(filterLast7Days);
-            const pumpTotal = recentPump.reduce((s, l) => s + Number(l.value), 0);
-            const feedTotal = recentFeed.reduce((s, l) => s + Number(l.value), 0);
-            const difference = pumpTotal - feedTotal;
-            const ratio = pumpTotal > 0 ? Math.min((feedTotal / pumpTotal) * 100, 100) : 0;
-            let status, statusClass, message;
-            if (difference > 100) { status = 'Surplus'; statusClass = 'status-surplus'; message = `👍 Surplus: +${Math.round(difference)}ml`; }
-            else if (difference > 0) { status = 'Balanced'; statusClass = 'status-balanced'; message = `✓ Balanced: +${Math.round(difference)}ml`; }
-            else if (difference > -50) { status = 'Slight Deficit'; statusClass = 'status-deficit'; message = `⚠️ Slight Deficit: ${Math.round(difference)}ml`; }
-            else { status = 'Critical Deficit'; statusClass = 'status-critical'; message = `🚨 Critical Deficit: ${Math.round(difference)}ml`; }
-            return { pumpTotal, feedTotal, difference, ratio, status, statusClass, message };
+        const supplyStatus = (pump, feed) => {
+            const week = new Date(); week.setDate(week.getDate()-6);
+            const f = l => new Date(l.timestamp) >= week;
+            const p = pump.filter(f).reduce((s,l)=>s+ +l.value,0);
+            const fd = feed.filter(f).reduce((s,l)=>s+ +l.value,0);
+            const diff = p - fd;
+            const ratio = p ? Math.min(fd/p*100,100) : 0;
+            let status, cls, msg;
+            if (diff>100) { status='Surplus'; cls='status-surplus'; msg=`👍 Surplus: +${Math.round(diff)}ml`; }
+            else if (diff>0) { status='Balanced'; cls='status-balanced'; msg=`✓ Balanced: +${Math.round(diff)}ml`; }
+            else if (diff>-50) { status='Slight Deficit'; cls='status-deficit'; msg=`⚠️ Slight Deficit: ${Math.round(diff)}ml`; }
+            else { status='Critical Deficit'; cls='status-critical'; msg=`🚨 Critical Deficit: ${Math.round(diff)}ml`; }
+            return { pumpTotal:p, feedTotal:fd, diff, ratio, status, statusClass:cls, message:msg };
         };
 
-        const drawChart = (canvasId, datasets, options = {}) => {
+        function drawChart(id, datasets, opts={}) {
             try {
-                const canvas = document.getElementById(canvasId);
+                const canvas = document.getElementById(id);
                 if(!canvas) return;
                 const ctx = canvas.getContext('2d');
-                if(charts[canvasId]) charts[canvasId].destroy();
-                if(datasets.every(ds => ds.data.length === 0)) {
-                    charts[canvasId] = new Chart(ctx, { type: 'line', data: { labels: ['No data yet'], datasets: [] }, options: { plugins: { title: { display: true, text: 'Add entries to see chart' } } } });
+                if(charts[id]) charts[id].destroy();
+                if(datasets.every(ds=>ds.data.length===0)) {
+                    charts[id] = new Chart(ctx, { type:'line', data:{labels:['No data yet'],datasets:[]}, options:{plugins:{title:{display:true,text:'Add entries'}}}});
                     return;
                 }
-                charts[canvasId] = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels: options.labels, datasets: datasets },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: 'index', intersect: false },
-                        plugins: {
-                            tooltip: { callbacks: { label: (context) => {
-                                let label = context.dataset.label || ''; if (label) label += ': ';
-                                const val = context.parsed.y;
-                                if (val !== null) {
-                                    if (options.unit === 'min') label += val + ' min';
-                                    else if (options.unit === 'count') label += val;
-                                    else {
-                                        const converted = state.units === 'US' ? (val / 29.5735).toFixed(1) : Math.round(val);
-                                        label += converted + ' ' + (state.units === 'US' ? 'oz' : 'ml');
-                                    }
+                charts[id] = new Chart(ctx, {
+                    type:'line', data:{labels:opts.labels, datasets},
+                    options:{
+                        responsive:true, maintainAspectRatio:false,
+                        interaction:{mode:'index',intersect:false},
+                        plugins:{
+                            tooltip:{callbacks:{label:(ctx)=>{
+                                let lbl = ctx.dataset.label+': ';
+                                const v = ctx.parsed.y;
+                                if(opts.unit==='min') lbl += v+' min';
+                                else if(opts.unit==='count') lbl += v;
+                                else {
+                                    const c = state.units==='US' ? (v/29.5735).toFixed(1) : Math.round(v);
+                                    lbl += c+' '+(state.units==='US'?'oz':'ml');
                                 }
-                                return label;
+                                return lbl;
                             }}},
-                            legend: { display: false }
+                            legend:{display:false}
                         },
-                        scales: { y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } }, x: { grid: { display: false } } }
+                        scales:{y:{beginAtZero:true,grid:{color:'rgba(200,200,200,0.2)'}},x:{grid:{display:false}}}
                     }
                 });
             } catch(e) {}
-        };
+        }
 
         const renderUI = () => {
             try {
-                const childLogs = state.logs.filter(l => l.child === state.currentChild);
-                const isUS = state.units === 'US';
-                const convert = (ml) => isUS ? (ml / 29.5735).toFixed(1) : Math.round(ml);
+                const child = state.logs.filter(l => l.child === state.currentChild);
+                const isUS = state.units==='US';
+                const conv = v => isUS ? (v/29.5735).toFixed(1) : Math.round(v);
                 const unit = isUS ? 'oz' : 'ml';
+                document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
+                document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
 
-                // Update placeholders for units
-                const milkAmt = document.getElementById('milkAmt');
-                const formulaAmt = document.getElementById('formulaAmt');
-                if (milkAmt) milkAmt.placeholder = `Amount (${unit})`;
-                if (formulaAmt) formulaAmt.placeholder = `Amount (${unit})`;
+                const milk = child.filter(l=>l.category==='Milk');
+                const formula = child.filter(l=>l.category==='Formula');
+                const skin = child.filter(l=>l.category==='SkinToSkin');
+                const nappy = child.filter(l=>l.category==='Nappy');
+                const pump = milk.filter(l=>l.detail.includes('Pump'));
+                const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
+                const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
 
-                const milkLogs = childLogs.filter(l => l.category === 'Milk');
-                const formulaLogs = childLogs.filter(l => l.category === 'Formula');
-                const skinLogs = childLogs.filter(l => l.category === 'SkinToSkin');
-                const nappyLogs = childLogs.filter(l => l.category === 'Nappy');
-                const medLogs = childLogs.filter(l => l.category === 'Medication');
-                const hospitalLogs = childLogs.filter(l => l.category === 'HospitalNote');
-                
-                const pumpLogs = milkLogs.filter(l => l.detail.includes('Pump'));
-                const feedMilkLogs = milkLogs.filter(l => l.detail.includes('Feed'));
-                const allFeedLogs = childLogs.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l.category === 'Formula');
-
-                // Supply Status (Milk page)
-                const supplyContent = document.getElementById('supply-status-content');
-                if (supplyContent) {
-                    const status = calculateSupplyStatus(pumpLogs, allFeedLogs);
-                    supplyContent.innerHTML = `
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <div><strong>Pumped:</strong> ${convert(status.pumpTotal)}${unit}</div>
-                            <div><strong>Fed:</strong> ${convert(status.feedTotal)}${unit}</div>
-                        </div>
-                        <div class="supply-indicator">
-                            <span>${Math.round(status.ratio)}% used</span>
-                            <div class="supply-bar"><div class="supply-bar-fill" style="width: ${status.ratio}%;"></div></div>
-                            <span class="supply-status ${status.statusClass}">${status.status}</span>
-                        </div>
-                        <div style="margin-top: 10px; font-size: 14px; text-align: center; font-weight: bold;">${status.message} ${status.difference < 0 ? '📉' : '📈'}</div>
-                    `;
+                // Supply status
+                const sc = document.getElementById('supply-status-content');
+                if(sc) {
+                    const st = supplyStatus(pump, allFeed);
+                    sc.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><strong>Pumped:</strong> ${conv(st.pumpTotal)}${unit}</div><div><strong>Fed:</strong> ${conv(st.feedTotal)}${unit}</div></div>
+                        <div class="supply-indicator"><span>${Math.round(st.ratio)}% used</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${st.ratio}%"></div></div><span class="supply-status ${st.statusClass}">${st.status}</span></div>
+                        <div style="margin-top:10px;text-align:center;font-weight:bold;">${st.message} ${st.diff<0?'📉':'📈'}</div>`;
                 }
 
-                const renderSection = (logs, containerPrefix, valueFormatter) => {
-                    const total = logs.reduce((s, l) => s + Number(l.value), 0);
-                    const statsEl = document.getElementById(`stats-${containerPrefix}`);
-                    if (statsEl) {
-                        statsEl.innerHTML = `
-                            <div class="stat-box"><div class="stat-val">${valueFormatter(total)}</div><div class="stat-lbl">Total</div></div>
-                            <div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>
-                        `;
-                    }
-                    const historyEl = document.getElementById(`history-${containerPrefix}`);
-                    if (historyEl) {
-                        const sorted = [...logs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                        historyEl.innerHTML = sorted.slice(0,5).map(l => `
-                            <div class="history-item">
-                                <span>${new Date(l.timestamp).toLocaleString()} - ${l.detail || ''} (${valueFormatter(l.value)})</span>
-                                <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
-                            </div>
-                        `).join('');
+                const renderSec = (logs, pref, fmt) => {
+                    const tot = logs.reduce((s,l)=>s+ +l.value,0);
+                    const stats = document.getElementById(`stats-${pref}`);
+                    if(stats) stats.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total</div></div><div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>`;
+                    const hist = document.getElementById(`history-${pref}`);
+                    if(hist) {
+                        const sorted = [...logs].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                        hist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                     }
                 };
 
                 // Milk stats
-                const milkTotalPump = pumpLogs.reduce((s,l) => s + Number(l.value), 0);
-                const milkTotalFeed = feedMilkLogs.reduce((s,l) => s + Number(l.value), 0);
-                const milkStatsEl = document.getElementById('stats-milk');
-                if (milkStatsEl) milkStatsEl.innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${convert(milkTotalPump)}${unit}</div><div class="stat-lbl">Pumped</div></div>
-                    <div class="stat-box"><div class="stat-val">${convert(milkTotalFeed)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
-                `;
-                const milkHistoryEl = document.getElementById('history-milk');
-                if (milkHistoryEl) {
-                    const sorted = [...milkLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    milkHistoryEl.innerHTML = sorted.slice(0,5).map(l => `
-                        <div class="history-item">
-                            <span>${new Date(l.timestamp).toLocaleString()} - ${l.detail || ''} (${convert(l.value)}${unit})</span>
-                            <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
-                        </div>
-                    `).join('');
+                const pumpTot = pump.reduce((s,l)=>s+ +l.value,0);
+                const feedTot = feedMilk.reduce((s,l)=>s+ +l.value,0);
+                document.getElementById('stats-milk').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(pumpTot)}${unit}</div><div class="stat-lbl">Pumped</div></div><div class="stat-box"><div class="stat-val">${conv(feedTot)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>`;
+                const milkHist = document.getElementById('history-milk');
+                if(milkHist) {
+                    const sorted = [...milk].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                // Milk chart
-                const pumpDaily = groupByDay(pumpLogs);
-                const feedDaily = groupByDay(feedMilkLogs);
-                const allDates = [...new Set([...Object.keys(pumpDaily), ...Object.keys(feedDaily)])].sort((a,b) => new Date(a) - new Date(b));
+                // Charts
+                const pumpDay = groupByDay(pump);
+                const feedDay = groupByDay(feedMilk);
+                const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
                 drawChart('chart-milk', [
-                    { label: 'Pumped', data: allDates.map(d => pumpDaily[d] || 0), borderColor: '#4caf50', backgroundColor: '#4caf5020', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: 'Fed (Milk)', data: allDates.map(d => feedDaily[d] || 0), borderColor: '#f44336', backgroundColor: '#f4433620', borderWidth: 2, tension: 0.3, fill: false }
-                ], { labels: allDates, unit: 'ml' });
+                    {label:'Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#4caf50', backgroundColor:'#4caf5020', borderWidth:2, tension:0.3},
+                    {label:'Fed (Milk)', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'#f4433620', borderWidth:2, tension:0.3}
+                ], {labels:allDates, unit:'ml'});
 
-                // Formula
-                renderSection(formulaLogs, 'formula', (v) => `${convert(v)}${unit}`);
-                const formulaDaily = groupByDay(formulaLogs);
-                const { dates: fDates, movingAvg: fMA } = calculateMovingAverage(formulaDaily);
+                renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
+                const fDay = groupByDay(formula);
+                const {dates:fD, movingAvg:fMA} = movingAvg(fDay);
                 drawChart('chart-formula', [
-                    { label: 'Daily Total', data: fDates.map(d => formulaDaily[d]), borderColor: '#6a9c7d', backgroundColor: '#6a9c7d20', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: '7-Day Avg', data: fMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
-                ], { labels: fDates, unit: 'ml' });
+                    {label:'Daily Total', data:fD.map(d=>fDay[d]), borderColor:'#6a9c7d', backgroundColor:'#6a9c7d20', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
+                ], {labels:fD, unit:'ml'});
 
-                // Skin
-                const formatTime = (mins) => mins >= 60 ? `${(mins/60).toFixed(1)}h` : `${mins} min`;
-                renderSection(skinLogs, 'skin', formatTime);
-                const skinDaily = groupByDay(skinLogs);
-                const { dates: sDates, movingAvg: sMA } = calculateMovingAverage(skinDaily);
+                const fmtTime = m => m>=60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
+                renderSec(skin, 'skin', fmtTime);
+                const sDay = groupByDay(skin);
+                const {dates:sD, movingAvg:sMA} = movingAvg(sDay);
                 drawChart('chart-skin', [
-                    { label: 'Daily Minutes', data: sDates.map(d => skinDaily[d]), borderColor: '#b30000', backgroundColor: '#b3000020', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: '7-Day Avg', data: sMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
-                ], { labels: sDates, unit: 'min' });
+                    {label:'Daily Minutes', data:sD.map(d=>sDay[d]), borderColor:'#b30000', backgroundColor:'#b3000020', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:sMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
+                ], {labels:sD, unit:'min'});
 
-                // Nappy
-                renderSection(nappyLogs, 'nappy', (v) => v);
-                const nappyDaily = groupByDay(nappyLogs);
-                const { dates: nDates, movingAvg: nMA } = calculateMovingAverage(nappyDaily);
+                renderSec(nappy, 'nappy', v=>v);
+                const nDay = groupByDay(nappy);
+                const {dates:nD, movingAvg:nMA} = movingAvg(nDay);
                 drawChart('chart-nappy', [
-                    { label: 'Daily Count', data: nDates.map(d => nappyDaily[d]), borderColor: '#ffb347', backgroundColor: '#ffb34720', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: '7-Day Avg', data: nMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
-                ], { labels: nDates, unit: 'count' });
+                    {label:'Daily Count', data:nD.map(d=>nDay[d]), borderColor:'#ffb347', backgroundColor:'#ffb34720', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:nMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
+                ], {labels:nD, unit:'count'});
 
                 // Stats page
-                const totalFed = allFeedLogs.reduce((s,l) => s + Number(l.value), 0);
-                const statsStatsEl = document.getElementById('stats-stats');
-                if (statsStatsEl) statsStatsEl.innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${convert(totalFed)}${unit}</div><div class="stat-lbl">Total Fed</div></div>
-                    <div class="stat-box"><div class="stat-val">${allFeedLogs.length}</div><div class="stat-lbl">Feeds</div></div>
-                `;
-                const combinedDaily = groupByDay(allFeedLogs);
-                const { dates: cDates, movingAvg: cMA } = calculateMovingAverage(combinedDaily);
+                const fedTot = allFeed.reduce((s,l)=>s+ +l.value,0);
+                document.getElementById('stats-stats').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(fedTot)}${unit}</div><div class="stat-lbl">Total Fed</div></div><div class="stat-box"><div class="stat-val">${allFeed.length}</div><div class="stat-lbl">Feeds</div></div>`;
+                const cDay = groupByDay(allFeed);
+                const {dates:cD, movingAvg:cMA} = movingAvg(cDay);
                 drawChart('chart-stats', [
-                    { label: 'Daily Total', data: cDates.map(d => combinedDaily[d]), borderColor: '#4a90e2', backgroundColor: '#4a90e220', borderWidth: 2, tension: 0.3, fill: false },
-                    { label: '7-Day Avg', data: cMA, borderColor: '#ff9800', borderWidth: 3, borderDash: [5,5], pointRadius: 0, tension: 0.4, fill: false }
-                ], { labels: cDates, unit: 'ml' });
+                    {label:'Daily Total', data:cD.map(d=>cDay[d]), borderColor:'#4a90e2', backgroundColor:'#4a90e220', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:cMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
+                ], {labels:cD, unit:'ml'});
 
-                // Meds timers
                 renderMedicationTimers();
-                const medHistoryEl = document.getElementById('history-meds');
-                if (medHistoryEl) {
-                    const sortedMeds = [...medLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    medHistoryEl.innerHTML = sortedMeds.slice(0,5).map(l => {
-                        const parts = l.detail.split('|');
-                        const medName = parts[0];
-                        const dosage = parts[1] || '';
-                        return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${medName} ${dosage ? '('+dosage+')' : ''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
-                    }).join('');
+                const medHist = document.getElementById('history-meds');
+                if(medHist) {
+                    const sorted = child.filter(l=>l.category==='Medication').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    medHist.innerHTML = sorted.slice(0,5).map(l=>{ const [n,d]=l.detail.split('|'); return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${n} ${d?'('+d+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`; }).join('');
                 }
 
-                // Hospital notes
-                const hospHistoryEl = document.getElementById('history-hospital');
-                if (hospHistoryEl) {
-                    const sortedHosp = [...hospitalLogs].sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
-                    hospHistoryEl.innerHTML = sortedHosp.slice(0,10).map(l => {
-                        const parts = l.detail.split('|');
-                        const hospName = parts[0];
-                        const notes = parts[1] || '';
-                        return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${hospName}</div><div class="hospital-note-text">${notes.replace(/\n/g, '<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right; margin-top:5px;"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`;
-                    }).join('');
+                const hospHist = document.getElementById('history-hospital');
+                if(hospHist) {
+                    const sorted = child.filter(l=>l.category==='HospitalNote').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    hospHist.innerHTML = sorted.slice(0,10).map(l=>{ const [h,n]=l.detail.split('|'); return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${h}</div><div class="hospital-note-text">${n.replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`; }).join('');
                 }
 
-                if (timerInterval) clearInterval(timerInterval);
+                if(timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
-            } catch(e) {
-                showError('Display error: ' + e.message);
-            }
+            } catch(e) { showError('Display error: '+e.message); }
         };
 
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/Eco-Family-Flow/sw.js')
-                .then(reg => console.log('SW registered'))
-                .catch(err => console.log('SW failed', err));
+            navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
         }
 
         window.renderUI = renderUI;
