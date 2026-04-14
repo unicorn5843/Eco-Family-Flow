@@ -682,21 +682,43 @@
             `).join('');
         }
 
+        // FIXED: Emergency locator function
         window.findNearby = (query) => {
             const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            
             const openMap = (lat, lon) => {
-                const url = isApple
-                    ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`
-                    : `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`;
-                window.open(url, '_blank');
+                let url;
+                if (isApple) {
+                    url = `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`;
+                } else {
+                    url = `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`;
+                }
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.click();
             };
+            
+            const openFallback = () => {
+                const url = isApple 
+                    ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}`
+                    : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.click();
+            };
+            
             if (navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(
-                    pos => openMap(pos.coords.latitude, pos.coords.longitude),
-                    () => { window.open(isApple ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}` : `https://www.google.com/maps/search/${encodeURIComponent(query)}`); }
+                    (pos) => openMap(pos.coords.latitude, pos.coords.longitude),
+                    () => openFallback(),
+                    { timeout: 5000 }
                 );
             } else {
-                window.open(isApple ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}` : `https://www.google.com/maps/search/${encodeURIComponent(query)}`);
+                openFallback();
             }
         };
 
