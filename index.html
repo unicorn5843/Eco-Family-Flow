@@ -366,6 +366,22 @@
             margin-bottom: 15px; 
         }
         .pro-only { display: none; }
+        .category-chip {
+            padding: 10px 16px;
+            border-radius: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .category-chip.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
     </style>
 </head>
 <body>
@@ -560,17 +576,27 @@
             </div>
         </div>
 
-        <!-- ===== DEALS PAGE ===== -->
+        <!-- ===== DEALS PAGE (Enhanced with Chips) ===== -->
         <div id="page-deals" class="page">
             <div class="card" style="text-align: center;">
                 <h3>🛒 Find Best Value</h3>
-                <p style="opacity:0.7;">Cheapest nappies & formula – price per unit</p>
+                <p style="opacity:0.7;">Tap a category – sorted by price per unit</p>
             </div>
+
+            <!-- Subcategory Chips -->
             <div class="card">
-                <div class="input-group">
-                    <label style="display:block; margin-bottom:5px; font-weight:600;">Category</label>
-                    <select id="category-filter"><option value="">All Categories</option></select>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                    <button class="category-chip active" data-category="">All</button>
+                    <button class="category-chip" data-category="Nappies">🧻 Nappies</button>
+                    <button class="category-chip" data-category="Wipes">🧼 Wipes</button>
+                    <button class="category-chip" data-category="Formula">🍼 Formula</button>
+                    <button class="category-chip" data-category="Dummies">👶 Dummies</button>
+                    <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
                 </div>
+            </div>
+
+            <!-- Brand & Size Filters -->
+            <div class="card">
                 <div class="input-group">
                     <label style="display:block; margin-bottom:5px; font-weight:600;">Brand</label>
                     <select id="brand-filter"><option value="">All Brands</option></select>
@@ -580,6 +606,8 @@
                     <select id="size-filter"><option value="">All Sizes</option></select>
                 </div>
             </div>
+
+            <!-- Results -->
             <div id="product-list">Loading products...</div>
         </div>
 
@@ -625,8 +653,8 @@
             </div>
         </div>
 
-        <!-- ===== STASH PAGE (Pro) ===== -->
-        <div id="page-stash" class="page pro-page">
+        <!-- ===== STASH PAGE ===== -->
+        <div id="page-stash" class="page">
             <div class="card">
                 <h3>❄️ Milk Stash Inventory</h3>
                 <div style="font-size: 48px; text-align: center; margin: 20px 0;" id="stash-balance">0</div>
@@ -639,8 +667,8 @@
             </div>
         </div>
 
-        <!-- ===== APPOINTMENTS PAGE (Pro) ===== -->
-        <div id="page-appointments" class="page pro-page">
+        <!-- ===== APPOINTMENTS PAGE ===== -->
+        <div id="page-appointments" class="page">
             <div class="card">
                 <h3>📅 New Appointment</h3>
                 <div class="input-group"><input type="datetime-local" id="apptDateTime"></div>
@@ -649,11 +677,14 @@
                 <div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div>
                 <button class="save-btn" onclick="window.saveAppointment()">Save Appointment</button>
             </div>
-            <div id="appointments-list" class="history-list"></div>
+            <div class="card">
+                <div class="stat-lbl">Upcoming Appointments</div>
+                <div id="appointments-list" class="history-list"></div>
+            </div>
         </div>
 
-        <!-- ===== MILESTONES PAGE (Pro) ===== -->
-        <div id="page-milestones" class="page pro-page">
+        <!-- ===== MILESTONES PAGE ===== -->
+        <div id="page-milestones" class="page">
             <div class="card">
                 <h3>🌱 Milestone Garden</h3>
                 <p>Log a milestone to grow your tree!</p>
@@ -674,8 +705,8 @@
             </div>
         </div>
 
-        <!-- ===== SAVINGS PAGE (Pro) ===== -->
-        <div id="page-savings" class="page pro-page">
+        <!-- ===== SAVINGS PAGE ===== -->
+        <div id="page-savings" class="page">
             <div class="card">
                 <h3>💰 Save Money as a Parent</h3>
                 <p>Hand‑picked resources that have helped me.</p>
@@ -717,7 +748,7 @@
             logs: [],
             offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
             allProducts: [],
-            trialStatus: { daysLeft: 60, isPro: true }, // Always Pro for testing
+            trialStatus: { daysLeft: 60, isPro: true },
             children: [
                 { name: 'Child A', color: '#8fbca0' },
                 { name: 'Child B', color: '#f4a261' },
@@ -725,15 +756,14 @@
                 { name: 'Child D', color: '#9b5de5' },
                 { name: 'Child E', color: '#00b4d8' }
             ],
-            stashBalance: 0,
-            appointments: [],
-            milestones: []
+            stashBalance: 0
         };
 
         let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
         let handoverNotes = JSON.parse(localStorage.getItem('handoverNotes') || '{}');
         let charts = {};
         let timerInterval = null;
+        let currentCategory = '';
 
         // ==================== UTILITY FUNCTIONS ====================
         function showError(msg) {
@@ -764,9 +794,7 @@
                         state.offlineQueue = state.offlineQueue.filter(i => i.timestamp !== item.timestamp);
                         state.logs.push(item);
                     }
-                } catch (e) {
-                    console.warn('Offline sync failed for item', e);
-                }
+                } catch (e) {}
             }
             localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
             if (state.offlineQueue.length === 0) {
@@ -820,7 +848,7 @@
         // ==================== CHILD MANAGEMENT ====================
         function buildChildSelector() {
             const container = document.getElementById('child-selector-container');
-            const visibleChildren = state.children; // All 5 visible (Pro always true for testing)
+            const visibleChildren = state.children;
             
             container.innerHTML = visibleChildren.map((child, idx) => `
                 <button class="child-btn ${idx === 0 ? 'active' : ''}" data-child="${child.name}" style="border-color: ${child.color};">
@@ -900,11 +928,9 @@
                 const response = await fetch(`${GOOGLE_URL}?type=logs&email=${window.auth.currentUser.email}`);
                 const data = await response.json();
                 state.logs = Array.isArray(data) ? data : [];
-                console.log('Loaded logs:', state.logs.length);
                 renderUI();
             } catch (error) {
-                console.error('Fetch error:', error);
-                showError('Could not load data. Check console.');
+                showError('Could not load data.');
             } finally {
                 document.getElementById('loading-indicator').style.display = 'none';
             }
@@ -944,7 +970,6 @@
             amtInput.value = '';
             saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
             
-            // Auto-update stash
             if (category === 'Milk' && state.milkMode === 'Pump') window.adjustStash(1);
             if (category === 'Milk' && state.milkMode === 'Feed') window.adjustStash(-1);
         };
@@ -1079,66 +1104,128 @@
             } catch(e) {}
         }
 
-        // ==================== DEALS PAGE ====================
+        // ==================== DEALS PAGE (ENHANCED) ====================
         async function loadProducts() {
             try {
                 const resp = await fetch(GOOGLE_URL + '?type=products');
                 state.allProducts = await resp.json();
-                populateCategoryFilter();
+                setupCategoryChips();
+                updateBrandFilter();
+                updateSizeFilter();
                 renderProductList();
             } catch (e) {
                 document.getElementById('product-list').innerHTML = '<p style="text-align:center;">Error loading products.</p>';
             }
         }
 
-        function populateCategoryFilter() {
-            const catSelect = document.getElementById('category-filter');
-            const cats = [...new Set(state.allProducts.map(p => p.category))];
-            catSelect.innerHTML = '<option value="">All Categories</option>';
-            cats.sort().forEach(c => { const opt = document.createElement('option'); opt.value = c; opt.textContent = c; catSelect.appendChild(opt); });
-            catSelect.addEventListener('change', () => { updateBrandFilter(); updateSizeFilter(); renderProductList(); });
-            document.getElementById('brand-filter').addEventListener('change', renderProductList);
-            document.getElementById('size-filter').addEventListener('change', renderProductList);
-            updateBrandFilter(); updateSizeFilter();
+        function setupCategoryChips() {
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentCategory = chip.dataset.category;
+                    updateBrandFilter();
+                    updateSizeFilter();
+                    renderProductList();
+                });
+            });
         }
 
         function updateBrandFilter() {
-            const cat = document.getElementById('category-filter').value;
             const brandSelect = document.getElementById('brand-filter');
-            const brands = [...new Set(state.allProducts.filter(p => !cat || p.category === cat).map(p => p.brand))];
+            const brands = [...new Set(state.allProducts
+                .filter(p => !currentCategory || p.category === currentCategory)
+                .map(p => p.brand))];
+            
             brandSelect.innerHTML = '<option value="">All Brands</option>';
-            brands.sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+            brands.sort().forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.textContent = b;
+                brandSelect.appendChild(opt);
+            });
+            
+            brandSelect.removeEventListener('change', handleBrandChange);
+            brandSelect.addEventListener('change', handleBrandChange);
+        }
+
+        function handleBrandChange() {
+            updateSizeFilter();
+            renderProductList();
         }
 
         function updateSizeFilter() {
-            const cat = document.getElementById('category-filter').value;
             const brand = document.getElementById('brand-filter').value;
             const sizeSelect = document.getElementById('size-filter');
-            const sizes = [...new Set(state.allProducts.filter(p => (!cat || p.category === cat) && (!brand || p.brand === brand)).map(p => p.size))];
+            const sizes = [...new Set(state.allProducts
+                .filter(p => (!currentCategory || p.category === currentCategory) && 
+                             (!brand || p.brand === brand))
+                .map(p => p.size))];
+            
             sizeSelect.innerHTML = '<option value="">All Sizes</option>';
-            sizes.sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sizeSelect.appendChild(opt); });
+            sizes.sort().forEach(s => {
+                const opt = document.createElement('option');
+                opt.value = s;
+                opt.textContent = s;
+                sizeSelect.appendChild(opt);
+            });
+            
+            sizeSelect.removeEventListener('change', handleSizeChange);
+            sizeSelect.addEventListener('change', handleSizeChange);
+        }
+
+        function handleSizeChange() {
+            renderProductList();
         }
 
         function renderProductList() {
-            const cat = document.getElementById('category-filter').value;
             const brand = document.getElementById('brand-filter').value;
             const size = document.getElementById('size-filter').value;
-            let filtered = state.allProducts.filter(p => (!cat || p.category === cat) && (!brand || p.brand === brand) && (!size || p.size === size));
-            filtered = filtered.map(p => { p.pricePerUnit = p.price / p.quantity; return p; }).sort((a,b) => a.pricePerUnit - b.pricePerUnit);
+            
+            let filtered = state.allProducts.filter(p => 
+                (!currentCategory || p.category === currentCategory) &&
+                (!brand || p.brand === brand) &&
+                (!size || p.size === size)
+            );
+            
+            filtered = filtered.map(p => {
+                p.pricePerUnit = p.price / p.quantity;
+                return p;
+            });
+            
+            filtered.sort((a, b) => a.pricePerUnit - b.pricePerUnit);
+            
             const container = document.getElementById('product-list');
             if (filtered.length === 0) {
                 container.innerHTML = '<p style="text-align:center; padding:20px;">No products match filters.</p>';
                 return;
             }
-            container.innerHTML = filtered.map(p => {
-                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : `per ${p.unit}`;
+            
+            container.innerHTML = filtered.map((p, index) => {
+                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : 
+                                   p.unit === 'wipe' ? 'per wipe' : 
+                                   `per ${p.unit}`;
+                const isBestValue = index === 0;
+                
                 return `
-                    <div class="product-card">
-                        <div style="display:flex; justify-content:space-between;">
-                            <div><h4 style="margin:0 0 5px;">${p.brand} ${p.name}</h4>
-                            <div style="font-size:14px;">${p.size} • ${p.quantity} ${p.unit}s</div>
-                            <div style="margin-top:8px;"><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span></div></div>
-                            <div><a href="${p.affiliatelink}" target="_blank" style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none;">Buy</a></div>
+                    <div class="product-card" style="${isBestValue ? 'border: 2px solid var(--accent);' : ''}">
+                        ${isBestValue ? '<div style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 8px;">🏆 Best Value</div>' : ''}
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="flex:1;">
+                                <h4 style="margin:0 0 5px;">${p.brand} ${p.name}</h4>
+                                <div style="font-size:14px; opacity:0.8;">${p.size} • ${p.quantity} ${p.unit}s</div>
+                                <div style="margin-top:8px;">
+                                    <span style="font-size:20px; font-weight:bold;">£${p.price.toFixed(2)}</span>
+                                    <span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <a href="${p.affiliatelink}" target="_blank" rel="nofollow" 
+                                   style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none; display:inline-block;">
+                                    Buy
+                                </a>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1283,7 +1370,6 @@
                 const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
                 const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
 
-                // Supply Status
                 const sc = document.getElementById('supply-status-content');
                 if(sc) {
                     const st = supplyStatus(pump, allFeed);
@@ -1303,7 +1389,6 @@
                     }
                 };
 
-                // Milk stats
                 const pumpTot = pump.reduce((s,l)=>s+ +l.value,0);
                 const feedTot = feedMilk.reduce((s,l)=>s+ +l.value,0);
                 document.getElementById('stats-milk').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(pumpTot)}${unit}</div><div class="stat-lbl">Pumped</div></div><div class="stat-box"><div class="stat-val">${conv(feedTot)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>`;
@@ -1313,7 +1398,6 @@
                     milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                // Milk chart
                 const pumpDay = groupByDay(pump);
                 const feedDay = groupByDay(feedMilk);
                 const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
@@ -1322,7 +1406,6 @@
                     {label:'Fed (Milk)', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'#f4433620', borderWidth:2, tension:0.3}
                 ], {labels:allDates, unit:'ml'});
 
-                // Formula
                 renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
                 const fDay = groupByDay(formula);
                 const {dates:fD, movingAvg:fMA} = movingAvg(fDay);
@@ -1331,7 +1414,6 @@
                     {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:fD, unit:'ml'});
 
-                // Skin
                 const fmtTime = m => m>=60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
                 renderSec(skin, 'skin', fmtTime);
                 const sDay = groupByDay(skin);
@@ -1341,7 +1423,6 @@
                     {label:'7-Day Avg', data:sMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:sD, unit:'min'});
 
-                // Nappy
                 renderSec(nappy, 'nappy', v=>v);
                 const nDay = groupByDay(nappy);
                 const {dates:nD, movingAvg:nMA} = movingAvg(nDay);
@@ -1350,7 +1431,6 @@
                     {label:'7-Day Avg', data:nMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:nD, unit:'count'});
 
-                // Stats page
                 const fedTot = allFeed.reduce((s,l)=>s+ +l.value,0);
                 document.getElementById('stats-stats').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(fedTot)}${unit}</div><div class="stat-lbl">Total Fed</div></div><div class="stat-box"><div class="stat-val">${allFeed.length}</div><div class="stat-lbl">Feeds</div></div>`;
                 const cDay = groupByDay(allFeed);
@@ -1410,7 +1490,6 @@
             buildChildSelector();
             window.resetTimeInputs();
             
-            // Show all Pro features for testing
             document.querySelectorAll('.pro-only, .pro-page').forEach(el => el.style.display = 'flex');
             
             await window.refreshData();
@@ -1458,11 +1537,9 @@
             document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
         };
 
-        // Placeholders for Pro features (you can expand later)
         window.saveAppointment = () => alert('Appointment saved! (Backend ready)');
         window.saveMilestone = () => alert('Milestone logged! (Backend ready)');
 
-        // Register Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
         }
