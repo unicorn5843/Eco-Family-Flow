@@ -70,7 +70,18 @@
             font-size: 26px; 
             font-weight: bold; 
             color: var(--accent-dark); 
-            margin-bottom: 20px; 
+            margin-bottom: 10px; 
+        }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .info-icon {
+            font-size: 24px;
+            cursor: pointer;
+            opacity: 0.7;
         }
         .sync-banner { 
             position: fixed; 
@@ -442,9 +453,46 @@
         </div>
     </div>
 
+    <!-- Info/Help Page (accessible via 🖋️ icon) -->
+    <div id="page-info" class="page">
+        <div class="card">
+            <h2>📘 About Eco Family Flow</h2>
+            <p><strong>Low‑bandwidth, privacy‑first parenting assistant.</strong></p>
+            <p>Designed for quick logging in busy moments – no bloated graphics, just the essentials. All data stays in your own Google Sheet.</p>
+        </div>
+        <div class="card">
+            <h3>🎯 Mission</h3>
+            <p>Empower parents and caregivers with a simple, reliable tool to track what matters, save money on repeat purchases, and share information seamlessly within a family.</p>
+        </div>
+        <div class="card">
+            <h3>🧭 Tab Guide</h3>
+            <ul style="padding-left:20px;">
+                <li><strong>🤱 Milk:</strong> Log pumping (left/right/both) and feeding. Chart shows supply trends.</li>
+                <li><strong>🍼 Formula:</strong> Track formula feeds.</li>
+                <li><strong>🧻 Nappy:</strong> Log wet/dirty nappies.</li>
+                <li><strong>❤️ Skin:</strong> Record skin‑to‑skin sessions.</li>
+                <li><strong>💊 Meds:</strong> Medication timer – see time since last dose.</li>
+                <li><strong>🏥 Hospital:</strong> Keep notes from appointments/hospital stays.</li>
+                <li><strong>📊 Stats:</strong> 7‑day averages and export options.</li>
+                <li><strong>🛒 Deals:</strong> Find cheapest nappies, formula etc. (price per unit).</li>
+                <li><strong>❄️ Stash:</strong> Manual freezer stash counter.</li>
+                <li><strong>📅 Appts:</strong> Upcoming appointments.</li>
+                <li><strong>🌱 Grow:</strong> Free‑text milestone journal.</li>
+                <li><strong>💰 Savings:</strong> Money‑saving resources & referral links.</li>
+                <li><strong>📋 Private Notes:</strong> Local‑only notes (not synced).</li>
+                <li><strong>📍 Emergency:</strong> Find nearby pharmacies/A&E.</li>
+                <li><strong>👤 Account:</strong> Family invite code & member list.</li>
+            </ul>
+            <p style="margin-top:10px;"><em>Tap the 🖋️ icon anytime to revisit this guide.</em></p>
+        </div>
+    </div>
+
     <!-- Main App -->
     <div id="main-app" style="display: none;">
-        <div class="header-title">Eco Family Flow</div>
+        <div class="header-row">
+            <div class="header-title">Eco Family Flow</div>
+            <div class="info-icon" onclick="window.switchTab('info')">🖋️</div>
+        </div>
 
         <!-- Child Profile Selector -->
         <div class="child-selector" id="child-selector-container"></div>
@@ -700,7 +748,7 @@
                 </div>
             </div>
 
-            <!-- ===== STASH PAGE ===== -->
+            <!-- ===== STASH PAGE (Manual Only) ===== -->
             <div id="page-stash" class="page">
                 <div class="card">
                     <h3>❄️ Milk Stash Inventory</h3>
@@ -710,7 +758,7 @@
                         <button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button>
                         <button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button>
                     </div>
-                    <p style="font-size:12px; opacity:0.7; text-align:center;">Automatically updates when you log Pump/Feed</p>
+                    <p style="font-size:12px; opacity:0.7; text-align:center; margin-top:15px;">👆 Manual updates only – not linked to milk logs.</p>
                 </div>
             </div>
 
@@ -730,25 +778,20 @@
                 </div>
             </div>
 
-            <!-- ===== MILESTONES PAGE ===== -->
+            <!-- ===== MILESTONES PAGE (Free Text) ===== -->
             <div id="page-milestones" class="page">
                 <div class="card">
-                    <h3>🌱 Milestone Garden</h3>
-                    <p>Log a milestone to grow your tree!</p>
-                    <select id="milestone-type" class="input-group">
-                        <option value="First Smile">😊 First Smile</option>
-                        <option value="First Laugh">😂 First Laugh</option>
-                        <option value="Rolled Over">🔄 Rolled Over</option>
-                        <option value="Sat Up">🪑 Sat Up</option>
-                        <option value="Crawled">🐾 Crawled</option>
-                        <option value="First Steps">🚶 First Steps</option>
-                    </select>
-                    <textarea id="milestone-notes" placeholder="Notes (optional)"></textarea>
-                    <button class="save-btn" onclick="window.saveMilestone()">Log Milestone</button>
+                    <h3>🌱 Milestone Journal</h3>
+                    <p>Every child is unique – write your own milestones.</p>
+                    <div class="input-group">
+                        <input type="text" id="milestone-title" placeholder="Title (e.g., First Smile)">
+                    </div>
+                    <textarea id="milestone-notes" placeholder="Notes..."></textarea>
+                    <button class="save-btn" onclick="window.saveMilestone()">Save Milestone</button>
                 </div>
                 <div class="card">
-                    <div class="stat-lbl">Your Tree</div>
-                    <div id="milestone-tree" style="text-align:center; min-height:100px;"></div>
+                    <div class="stat-lbl">Recent Milestones</div>
+                    <div id="milestones-list" class="history-list"></div>
                 </div>
             </div>
 
@@ -836,7 +879,8 @@
                 { name: 'Child D', color: '#9b5de5' },
                 { name: 'Child E', color: '#00b4d8' }
             ],
-            stashBalance: 0
+            stashBalance: 0,
+            milestones: []
         };
 
         let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
@@ -1081,9 +1125,6 @@
             };
             amtInput.value = '';
             saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
-            
-            if (category === 'Milk' && state.milkMode === 'Pump') window.adjustStash(1);
-            if (category === 'Milk' && state.milkMode === 'Feed') window.adjustStash(-1);
         };
 
         window.saveSkin = () => {
@@ -1198,7 +1239,7 @@
             `).join('');
         }
 
-        // ==================== STASH ====================
+        // ==================== STASH (Manual Only) ====================
         window.adjustStash = async (change) => {
             await fetch(GOOGLE_URL, {
                 method: 'POST',
@@ -1215,6 +1256,25 @@
                 document.getElementById('stash-balance').textContent = state.stashBalance;
             } catch(e) {}
         }
+
+        // ==================== MILESTONES (Free Text) ====================
+        window.saveMilestone = async () => {
+            const title = document.getElementById('milestone-title').value.trim();
+            if (!title) return alert('Please enter a milestone title');
+            const notes = document.getElementById('milestone-notes').value.trim();
+            const payload = {
+                action: 'save',
+                timestamp: new Date().toISOString(),
+                category: 'Milestone',
+                value: 0,
+                detail: `${title}|${notes}`,
+                user: window.auth.currentUser.email,
+                child: state.currentChild
+            };
+            document.getElementById('milestone-title').value = '';
+            document.getElementById('milestone-notes').value = '';
+            saveWithOfflineSupport(payload, 'btn-save-milestone', 'Save Milestone');
+        };
 
         // ==================== DEALS PAGE ====================
         async function loadProducts() {
@@ -1593,6 +1653,23 @@
                     hospHist.innerHTML = sorted.slice(0,10).map(l=>{ const [h,n]=l.detail.split('|'); return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${h}</div><div class="hospital-note-text">${n.replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`; }).join('');
                 }
 
+                // Milestones list
+                const milestones = child.filter(l=>l.category==='Milestone').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                const milestonesList = document.getElementById('milestones-list');
+                if(milestonesList) {
+                    milestonesList.innerHTML = milestones.slice(0,10).map(l=>{
+                        const [title, notes] = l.detail.split('|');
+                        return `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
+                            <div style="display:flex; justify-content:space-between; width:100%;">
+                                <strong>${title}</strong>
+                                <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
+                            </div>
+                            ${notes ? `<div style="font-size:14px; margin-top:5px;">${notes}</div>` : ''}
+                            <div style="font-size:11px; opacity:0.6; margin-top:5px;">${new Date(l.timestamp).toLocaleString()}</div>
+                        </div>`;
+                    }).join('') || '<div style="text-align:center; padding:15px;">No milestones yet</div>';
+                }
+
                 if(timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
             } catch(e) {
@@ -1753,7 +1830,6 @@
         };
 
         window.saveAppointment = () => alert('Appointment saved! (Backend ready)');
-        window.saveMilestone = () => alert('Milestone logged! (Backend ready)');
 
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
