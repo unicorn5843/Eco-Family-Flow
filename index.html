@@ -307,10 +307,11 @@
         }
         .chart-legend { 
             display: flex; 
+            flex-wrap: wrap;
             justify-content: center; 
-            gap: 20px; 
+            gap: 12px; 
             margin-top: 10px; 
-            font-size: 12px; 
+            font-size: 11px; 
         }
         .legend-item { display: flex; align-items: center; gap: 5px; }
         .legend-color { width: 12px; height: 12px; border-radius: 3px; }
@@ -398,20 +399,27 @@
     <div id="page-welcome" class="page active">
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
-            <p>Your private, all‑in‑one parenting assistant.</p>
-            <ul style="text-align:left;">
-                <li>📊 Track feeds, nappies, sleep & meds</li>
-                <li>🤱 Milk stash inventory & supply alerts</li>
-                <li>📋 Handover notes for caregivers</li>
-                <li>🏥 Appointment hub & medical exports</li>
-                <li>🛒 Find cheapest nappies & formula</li>
-            </ul>
-            <p><strong>60‑day full access trial – no card required.</strong></p>
+            <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
+            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, sleep, medications, and more – designed with busy parents and caregivers in mind.</p>
+            <p style="margin-top:15px;"><strong>60‑day full access trial – no card required.</strong></p>
             <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
+        </div>
+        <div class="card">
+            <h3>📖 How It Works</h3>
+            <ul style="text-align:left; padding-left:20px;">
+                <li><strong>Milk/Formula:</strong> Log pumps & feeds; see supply trends.</li>
+                <li><strong>Nappy/Skin:</strong> Track changes & skin‑to‑skin time.</li>
+                <li><strong>Meds:</strong> Timers show time since last dose.</li>
+                <li><strong>Hospital Notes:</strong> Keep medical info handy.</li>
+                <li><strong>Stats:</strong> 7‑day averages & export reports.</li>
+                <li><strong>Deals:</strong> Find best value nappies/formula.</li>
+                <li><strong>Stash/Appts/Milestones:</strong> Pro features (free during trial).</li>
+                <li><strong>Private Notes/Emergency:</strong> Local notes & nearby services.</li>
+            </ul>
         </div>
     </div>
 
-    <!-- Family Setup Page (shown after welcome if no family) -->
+    <!-- Family Setup Page -->
     <div id="page-family-setup" class="page">
         <div class="card" style="text-align:center;">
             <h2>👨‍👩‍👧 Set Up Your Family</h2>
@@ -434,7 +442,7 @@
         </div>
     </div>
 
-    <!-- Main App (hidden until welcome and family setup done) -->
+    <!-- Main App -->
     <div id="main-app" style="display: none;">
         <div class="header-title">Eco Family Flow</div>
 
@@ -475,7 +483,7 @@
         <div id="loading-indicator" class="loading">Syncing Data...</div>
 
         <main>
-            <!-- ===== MILK PAGE ===== -->
+            <!-- ===== MILK PAGE (Enhanced with Left/Right/Both tracking) ===== -->
             <div id="page-milk" class="page active">
                 <div id="supply-status-card" class="supply-card">
                     <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
@@ -497,10 +505,13 @@
                 </div>
                 <div id="stats-milk" class="stat-container"></div>
                 <div class="card">
-                    <div style="height:250px;"><canvas id="chart-milk"></canvas></div>
+                    <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
                     <div class="chart-legend">
-                        <div class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> Pumped</div>
+                        <div class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> Left Pump</div>
+                        <div class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> Right Pump</div>
+                        <div class="legend-item"><span class="legend-color" style="background: #9C27B0;"></span> Both Pump</div>
                         <div class="legend-item"><span class="legend-color" style="background: #f44336;"></span> Fed (Milk)</div>
+                        <div class="legend-item"><span class="legend-color" style="background: #ff9800; border: 1px dashed;"></span> 7‑Day Avg (Pump)</div>
                     </div>
                 </div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
@@ -618,14 +629,12 @@
                 </div>
             </div>
 
-            <!-- ===== DEALS PAGE (Enhanced with Chips) ===== -->
+            <!-- ===== DEALS PAGE ===== -->
             <div id="page-deals" class="page">
                 <div class="card" style="text-align: center;">
                     <h3>🛒 Find Best Value</h3>
                     <p style="opacity:0.7;">Tap a category – sorted by price per unit</p>
                 </div>
-
-                <!-- Subcategory Chips -->
                 <div class="card">
                     <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
                         <button class="category-chip active" data-category="">All</button>
@@ -636,8 +645,6 @@
                         <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
                     </div>
                 </div>
-
-                <!-- Brand & Size Filters -->
                 <div class="card">
                     <div class="input-group">
                         <label style="display:block; margin-bottom:5px; font-weight:600;">Brand</label>
@@ -648,8 +655,6 @@
                         <select id="size-filter"><option value="">All Sizes</option></select>
                     </div>
                 </div>
-
-                <!-- Results -->
                 <div id="product-list">Loading products...</div>
             </div>
 
@@ -759,6 +764,38 @@
                     <a href="https://tgtg.onelink.me/OGjG?af_referrer_customer_id=51980438&c=C2C+referral+Always-on+person+A+incentivised&af_referrer_uid=1699367036831-3405058466364012304&pid=c2c_referral&af_siteid=com.app.tgtg&deep_link_value=https%3A%2F%2Fshare.toogoodtogo.com%2Fc2c%2Freferral-code%2Falways-on-person-a-incentivized%2FRVUxLTUxOTgwNDM4%3Fdeviceid%3Daa2c2f87fb3bd85a" target="_blank" class="save-btn" style="background: #00a896;">Get the App (Referral)</a>
                 </div>
             </div>
+
+            <!-- ===== ACCOUNT PAGE ===== -->
+            <div id="page-account" class="page">
+                <div class="card" style="text-align: center;">
+                    <h2>👤 Account</h2>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl">Signed in as</div>
+                    <div class="stat-val" style="font-size: 18px;" id="account-email"></div>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl">Family Name</div>
+                    <div class="stat-val" style="font-size: 18px;" id="account-family-name"></div>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl">Family ID</div>
+                    <div class="stat-val" style="font-size: 16px; word-break: break-all;" id="account-family-id"></div>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl">Invite Code</div>
+                    <div class="stat-val" style="font-size: 24px; letter-spacing: 4px;" id="account-invite-code"></div>
+                    <button class="save-btn" style="margin-top: 15px;" onclick="window.copyInviteCode()">📋 Copy Invite Code</button>
+                    <p style="font-size: 12px; opacity: 0.7; margin-top: 10px;">Share this code with your partner or caregiver to join your family.</p>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl">Family Members</div>
+                    <div id="account-members" class="history-list"></div>
+                </div>
+                <div class="card">
+                    <button class="save-btn" style="background: var(--delete);" onclick="window.logout()">🚪 Sign Out</button>
+                </div>
+            </div>
         </main>
     </div>
 </div>
@@ -770,8 +807,8 @@
     <div class="footer-action" onclick="window.toggleUnits()">
         <span style="font-size: 24px;" id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span>
     </div>
-    <div class="footer-action" onclick="window.logout()">
-        <span style="font-size: 24px;">🚪</span><span>Logout</span>
+    <div class="footer-action" onclick="window.switchTab('account')">
+        <span style="font-size: 24px;">👤</span><span>Account</span>
     </div>
 </footer>
 
@@ -1179,7 +1216,7 @@
             } catch(e) {}
         }
 
-        // ==================== DEALS PAGE (ENHANCED) ====================
+        // ==================== DEALS PAGE ====================
         async function loadProducts() {
             try {
                 const resp = await fetch(GOOGLE_URL + '?type=products');
@@ -1445,6 +1482,7 @@
                 const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
                 const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
 
+                // Supply Status
                 const sc = document.getElementById('supply-status-content');
                 if(sc) {
                     const st = supplyStatus(pump, allFeed);
@@ -1464,23 +1502,47 @@
                     }
                 };
 
-                const pumpTot = pump.reduce((s,l)=>s+ +l.value,0);
-                const feedTot = feedMilk.reduce((s,l)=>s+ +l.value,0);
-                document.getElementById('stats-milk').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(pumpTot)}${unit}</div><div class="stat-lbl">Pumped</div></div><div class="stat-box"><div class="stat-val">${conv(feedTot)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>`;
+                // Milk stats (detailed breakdown by side)
+                const leftPump = pump.filter(l => l.detail.includes('Left') && !l.detail.includes('Both'));
+                const rightPump = pump.filter(l => l.detail.includes('Right') && !l.detail.includes('Both'));
+                const bothPump = pump.filter(l => l.detail.includes('Both'));
+                const leftTotal = leftPump.reduce((s,l)=>s+ +l.value,0);
+                const rightTotal = rightPump.reduce((s,l)=>s+ +l.value,0);
+                const bothTotal = bothPump.reduce((s,l)=>s+ +l.value,0);
+                const pumpTotal = leftTotal + rightTotal + bothTotal;
+                const feedTotal = feedMilk.reduce((s,l)=>s+ +l.value,0);
+                
+                document.getElementById('stats-milk').innerHTML = `
+                    <div class="stat-box"><div class="stat-val">${conv(pumpTotal)}${unit}</div><div class="stat-lbl">Total Pumped</div></div>
+                    <div class="stat-box"><div class="stat-val">${conv(feedTotal)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
+                    <div class="stat-box"><div class="stat-val">${conv(leftTotal)}${unit}</div><div class="stat-lbl">Left</div></div>
+                    <div class="stat-box"><div class="stat-val">${conv(rightTotal)}${unit}</div><div class="stat-lbl">Right</div></div>
+                `;
                 const milkHist = document.getElementById('history-milk');
                 if(milkHist) {
                     const sorted = [...milk].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                const pumpDay = groupByDay(pump);
+                // Milk chart with Left/Right/Both/Feed
+                const leftDay = groupByDay(leftPump);
+                const rightDay = groupByDay(rightPump);
+                const bothDay = groupByDay(bothPump);
                 const feedDay = groupByDay(feedMilk);
-                const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
+                const allDates = [...new Set([...Object.keys(leftDay), ...Object.keys(rightDay), ...Object.keys(bothDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
+                
+                const pumpTotalDay = groupByDay(pump);
+                const { movingAvg: pumpMA } = movingAvg(pumpTotalDay);
+                
                 drawChart('chart-milk', [
-                    {label:'Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#4caf50', backgroundColor:'#4caf5020', borderWidth:2, tension:0.3},
-                    {label:'Fed (Milk)', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'#f4433620', borderWidth:2, tension:0.3}
+                    {label:'Left', data:allDates.map(d=>leftDay[d]||0), borderColor:'#4caf50', backgroundColor:'#4caf5020', borderWidth:2, tension:0.3},
+                    {label:'Right', data:allDates.map(d=>rightDay[d]||0), borderColor:'#2196F3', backgroundColor:'#2196F320', borderWidth:2, tension:0.3},
+                    {label:'Both', data:allDates.map(d=>bothDay[d]||0), borderColor:'#9C27B0', backgroundColor:'#9C27B020', borderWidth:2, tension:0.3},
+                    {label:'Fed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'#f4433620', borderWidth:2, tension:0.3},
+                    {label:'7‑Day Avg Pump', data:allDates.map((_,i)=>pumpMA[i]||null), borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:allDates, unit:'ml'});
 
+                // Formula
                 renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
                 const fDay = groupByDay(formula);
                 const {dates:fD, movingAvg:fMA} = movingAvg(fDay);
@@ -1489,6 +1551,7 @@
                     {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:fD, unit:'ml'});
 
+                // Skin
                 const fmtTime = m => m>=60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
                 renderSec(skin, 'skin', fmtTime);
                 const sDay = groupByDay(skin);
@@ -1498,6 +1561,7 @@
                     {label:'7-Day Avg', data:sMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:sD, unit:'min'});
 
+                // Nappy
                 renderSec(nappy, 'nappy', v=>v);
                 const nDay = groupByDay(nappy);
                 const {dates:nD, movingAvg:nMA} = movingAvg(nDay);
@@ -1506,6 +1570,7 @@
                     {label:'7-Day Avg', data:nMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], pointRadius:0, tension:0.4}
                 ], {labels:nD, unit:'count'});
 
+                // Stats page
                 const fedTot = allFeed.reduce((s,l)=>s+ +l.value,0);
                 document.getElementById('stats-stats').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(fedTot)}${unit}</div><div class="stat-lbl">Total Fed</div></div><div class="stat-box"><div class="stat-val">${allFeed.length}</div><div class="stat-lbl">Feeds</div></div>`;
                 const cDay = groupByDay(allFeed);
@@ -1560,6 +1625,39 @@
             a.click();
         };
 
+        // ==================== ACCOUNT PAGE ====================
+        async function loadAccountDetails() {
+            try {
+                const resp = await fetch(`${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
+                const data = await resp.json();
+                
+                document.getElementById('account-email').textContent = window.auth.currentUser.email;
+                document.getElementById('account-family-name').textContent = data.familyName || '—';
+                document.getElementById('account-family-id').textContent = data.familyId || '—';
+                document.getElementById('account-invite-code').textContent = data.inviteCode || '—';
+                
+                const membersList = document.getElementById('account-members');
+                if (data.members) {
+                    const members = data.members.split(',').map(m => m.trim());
+                    membersList.innerHTML = members.map(m => `<div class="history-item">${m}</div>`).join('');
+                } else {
+                    membersList.innerHTML = '<div class="history-item">No members found</div>';
+                }
+            } catch (e) {
+                showError('Could not load account details');
+            }
+        }
+
+        window.copyInviteCode = () => {
+            const code = document.getElementById('account-invite-code').textContent;
+            if (!code || code === '—') return;
+            navigator.clipboard?.writeText(code).then(() => {
+                alert('Invite code copied!');
+            }).catch(() => {
+                prompt('Copy manually:', code);
+            });
+        };
+
         // ==================== INITIALIZATION ====================
         window.finishWelcome = () => {
             localStorage.setItem('welcomeSeen', 'true');
@@ -1580,7 +1678,6 @@
             // Check if family setup is needed
             const familyComplete = localStorage.getItem('familySetupComplete');
             if (!familyComplete) {
-                // Check if user already has a family from backend
                 try {
                     const resp = await fetch(`${GOOGLE_URL}?type=family&email=${window.auth.currentUser.email}`);
                     const data = await resp.json();
@@ -1611,6 +1708,7 @@
             await window.refreshData();
             if (state.tab === 'deals') loadProducts();
             if (state.tab === 'stash') fetchStashBalance();
+            if (state.tab === 'account') loadAccountDetails();
             renderUI();
         };
 
@@ -1642,6 +1740,7 @@
             if (tabId === 'deals') loadProducts();
             if (tabId === 'stash') fetchStashBalance();
             if (tabId === 'notes') renderPrivateNotes();
+            if (tabId === 'account') loadAccountDetails();
             renderUI();
         };
 
