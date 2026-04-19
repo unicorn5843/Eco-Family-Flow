@@ -384,6 +384,16 @@
             color: white;
             border-color: var(--accent);
         }
+        .calendar-btn {
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--accent-dark);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
     </style>
 </head>
 <body>
@@ -445,17 +455,17 @@
         <div class="card"><h3>🎯 Mission</h3><p>Empower parents and caregivers with a simple, reliable tool.</p></div>
         <div class="card"><h3>🧭 Tab Guide</h3>
             <ul style="padding-left:20px;">
-                <li><strong>🤱 Milk:</strong> Pump & feed logging.</li>
-                <li><strong>🍼 Formula:</strong> Formula feeds.</li>
-                <li><strong>🧻 Nappy:</strong> Wet/dirty nappies.</li>
-                <li><strong>❤️ Tummy/Skin:</strong> Tummy time & skin‑to‑skin.</li>
-                <li><strong>💊 Meds:</strong> Medication timers.</li>
-                <li><strong>🏥 Hospital:</strong> Appointment/visit notes.</li>
-                <li><strong>📊 Stats:</strong> Trends & export.</li>
-                <li><strong>🛒 Deals:</strong> Best value nappies/formula.</li>
-                <li><strong>❄️ Stash:</strong> Manual freezer stash.</li>
-                <li><strong>📅 Appts:</strong> Upcoming appointments.</li>
-                <li><strong>🌱 Milestones:</strong> Free‑text journal.</li>
+                <li><strong>🤱 Milk:</strong> Pump & feed logging. This will show you when you may be running low, your 7 day moving trend and both left and right output.</li>
+                <li><strong>🍼 Formula:</strong> Formula feeds. This will help track how much your child is drinking and also help with planning how much to buy.</li>
+                <li><strong>🧻 Nappy:</strong> Wet/dirty nappies. A way to track the trend and also to help to know when you may run out!</li>
+                <li><strong>❤️ Tummy/Skin:</strong> Tummy time & skin to skin. Two things which can be important for your childs development.</li>
+                <li><strong>💊 Meds:</strong> Medication timers. For when youve given a dose and need to know when to give the next one.</li>
+                <li><strong>🏥 Hospital:</strong> Appointment/visit notes. A way to track your time in hospital should you ever have to.</li>
+                <li><strong>📊 Stats:</strong> Trends & export. If you need the numbers for a specialist or for your own planning.</li>
+                <li><strong>🛒 Deals:</strong> Best value nappies/formula. This is where I provide price per unit so that you can get the beat value.</li>
+                <li><strong>❄️ Stash:</strong> Manual freezer stash. If you store your milk in bags or bottles it can be good to know what you have in the freezer!</li>
+                <li><strong>📅 Appts:</strong> Upcoming appointments. This will help with appointment via letter or phone. At times we can be coordinating multiple locations and types of appointments.</li>
+                <li><strong>🌱 Milestones:</strong> Free text journal for thise personal key mile stones.</li>
                 <li><strong>💰 Savings:</strong> Money‑saving resources.</li>
                 <li><strong>📋 Private Notes:</strong> Local‑only notes.</li>
                 <li><strong>📍 Emergency:</strong> Nearby services.</li>
@@ -512,7 +522,7 @@
                 <div id="supply-status-card" class="supply-card"><div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading...</div></div>
                 <div class="card"><div class="input-group"><input type="datetime-local" id="milkTime"></div><div class="btn-row"><button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button><button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button></div><div class="btn-row"><button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button><button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button><button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button></div><div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button></div>
                 <div id="stats-milk" class="stat-container"></div>
-                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> Left Pump</div><div class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> Right Pump</div><div class="legend-item"><span class="legend-color" style="background: #9C27B0;"></span> Both Pump</div><div class="legend-item"><span class="legend-color" style="background: #f44336;"></span> Fed</div><div class="legend-item"><span class="legend-color" style="background: #ff9800; border:1px dashed;"></span> 7‑Day Avg Pump</div></div></div>
+                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> Left</div><div class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> Right</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Both</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #f44336;"></span> Feed</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px dashed #ff9800;"></span> 7‑Day Avg Pump</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
             </div>
 
@@ -524,11 +534,11 @@
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
             </div>
 
-            <!-- NAPPY PAGE (Dual Bar Chart) -->
+            <!-- NAPPY PAGE (Smooth Line Graphs) -->
             <div id="page-nappy" class="page">
                 <div class="card"><div class="input-group"><input type="datetime-local" id="nappyTime"></div><div class="btn-row"><button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button><button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button><button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button></div><button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button></div>
                 <div id="stats-nappy" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="background: #8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="background: #ff9800; border:1px dashed;"></span> 7‑Day Avg (Wee)</div><div class="legend-item"><span class="legend-color" style="background: #ff9800; border:1px dotted;"></span> 7‑Day Avg (Poo)</div></div></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Both</div><div class="legend-item"><span class="legend-color" style="border-bottom: 2px dashed #ff9800;"></span> 7‑Day Avg Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom: 2px dotted #ff9800;"></span> 7‑Day Avg Poo</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
             </div>
 
@@ -1073,6 +1083,14 @@
             window.resetTimeInputs();
         };
 
+        window.addToCalendar = (title, startTime, location, notes) => {
+            const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
+            const end = new Date(new Date(startTime).getTime() + 60*60*1000).toISOString().replace(/-|:|\.\d+/g, '');
+            const details = `${title}${location ? ' at ' + location : ''}`;
+            const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(notes || '')}&location=${encodeURIComponent(location || '')}`;
+            window.open(url, '_blank');
+        };
+
         // ==================== STASH ====================
         window.adjustStash = async (change) => {
             await fetch(GOOGLE_URL, {
@@ -1316,8 +1334,8 @@
                     return;
                 }
                 charts[id] = new Chart(ctx, {
-                    type: 'bar',
-                    data: { labels: opts.labels, datasets: datasets.filter(ds => ds.type !== 'line') },
+                    type: 'line',
+                    data: { labels: opts.labels, datasets: datasets },
                     options: {
                         responsive: true, maintainAspectRatio: false,
                         interaction: { mode: 'index', intersect: false },
@@ -1338,24 +1356,6 @@
                         scales: { y: { beginAtZero: true, grid: { color: 'rgba(200,200,200,0.2)' } }, x: { grid: { display: false } } }
                     }
                 });
-                // Add line datasets for moving averages
-                const lineDatasets = datasets.filter(ds => ds.type === 'line');
-                if (lineDatasets.length > 0) {
-                    lineDatasets.forEach(ds => {
-                        charts[id].data.datasets.push({
-                            label: ds.label,
-                            data: ds.data,
-                            borderColor: ds.borderColor,
-                            borderWidth: ds.borderWidth,
-                            borderDash: ds.borderDash,
-                            pointRadius: 0,
-                            tension: 0.4,
-                            fill: false,
-                            type: 'line'
-                        });
-                    });
-                    charts[id].update();
-                }
             } catch(e) {}
         }
 
@@ -1419,7 +1419,7 @@
                     milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                // Milk chart
+                // Milk chart - Left/Right as bars, Both/Feed as lines
                 const leftDay = groupByDay(leftPump);
                 const rightDay = groupByDay(rightPump);
                 const bothDay = groupByDay(bothPump);
@@ -1428,29 +1428,50 @@
                 const pumpTotalDay = groupByDay(pump);
                 const { movingAvg: pumpMA } = movingAvg(pumpTotalDay);
                 
-                drawChart('chart-milk', [
-                    {label:'Left', data:allDates.map(d=>leftDay[d]||0), borderColor:'#4caf50', backgroundColor:'#4caf5020', borderWidth:2},
-                    {label:'Right', data:allDates.map(d=>rightDay[d]||0), borderColor:'#2196F3', backgroundColor:'#2196F320', borderWidth:2},
-                    {label:'Both', data:allDates.map(d=>bothDay[d]||0), borderColor:'#9C27B0', backgroundColor:'#9C27B020', borderWidth:2},
-                    {label:'Fed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'#f4433620', borderWidth:2},
-                    {label:'7‑Day Avg Pump', data:allDates.map((_,i)=>pumpMA[i]||null), borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], type:'line'}
-                ], {labels:allDates, unit:'ml'});
+                // Clear previous chart
+                if(charts['chart-milk']) charts['chart-milk'].destroy();
+                const ctx = document.getElementById('chart-milk').getContext('2d');
+                charts['chart-milk'] = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: allDates,
+                        datasets: [
+                            { label: 'Left', data: allDates.map(d=>leftDay[d]||0), backgroundColor: '#4caf50', borderColor: '#4caf50', borderWidth: 1 },
+                            { label: 'Right', data: allDates.map(d=>rightDay[d]||0), backgroundColor: '#2196F3', borderColor: '#2196F3', borderWidth: 1 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${conv(ctx.parsed.y)}${unit}` } } },
+                        scales: { y: { beginAtZero: true } }
+                    }
+                });
+                // Add line datasets
+                const lineDatasets = [
+                    { label: 'Both', data: allDates.map(d=>bothDay[d]||0), borderColor: '#9C27B0', borderWidth: 3, pointRadius: 2, tension: 0.3, type: 'line' },
+                    { label: 'Feed', data: allDates.map(d=>feedDay[d]||0), borderColor: '#f44336', borderWidth: 3, pointRadius: 2, tension: 0.3, type: 'line' },
+                    { label: '7‑Day Avg Pump', data: allDates.map((_,i)=>pumpMA[i]||null), borderColor: '#ff9800', borderWidth: 2, borderDash: [5,5], pointRadius: 0, tension: 0.3, type: 'line' }
+                ];
+                lineDatasets.forEach(ds => charts['chart-milk'].data.datasets.push(ds));
+                charts['chart-milk'].update();
 
                 // Formula
                 renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
                 const fDay = groupByDay(formula);
                 const {dates:fD, movingAvg:fMA} = movingAvg(fDay);
                 drawChart('chart-formula', [
-                    {label:'Daily Total', data:fD.map(d=>fDay[d]), borderColor:'#6a9c7d', backgroundColor:'#6a9c7d20', borderWidth:2},
-                    {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], type:'line'}
+                    {label:'Daily Total', data:fD.map(d=>fDay[d]), borderColor:'#6a9c7d', backgroundColor:'#6a9c7d20', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], tension:0.3}
                 ], {labels:fD, unit:'ml'});
 
-                // Nappy (dual bar)
+                // Nappy - smooth lines for Wee, Poo, Both
                 const weeLogs = nappy.filter(l => l.detail === 'Wee' || l.detail === 'Both');
                 const pooLogs = nappy.filter(l => l.detail === 'Poo' || l.detail === 'Both');
+                const bothLogs = nappy.filter(l => l.detail === 'Both');
                 const weeDay = groupByDay(weeLogs);
                 const pooDay = groupByDay(pooLogs);
-                const nappyDates = [...new Set([...Object.keys(weeDay), ...Object.keys(pooDay)])].sort((a,b)=>new Date(a)-new Date(b));
+                const bothDayNappy = groupByDay(bothLogs);
+                const nappyDates = [...new Set([...Object.keys(weeDay), ...Object.keys(pooDay), ...Object.keys(bothDayNappy)])].sort((a,b)=>new Date(a)-new Date(b));
                 const {movingAvg: weeMA} = movingAvg(weeDay);
                 const {movingAvg: pooMA} = movingAvg(pooDay);
                 
@@ -1466,10 +1487,11 @@
                     nappyHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
                 drawChart('chart-nappy', [
-                    {label:'Wee', data:nappyDates.map(d=>weeDay[d]||0), backgroundColor:'#4a90e2', borderColor:'#4a90e2', borderWidth:1},
-                    {label:'Poo', data:nappyDates.map(d=>pooDay[d]||0), backgroundColor:'#8B4513', borderColor:'#8B4513', borderWidth:1},
-                    {label:'7‑Day Avg Wee', data:nappyDates.map((_,i)=>weeMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[5,5], type:'line'},
-                    {label:'7‑Day Avg Poo', data:nappyDates.map((_,i)=>pooMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[2,2], type:'line'}
+                    {label:'Wee', data:nappyDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', backgroundColor:'transparent', borderWidth:2, tension:0.3},
+                    {label:'Poo', data:nappyDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', backgroundColor:'transparent', borderWidth:2, tension:0.3},
+                    {label:'Both', data:nappyDates.map(d=>bothDayNappy[d]||0), borderColor:'#9C27B0', backgroundColor:'transparent', borderWidth:2, tension:0.3},
+                    {label:'7‑Day Avg Wee', data:nappyDates.map((_,i)=>weeMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[5,5], pointRadius:0, tension:0.3},
+                    {label:'7‑Day Avg Poo', data:nappyDates.map((_,i)=>pooMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[2,2], pointRadius:0, tension:0.3}
                 ], {labels:nappyDates, unit:'count'});
 
                 // Skin & Tummy
@@ -1492,10 +1514,10 @@
                     skinHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmtTime(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
                 drawChart('chart-skin', [
-                    {label:'Skin‑to‑Skin', data:stDates.map(d=>skinDay[d]||0), borderColor:'#b30000', backgroundColor:'#b3000020', borderWidth:2},
-                    {label:'Tummy Time', data:stDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', backgroundColor:'#00bcd420', borderWidth:2},
-                    {label:'7‑Day Avg Skin', data:stDates.map((_,i)=>skinMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[5,5], type:'line'},
-                    {label:'7‑Day Avg Tummy', data:stDates.map((_,i)=>tummyMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[2,2], type:'line'}
+                    {label:'Skin‑to‑Skin', data:stDates.map(d=>skinDay[d]||0), borderColor:'#b30000', backgroundColor:'#b3000020', borderWidth:2, tension:0.3},
+                    {label:'Tummy Time', data:stDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', backgroundColor:'#00bcd420', borderWidth:2, tension:0.3},
+                    {label:'7‑Day Avg Skin', data:stDates.map((_,i)=>skinMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[5,5], tension:0.3},
+                    {label:'7‑Day Avg Tummy', data:stDates.map((_,i)=>tummyMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[2,2], tension:0.3}
                 ], {labels:stDates, unit:'min'});
 
                 // Stats page
@@ -1504,8 +1526,8 @@
                 const cDay = groupByDay(allFeed);
                 const {dates:cD, movingAvg:cMA} = movingAvg(cDay);
                 drawChart('chart-stats', [
-                    {label:'Daily Total', data:cD.map(d=>cDay[d]), borderColor:'#4a90e2', backgroundColor:'#4a90e220', borderWidth:2},
-                    {label:'7-Day Avg', data:cMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], type:'line'}
+                    {label:'Daily Total', data:cD.map(d=>cDay[d]), borderColor:'#4a90e2', backgroundColor:'#4a90e220', borderWidth:2, tension:0.3},
+                    {label:'7-Day Avg', data:cMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], tension:0.3}
                 ], {labels:cD, unit:'ml'});
 
                 renderMedicationTimers();
@@ -1538,20 +1560,22 @@
                     }).join('') || '<div style="text-align:center; padding:15px;">No milestones yet</div>';
                 }
 
-                // Appointments list
-                const appointments = child.filter(l=>l.category==='Appointment').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                // Appointments list (sorted by date ascending)
+                const appointments = child.filter(l=>l.category==='Appointment').sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
                 const apptList = document.getElementById('appointments-list');
                 if(apptList) {
-                    apptList.innerHTML = appointments.slice(0,10).map(l=>{
+                    apptList.innerHTML = appointments.map(l=>{
                         const [title, location, notes] = l.detail.split('|');
+                        const apptDate = new Date(l.timestamp);
                         return `<div class="history-item" style="flex-direction:column; align-items:flex-start;">
                             <div style="display:flex; justify-content:space-between; width:100%;">
                                 <strong>${title}</strong>
                                 <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
                             </div>
-                            <div style="font-size:14px;">${new Date(l.timestamp).toLocaleString()}</div>
+                            <div style="font-size:14px;">${apptDate.toLocaleString()}</div>
                             ${location ? `<div style="font-size:14px;">📍 ${location}</div>` : ''}
                             ${notes ? `<div style="font-size:14px; margin-top:5px;">${notes}</div>` : ''}
+                            <button class="calendar-btn" onclick="window.addToCalendar('${title}', '${l.timestamp}', '${location}', '${notes}')">📅 Add to Calendar</button>
                         </div>`;
                     }).join('') || '<div style="text-align:center; padding:15px;">No appointments yet</div>';
                 }
@@ -1629,7 +1653,6 @@
         };
 
         window.initApp = async () => {
-            // Check if welcome seen
             const welcomeSeen = localStorage.getItem('welcomeSeen');
             if (!welcomeSeen) {
                 document.getElementById('page-welcome').style.display = 'block';
@@ -1638,7 +1661,6 @@
                 return;
             }
 
-            // Check if family setup is needed
             const familyComplete = localStorage.getItem('familySetupComplete');
             if (!familyComplete) {
                 try {
@@ -1658,7 +1680,6 @@
                 }
             }
 
-            // Show main app
             document.getElementById('page-welcome').style.display = 'none';
             document.getElementById('page-family-setup').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
