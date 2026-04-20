@@ -522,7 +522,7 @@
                 <div id="supply-status-card" class="supply-card"><div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading...</div></div>
                 <div class="card"><div class="input-group"><input type="datetime-local" id="milkTime"></div><div class="btn-row"><button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button><button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button></div><div class="btn-row"><button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button><button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button><button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button></div><div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button></div>
                 <div id="stats-milk" class="stat-container"></div>
-                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #4caf50;"></span> Left</div><div class="legend-item"><span class="legend-color" style="background: #2196F3;"></span> Right</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Both</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #f44336;"></span> Feed</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px dashed #ff9800;"></span> 7‑Day Avg Pump</div></div></div>
+                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Total Pumped</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #f44336;"></span> Feed</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px dashed #ff9800;"></span> 7‑Day Avg Pump</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
             </div>
 
@@ -1397,21 +1397,13 @@
                     }
                 };
 
-                // Milk stats
-                const leftPump = pump.filter(l => l.detail.includes('Left') && !l.detail.includes('Both'));
-                const rightPump = pump.filter(l => l.detail.includes('Right') && !l.detail.includes('Both'));
-                const bothPump = pump.filter(l => l.detail.includes('Both'));
-                const leftTotal = leftPump.reduce((s,l)=>s+ +l.value,0);
-                const rightTotal = rightPump.reduce((s,l)=>s+ +l.value,0);
-                const bothTotal = bothPump.reduce((s,l)=>s+ +l.value,0);
-                const pumpTotal = leftTotal + rightTotal + bothTotal;
+                // Milk stats (Total Pumped only)
+                const pumpTotal = pump.reduce((s,l)=>s+ +l.value,0);
                 const feedTotal = feedMilk.reduce((s,l)=>s+ +l.value,0);
                 
                 document.getElementById('stats-milk').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${conv(pumpTotal)}${unit}</div><div class="stat-lbl">Total Pumped</div></div>
                     <div class="stat-box"><div class="stat-val">${conv(feedTotal)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
-                    <div class="stat-box"><div class="stat-val">${conv(leftTotal)}${unit}</div><div class="stat-lbl">Left</div></div>
-                    <div class="stat-box"><div class="stat-val">${conv(rightTotal)}${unit}</div><div class="stat-lbl">Right</div></div>
                 `;
                 const milkHist = document.getElementById('history-milk');
                 if(milkHist) {
@@ -1419,41 +1411,17 @@
                     milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                // Milk chart - Left/Right as bars, Both/Feed as lines
-                const leftDay = groupByDay(leftPump);
-                const rightDay = groupByDay(rightPump);
-                const bothDay = groupByDay(bothPump);
+                // Milk chart - Total Pumped and Feed as smooth lines
+                const pumpDay = groupByDay(pump);
                 const feedDay = groupByDay(feedMilk);
-                const allDates = [...new Set([...Object.keys(leftDay), ...Object.keys(rightDay), ...Object.keys(bothDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
-                const pumpTotalDay = groupByDay(pump);
-                const { movingAvg: pumpMA } = movingAvg(pumpTotalDay);
+                const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
+                const { movingAvg: pumpMA } = movingAvg(pumpDay);
                 
-                // Clear previous chart
-                if(charts['chart-milk']) charts['chart-milk'].destroy();
-                const ctx = document.getElementById('chart-milk').getContext('2d');
-                charts['chart-milk'] = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: allDates,
-                        datasets: [
-                            { label: 'Left', data: allDates.map(d=>leftDay[d]||0), backgroundColor: '#4caf50', borderColor: '#4caf50', borderWidth: 1 },
-                            { label: 'Right', data: allDates.map(d=>rightDay[d]||0), backgroundColor: '#2196F3', borderColor: '#2196F3', borderWidth: 1 }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${conv(ctx.parsed.y)}${unit}` } } },
-                        scales: { y: { beginAtZero: true } }
-                    }
-                });
-                // Add line datasets
-                const lineDatasets = [
-                    { label: 'Both', data: allDates.map(d=>bothDay[d]||0), borderColor: '#9C27B0', borderWidth: 3, pointRadius: 2, tension: 0.3, type: 'line' },
-                    { label: 'Feed', data: allDates.map(d=>feedDay[d]||0), borderColor: '#f44336', borderWidth: 3, pointRadius: 2, tension: 0.3, type: 'line' },
-                    { label: '7‑Day Avg Pump', data: allDates.map((_,i)=>pumpMA[i]||null), borderColor: '#ff9800', borderWidth: 2, borderDash: [5,5], pointRadius: 0, tension: 0.3, type: 'line' }
-                ];
-                lineDatasets.forEach(ds => charts['chart-milk'].data.datasets.push(ds));
-                charts['chart-milk'].update();
+                drawChart('chart-milk', [
+                    {label:'Total Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', backgroundColor:'transparent', borderWidth:3, pointRadius:2, tension:0.3},
+                    {label:'Feed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'transparent', borderWidth:3, pointRadius:2, tension:0.3},
+                    {label:'7‑Day Avg Pump', data:allDates.map((_,i)=>pumpMA[i]||null), borderColor:'#ff9800', borderWidth:2, borderDash:[5,5], pointRadius:0, tension:0.3}
+                ], {labels:allDates, unit:'ml'});
 
                 // Formula
                 renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
