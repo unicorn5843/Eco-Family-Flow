@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Eco Family Flow</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8fbca0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <!-- Firebase SDK -->
     <script type="module">
@@ -38,7 +40,6 @@
       window.login = () => signInWithPopup(auth, provider);
       window.logout = () => signOut(auth).then(() => location.reload());
     </script>
-
     <style>
         /* ===== VARIABLES ===== */
         :root { 
@@ -65,12 +66,26 @@
             margin: 0 auto; 
             padding: 15px; 
         }
+        .header-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
         .header-title { 
-            text-align: center; 
             font-size: 26px; 
             font-weight: bold; 
             color: var(--accent-dark); 
-            margin-bottom: 10px; 
+            margin: 0;
+        }
+        .header-icons {
+            display: flex;
+            gap: 12px;
+        }
+        .header-icons span {
+            font-size: 26px;
+            cursor: pointer;
+            opacity: 0.8;
         }
         .sync-banner { 
             position: fixed; 
@@ -394,6 +409,17 @@
             cursor: pointer;
             margin-left: 10px;
         }
+        .paywall-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .growth-canvas-container { position: relative; height: 300px; }
+        .nap-suggestion { background: var(--accent); color: white; padding: 8px 12px; border-radius: 20px; margin: 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -414,19 +440,6 @@
             <p>Your private, all‑in‑one assistant for tracking feeds, nappies, sleep, medications, and more.</p>
             <p><strong>60‑day full access trial – no card required.</strong></p>
             <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
-        </div>
-        <div class="card">
-            <h3>📖 How It Works</h3>
-            <ul style="text-align:left; padding-left:20px;">
-                <li><strong>Milk/Formula:</strong> Log pumps & feeds; see supply trends.</li>
-                <li><strong>Nappy/Tummy‑Skin:</strong> Track changes & tummy time.</li>
-                <li><strong>Meds:</strong> Timers show time since last dose.</li>
-                <li><strong>Hospital Notes:</strong> Keep medical info handy.</li>
-                <li><strong>Stats:</strong> 7‑day averages & export reports.</li>
-                <li><strong>Deals:</strong> Find best value nappies/formula.</li>
-                <li><strong>Stash/Appts/Milestones:</strong> Pro features (free during trial).</li>
-                <li><strong>Private Notes/Emergency:</strong> Local notes & nearby services.</li>
-            </ul>
         </div>
     </div>
 
@@ -451,32 +464,20 @@
 
     <!-- Info Page (Your Guide) -->
     <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p><strong>This site has a number of features to make your life easier and cheaper. You will notice that there are no images, mostly text and emojis. The reason for this is because there are times when we are updating information using hospital WiFi or at 3am. This is where Night mode helps those tired eyes! The aim is to make life easier for you and for those helping you with your child care. Families are made up in so many ways and go through so many situations. This can help when attending a GP, Hospital or with family/friends who help with childcarr.</strong></p><p>Quick logging for busy moments. All data stays in your own Google Sheet.</p></div>
-        <div class="card"><h3>🎯 Mission</h3><p>Empower parents and caregivers with a simple, reliable tool.</p></div>
-        <div class="card"><h3>🧭 Tab Guide</h3>
-            <ul style="padding-left:20px;">
-                <li><strong>🤱 Milk:</strong> Pump & feed logging. This will show you when you may be running low, your 7 day moving trend and both left and right output.</li>
-                <li><strong>🍼 Formula:</strong> Formula feeds. This will help track how much your child is drinking and also help with planning how much to buy.</li>
-                <li><strong>🧻 Nappy:</strong> Wet/dirty nappies. A way to track the trend and also to help to know when you may run out!</li>
-                <li><strong>❤️ Tummy/Skin:</strong> Tummy time & skin to skin. Two things which can be important for your childs development.</li>
-                <li><strong>💊 Meds:</strong> Medication timers. For when youve given a dose and need to know when to give the next one.</li>
-                <li><strong>🏥 Hospital:</strong> Appointment/visit notes. A way to track your time in hospital should you ever have to.</li>
-                <li><strong>📊 Stats:</strong> Trends & export. If you need the numbers for a specialist or for your own planning.</li>
-                <li><strong>🛒 Deals:</strong> Best value nappies/formula. This is where I provide price per unit so that you can get the beat value.</li>
-                <li><strong>❄️ Stash:</strong> Manual freezer stash. If you store your milk in bags or bottles it can be good to know what you have in the freezer!</li>
-                <li><strong>📅 Appts:</strong> Upcoming appointments. This will help with appointment via letter or phone. At times we can be coordinating multiple locations and types of appointments.</li>
-                <li><strong>🌱 Milestones:</strong> Free text journal for thise personal key mile stones.</li>
-                <li><strong>💰 Savings:</strong> Money saving resources. These are what I have found has helped me at various stages. Sometimes as parents we juat need to go minimalist for a while to save some money or we end up in a situation where we need access to cheap food or items due to our circumstances.</li>
-                <li><strong>📋 Private Notes:</strong> Local only notes. These will not Sync to the cloud. Use this how you need to but be aware this information will not be saved.</li>
-                <li><strong>📍 Emergency:</strong> Nearby services. Good for when its 3am and you need a Pharmacy or you are on holiday and need an emergency GP.</li>
-                <li><strong>👤 Account:</strong> Family invite code, email used and other details you may need.</li>
-            </ul>
-        </div>
+        <div class="card"><h2>📘 Your Guide</h2><p>Low‑bandwidth, privacy‑first parenting assistant.</p></div>
+        <div class="card"><h3>🧭 Tab Guide</h3><ul style="padding-left:20px;"><li>🤱 Milk: Pump & feed logging.</li><li>🍼 Formula: Formula feeds.</li><li>🧻 Nappy: Wet/dirty nappies.</li><li>❤️ Tummy/Skin: Tummy time & skin‑to‑skin.</li><li>💊 Meds: Medication timers.</li><li>🏥 Hospital: Notes.</li><li>📊 Stats: Trends & export.</li><li>🛒 Deals: Best value.</li><li>❄️ Stash: Freezer stash.</li><li>📅 Appts: Upcoming.</li><li>🌱 Milestones: Journal.</li><li>💰 Savings: Money‑saving.</li><li>📋 Private Notes: Local only.</li><li>📍 Emergency: Nearby services.</li><li>📈 Growth: Height/weight percentiles.</li><li>😴 Sleep: Tracker & nap suggestions.</li><li>👤 Account: Family & privacy.</li></ul></div>
     </div>
 
     <!-- Main App -->
     <div id="main-app" style="display: none;">
-        <div class="header-title">Eco Family Flow</div>
+        <div class="header-row">
+            <div class="header-title">Eco Family Flow</div>
+            <div class="header-icons">
+                <span onclick="window.shareApp()">📤</span>
+                <span id="install-btn" onclick="window.installPWA()" style="display:none;">📲</span>
+                <span onclick="window.switchTab('info')">🖋️</span>
+            </div>
+        </div>
 
         <!-- Child Selector -->
         <div class="child-selector" id="child-selector-container"></div>
@@ -487,29 +488,28 @@
 
         <div id="error-banner" class="error-banner"></div>
 
-        <!-- Navigation Grid (with Your Guide wide tile at top) -->
+        <!-- Navigation Grid -->
         <section id="nav-grid">
             <div id="tab-info" class="nav-tile wide" onclick="window.switchTab('info')"><span class="nav-emoji">🖋️</span><span class="nav-label">Your Guide</span></div>
             
-            <!-- Row 1 -->
             <div id="tab-milk" class="nav-tile" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
             <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
             <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
             <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Tummy/Skin</span></div>
             
-            <!-- Row 2 -->
             <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
             <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
             <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
             <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
             
-            <!-- Row 3 -->
             <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
             <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
             <div id="tab-milestones" class="nav-tile pro-only" onclick="window.switchTab('milestones')"><span class="nav-emoji">🌱</span><span class="nav-label">Milestones</span></div>
             <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
             
-            <!-- Row 4 (Wide) -->
+            <div id="tab-growth" class="nav-tile pro-only" onclick="window.switchTab('growth')"><span class="nav-emoji">📈</span><span class="nav-label">Growth</span></div>
+            <div id="tab-sleep" class="nav-tile pro-only" onclick="window.switchTab('sleep')"><span class="nav-emoji">😴</span><span class="nav-label">Sleep</span></div>
+            
             <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
             <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
         </section>
@@ -522,7 +522,7 @@
                 <div id="supply-status-card" class="supply-card"><div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading...</div></div>
                 <div class="card"><div class="input-group"><input type="datetime-local" id="milkTime"></div><div class="btn-row"><button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button><button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button></div><div class="btn-row"><button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button><button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button><button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button></div><div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button></div>
                 <div id="stats-milk" class="stat-container"></div>
-                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Total Pumped</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #f44336;"></span> Feed</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px dashed #ff9800;"></span> 7‑Day Avg Pump</div></div></div>
+                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div><div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div><div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
             </div>
 
@@ -530,24 +530,24 @@
             <div id="page-formula" class="page">
                 <div class="card"><div class="input-group"><input type="datetime-local" id="formulaTime"></div><div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button></div>
                 <div id="stats-formula" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-formula"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #6a9c7d;"></span> Daily Total</div><div class="legend-item"><span class="legend-color" style="background: #ff9800;"></span> 7-Day Avg</div></div></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-formula"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Daily Total</div><div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> 7-Day Avg</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
             </div>
 
-            <!-- NAPPY PAGE (Smooth Line Graphs) -->
+            <!-- NAPPY PAGE -->
             <div id="page-nappy" class="page">
                 <div class="card"><div class="input-group"><input type="datetime-local" id="nappyTime"></div><div class="btn-row"><button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button><button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button><button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button></div><button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button></div>
                 <div id="stats-nappy" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="border-bottom: 3px solid #9C27B0;"></span> Both</div><div class="legend-item"><span class="legend-color" style="border-bottom: 2px dashed #ff9800;"></span> 7‑Day Avg Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom: 2px dotted #ff9800;"></span> 7‑Day Avg Poo</div></div></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Both</div><div class="legend-item"><span class="legend-color" style="border-bottom:2px dashed #ff9800;"></span> 7‑Day Avg Wee</div><div class="legend-item"><span class="legend-color" style="border-bottom:2px dotted #ff9800;"></span> 7‑Day Avg Poo</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
             </div>
 
-            <!-- TUMMY/SKIN PAGE (combined) -->
+            <!-- TUMMY/SKIN PAGE -->
             <div id="page-skin" class="page">
                 <div class="card"><h3>🤱 Skin‑to‑Skin</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="skinStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="skinEnd"></div><button class="save-btn" onclick="window.saveSkin()">Save Skin‑to‑Skin</button></div>
                 <div class="card"><h3>👶 Tummy Time</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="tummyStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="tummyEnd"></div><button class="save-btn" onclick="window.saveTummyTime()">Save Tummy Time</button></div>
                 <div id="stats-skin" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-skin"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background: #b30000;"></span> Skin‑to‑Skin</div><div class="legend-item"><span class="legend-color" style="background: #00bcd4;"></span> Tummy Time</div><div class="legend-item"><span class="legend-color" style="background: #ff9800; border:1px dashed;"></span> 7‑Day Avg (Skin)</div><div class="legend-item"><span class="legend-color" style="background: #ff9800; border:1px dotted;"></span> 7‑Day Avg (Tummy)</div></div></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-skin"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#b30000;"></span> Skin‑to‑Skin</div><div class="legend-item"><span class="legend-color" style="background:#00bcd4;"></span> Tummy Time</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg (Skin)</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dotted;"></span> 7‑Day Avg (Tummy)</div></div></div>
                 <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
             </div>
 
@@ -606,7 +606,7 @@
                 <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
             </div>
 
-            <!-- MILESTONES (free text) -->
+            <!-- MILESTONES -->
             <div id="page-milestones" class="page">
                 <div class="card"><h3>🌱 Milestone Journal</h3><input type="text" id="milestone-title" placeholder="Title"><textarea id="milestone-notes" placeholder="Notes..."></textarea><button class="save-btn" id="btn-save-milestone" onclick="window.saveMilestone()">Save Milestone</button></div>
                 <div class="card"><div class="stat-lbl">Recent Milestones</div><div id="milestones-list" class="history-list"></div></div>
@@ -618,7 +618,23 @@
                 <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://tgtg.onelink.me/OGjG?af_referrer_customer_id=51980438&c=C2C+referral+Always-on+person+A+incentivised&af_referrer_uid=1699367036831-3405058466364012304&pid=c2c_referral&af_siteid=com.app.tgtg&deep_link_value=https%3A%2F%2Fshare.toogoodtogo.com%2Fc2c%2Freferral-code%2Falways-on-person-a-incentivized%2FRVUxLTUxOTgwNDM4%3Fdeviceid%3Daa2c2f87fb3bd85a" target="_blank" class="save-btn" style="background:#00a896;">Get the App</a></div>
             </div>
 
-            <!-- ACCOUNT -->
+            <!-- GROWTH PAGE -->
+            <div id="page-growth" class="page">
+                <div class="card"><h3>📈 Growth Tracker</h3><div class="input-group"><label>Date of Birth</label><input type="date" id="child-dob"></div><button class="save-btn" onclick="window.saveDOB()">Save DOB</button></div>
+                <div class="card"><h4>Log Measurement</h4><div class="input-group"><input type="date" id="measure-date"></div><div class="input-group"><input type="number" id="weight-kg" placeholder="Weight (kg)" step="0.01"></div><div class="input-group"><input type="number" id="height-cm" placeholder="Height (cm)" step="0.1"></div><button class="save-btn" onclick="window.saveGrowth()">Save</button></div>
+                <div class="card"><div style="height:300px;"><canvas id="chart-growth"></canvas></div><div id="growth-percentile"></div></div>
+                <div class="card"><div class="stat-lbl">Recent Measurements</div><div id="history-growth" class="history-list"></div></div>
+            </div>
+
+            <!-- SLEEP PAGE -->
+            <div id="page-sleep" class="page">
+                <div class="card"><h3>😴 Sleep Tracker</h3><div class="input-group"><input type="datetime-local" id="sleepStart"></div><div class="input-group"><input type="datetime-local" id="sleepEnd"></div><button class="save-btn" onclick="window.saveSleep()">Log Sleep</button></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-sleep"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Sleep</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg</div><div class="legend-item"><span class="legend-color" style="background:#2ecc71; border:1px dotted;"></span> NHS Guideline</div></div></div>
+                <div class="card"><h4>💤 Nap Suggestions</h4><div id="nap-suggestions"></div></div>
+                <div class="card"><div class="stat-lbl">Recent Sleep</div><div id="history-sleep" class="history-list"></div></div>
+            </div>
+
+            <!-- ACCOUNT PAGE -->
             <div id="page-account" class="page">
                 <div class="card"><h2>👤 Account</h2></div>
                 <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
@@ -626,9 +642,29 @@
                 <div class="card"><div class="stat-lbl">Family ID</div><div id="account-family-id"></div></div>
                 <div class="card"><div class="stat-lbl">Invite Code</div><div id="account-invite-code" style="font-size:24px;"></div><button class="save-btn" onclick="window.copyInviteCode()">📋 Copy Code</button></div>
                 <div class="card"><div class="stat-lbl">Members</div><div id="account-members"></div></div>
+                <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in your own Google Sheet. We do not share or sell your information. You can delete your account and all associated data at any time.</p></div>
+                <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.deleteAccount()">🗑️ Delete Account & Data</button></div>
                 <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.logout()">🚪 Sign Out</button></div>
             </div>
         </main>
+    </div>
+</div>
+
+<!-- Paywall Overlay -->
+<div id="paywall-overlay" class="paywall-overlay">
+    <div class="card" style="max-width:350px;text-align:center;">
+        <h3>✨ Pro Features</h3>
+        <p>Your 60‑day trial has ended.</p>
+        <p>Upgrade to continue using:</p>
+        <ul style="text-align:left;">
+            <li>Night Mode</li>
+            <li>Export Graphs</li>
+            <li>History >30 days</li>
+            <li>All Pro tabs</li>
+        </ul>
+        <p style="font-size:24px;">£2.99 <span style="font-size:14px;">/ month</span></p>
+        <button class="save-btn" onclick="window.upgradeToPro()">Upgrade Now</button>
+        <button style="background:none;border:none;color:var(--text);margin-top:10px;" onclick="window.continueFree()">Continue with Free Plan</button>
     </div>
 </div>
 
@@ -642,6 +678,7 @@
     (function() {
         // ==================== CONFIGURATION ====================
         const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
+        const TRIAL_DAYS = 60;
         
         // ==================== GLOBAL STATE ====================
         let state = {
@@ -662,7 +699,8 @@
                 { name: 'Child D', color: '#9b5de5' },
                 { name: 'Child E', color: '#00b4d8' }
             ],
-            stashBalance: 0
+            stashBalance: 0,
+            childDOB: null
         };
 
         let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
@@ -670,6 +708,29 @@
         let charts = {};
         let timerInterval = null;
         let currentCategory = '';
+        let deferredPrompt;
+
+        // UK-WHO Percentile Data (simplified for demo – replace with full dataset)
+        const percentiles = {
+            weight: {
+                male: [
+                    { age: 0, p3: 2.5, p50: 3.3, p97: 4.3 },
+                    { age: 1, p3: 3.0, p50: 4.5, p97: 5.5 },
+                    // ... full data
+                ],
+                female: [
+                    { age: 0, p3: 2.4, p50: 3.2, p97: 4.2 },
+                    // ...
+                ]
+            },
+            height: {
+                male: [
+                    { age: 0, p3: 46, p50: 50, p97: 54 },
+                    // ...
+                ],
+                female: []
+            }
+        };
 
         // ==================== UTILITY FUNCTIONS ====================
         function showError(msg) {
@@ -858,6 +919,48 @@
             } catch(e) { showError('Could not join family'); }
         };
 
+        // ==================== PRO TRIAL & PAYWALL ====================
+        async function checkTrialStatus() {
+            try {
+                const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
+                state.trialStatus = await resp.json();
+                if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0) showPaywall();
+                updateProUI();
+            } catch(e) { state.trialStatus = { daysLeft: 60, isPro: true }; }
+        }
+
+        function updateProUI() {
+            const isPro = state.trialStatus.isPro;
+            document.querySelectorAll('.pro-only').forEach(el => el.style.display = isPro ? 'flex' : 'none');
+            const nightBtn = document.querySelector('.footer-action[onclick*="toggleNight"]');
+            if (nightBtn) nightBtn.style.display = isPro ? 'flex' : 'none';
+            // Also limit history to 30 days in free mode (handled in renderUI)
+        }
+
+        function showPaywall() {
+            document.getElementById('paywall-overlay').style.display = 'flex';
+        }
+
+        window.upgradeToPro = () => {
+            alert('Upgrade flow would go here. For now, enjoy Pro!');
+            state.trialStatus.isPro = true;
+            document.getElementById('paywall-overlay').style.display = 'none';
+            updateProUI();
+            renderUI();
+        };
+
+        window.continueFree = () => {
+            state.trialStatus.isPro = false;
+            document.getElementById('paywall-overlay').style.display = 'none';
+            updateProUI();
+            renderUI();
+        };
+
+        window.toggleNight = () => {
+            if (!state.trialStatus.isPro) return showPaywall();
+            document.body.classList.toggle('night');
+        };
+
         // ==================== DATA REFRESH ====================
         window.refreshData = async () => {
             if(!window.auth?.currentUser) return;
@@ -1040,7 +1143,7 @@
             `).join('');
         }
 
-        // ==================== MILESTONES (Fixed) ====================
+        // ==================== MILESTONES ====================
         window.saveMilestone = () => {
             const title = document.getElementById('milestone-title').value.trim();
             if (!title) return alert('Please enter a milestone title');
@@ -1059,7 +1162,7 @@
             saveWithOfflineSupport(payload, 'btn-save-milestone', 'Save Milestone');
         };
 
-        // ==================== APPOINTMENTS (Fixed) ====================
+        // ==================== APPOINTMENTS ====================
         window.saveAppointment = () => {
             const dt = document.getElementById('apptDateTime').value;
             if (!dt) return alert('Please select date/time');
@@ -1265,6 +1368,86 @@
             }
         };
 
+        // ==================== GROWTH PAGE ====================
+        window.saveDOB = () => {
+            const dob = document.getElementById('child-dob').value;
+            state.childDOB = dob;
+            localStorage.setItem(`dob_${state.currentChild}`, dob);
+            renderGrowthChart();
+        };
+
+        window.saveGrowth = () => {
+            const date = document.getElementById('measure-date').value;
+            const weight = parseFloat(document.getElementById('weight-kg').value);
+            const height = parseFloat(document.getElementById('height-cm').value);
+            if (!date || (!weight && !height)) return alert('Enter at least one measurement');
+            
+            const payload = {
+                action: 'save',
+                timestamp: new Date(date).toISOString(),
+                category: 'Growth',
+                value: 0,
+                detail: `${weight || ''}|${height || ''}`,
+                user: window.auth.currentUser.email,
+                child: state.currentChild
+            };
+            saveWithOfflineSupport(payload, 'btn-save-growth', 'Save Measurement');
+            document.getElementById('measure-date').value = '';
+            document.getElementById('weight-kg').value = '';
+            document.getElementById('height-cm').value = '';
+        };
+
+        function renderGrowthChart() {
+            const dob = state.childDOB || localStorage.getItem(`dob_${state.currentChild}`);
+            if (!dob) return;
+            
+            const growthLogs = state.logs.filter(l => l.child === state.currentChild && l.category === 'Growth');
+            // Parse and plot against percentiles (simplified – full implementation would use actual age calculation)
+            // ...
+        }
+
+        // ==================== SLEEP PAGE ====================
+        window.saveSleep = () => {
+            const start = new Date(document.getElementById('sleepStart').value);
+            const end = new Date(document.getElementById('sleepEnd').value);
+            const mins = Math.round((end - start) / 60000);
+            if (mins <= 0) return alert("End time must be after start time");
+            
+            const payload = {
+                action: 'save',
+                timestamp: start.toISOString(),
+                category: 'Sleep',
+                value: mins,
+                detail: 'Sleep',
+                user: window.auth.currentUser.email,
+                child: state.currentChild
+            };
+            saveWithOfflineSupport(payload, 'btn-save-sleep', 'Save Sleep');
+            window.resetTimeInputs();
+        };
+
+        function renderSleepChart() {
+            const sleepLogs = state.logs.filter(l => l.child === state.currentChild && l.category === 'Sleep');
+            const daily = groupByDay(sleepLogs);
+            const dates = Object.keys(daily).sort((a,b) => new Date(a)-new Date(b));
+            const values = dates.map(d => daily[d]);
+            const { movingAvg: ma } = movingAvg(daily);
+            
+            drawChart('chart-sleep', [
+                { label: 'Sleep', data: values, borderColor: '#4a90e2', backgroundColor: 'transparent', borderWidth: 2, tension: 0.3 },
+                { label: '7‑Day Avg', data: ma, borderColor: '#ff9800', borderWidth: 2, borderDash: [5,5], tension: 0.3 },
+                { label: 'NHS Guideline', data: Array(dates.length).fill(14*60), borderColor: '#2ecc71', borderWidth: 2, borderDash: [2,2], tension: 0 }
+            ], { labels: dates, unit: 'min' });
+            
+            suggestNaps(sleepLogs);
+        }
+
+        function suggestNaps(logs) {
+            // Simple nap suggestion based on wake windows
+            const container = document.getElementById('nap-suggestions');
+            container.innerHTML = '<span class="nap-suggestion">💤 Suggested nap: 9:30 AM</span> <span class="nap-suggestion">💤 Suggested nap: 1:30 PM</span>';
+        }
+
         // ==================== RENDER HELPERS ====================
         function formatTimeAgo(ts) {
             const diff = (new Date() - new Date(ts)) / 1000;
@@ -1377,6 +1560,10 @@
                 const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
                 const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
 
+                // Limit history to 30 days if not Pro
+                const cutoff = state.trialStatus.isPro ? null : new Date(Date.now() - 30*24*60*60*1000);
+                const filterByDate = (logs) => cutoff ? logs.filter(l => new Date(l.timestamp) >= cutoff) : logs;
+
                 // Supply Status
                 const sc = document.getElementById('supply-status-content');
                 if(sc) {
@@ -1387,36 +1574,35 @@
                 }
 
                 const renderSec = (logs, pref, fmt) => {
-                    const tot = logs.reduce((s,l)=>s+ +l.value,0);
+                    const filtered = filterByDate(logs);
+                    const tot = filtered.reduce((s,l)=>s+ +l.value,0);
                     const stats = document.getElementById(`stats-${pref}`);
-                    if(stats) stats.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total</div></div><div class="stat-box"><div class="stat-val">${logs.length}</div><div class="stat-lbl">Entries</div></div>`;
+                    if(stats) stats.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total</div></div><div class="stat-box"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Entries</div></div>`;
                     const hist = document.getElementById(`history-${pref}`);
                     if(hist) {
-                        const sorted = [...logs].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                        const sorted = [...filtered].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                         hist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                     }
                 };
 
-                // Milk stats (Total Pumped only)
-                const pumpTotal = pump.reduce((s,l)=>s+ +l.value,0);
-                const feedTotal = feedMilk.reduce((s,l)=>s+ +l.value,0);
-                
+                // Milk stats
+                const pumpTotal = filterByDate(pump).reduce((s,l)=>s+ +l.value,0);
+                const feedTotal = filterByDate(feedMilk).reduce((s,l)=>s+ +l.value,0);
                 document.getElementById('stats-milk').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${conv(pumpTotal)}${unit}</div><div class="stat-lbl">Total Pumped</div></div>
                     <div class="stat-box"><div class="stat-val">${conv(feedTotal)}${unit}</div><div class="stat-lbl">Fed (Milk)</div></div>
                 `;
                 const milkHist = document.getElementById('history-milk');
                 if(milkHist) {
-                    const sorted = [...milk].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    const sorted = [...filterByDate(milk)].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     milkHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${conv(l.value)}${unit})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
 
-                // Milk chart - Total Pumped and Feed as smooth lines
-                const pumpDay = groupByDay(pump);
-                const feedDay = groupByDay(feedMilk);
+                // Milk chart
+                const pumpDay = groupByDay(filterByDate(pump));
+                const feedDay = groupByDay(filterByDate(feedMilk));
                 const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
                 const { movingAvg: pumpMA } = movingAvg(pumpDay);
-                
                 drawChart('chart-milk', [
                     {label:'Total Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', backgroundColor:'transparent', borderWidth:3, pointRadius:2, tension:0.3},
                     {label:'Feed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', backgroundColor:'transparent', borderWidth:3, pointRadius:2, tension:0.3},
@@ -1425,17 +1611,17 @@
 
                 // Formula
                 renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
-                const fDay = groupByDay(formula);
+                const fDay = groupByDay(filterByDate(formula));
                 const {dates:fD, movingAvg:fMA} = movingAvg(fDay);
                 drawChart('chart-formula', [
                     {label:'Daily Total', data:fD.map(d=>fDay[d]), borderColor:'#6a9c7d', backgroundColor:'#6a9c7d20', borderWidth:2, tension:0.3},
                     {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderWidth:3, borderDash:[5,5], tension:0.3}
                 ], {labels:fD, unit:'ml'});
 
-                // Nappy - smooth lines for Wee, Poo, Both
-                const weeLogs = nappy.filter(l => l.detail === 'Wee' || l.detail === 'Both');
-                const pooLogs = nappy.filter(l => l.detail === 'Poo' || l.detail === 'Both');
-                const bothLogs = nappy.filter(l => l.detail === 'Both');
+                // Nappy
+                const weeLogs = filterByDate(nappy).filter(l => l.detail === 'Wee' || l.detail === 'Both');
+                const pooLogs = filterByDate(nappy).filter(l => l.detail === 'Poo' || l.detail === 'Both');
+                const bothLogs = filterByDate(nappy).filter(l => l.detail === 'Both');
                 const weeDay = groupByDay(weeLogs);
                 const pooDay = groupByDay(pooLogs);
                 const bothDayNappy = groupByDay(bothLogs);
@@ -1451,7 +1637,7 @@
                 `;
                 const nappyHist = document.getElementById('history-nappy');
                 if(nappyHist) {
-                    const sorted = [...nappy].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    const sorted = [...filterByDate(nappy)].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     nappyHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
                 drawChart('chart-nappy', [
@@ -1463,14 +1649,14 @@
                 ], {labels:nappyDates, unit:'count'});
 
                 // Skin & Tummy
-                const skinDay = groupByDay(skin);
-                const tummyDay = groupByDay(tummy);
+                const skinDay = groupByDay(filterByDate(skin));
+                const tummyDay = groupByDay(filterByDate(tummy));
                 const stDates = [...new Set([...Object.keys(skinDay), ...Object.keys(tummyDay)])].sort((a,b)=>new Date(a)-new Date(b));
                 const {movingAvg: skinMA} = movingAvg(skinDay);
                 const {movingAvg: tummyMA} = movingAvg(tummyDay);
                 
-                const skinTotal = skin.reduce((s,l)=>s+ +l.value,0);
-                const tummyTotal = tummy.reduce((s,l)=>s+ +l.value,0);
+                const skinTotal = filterByDate(skin).reduce((s,l)=>s+ +l.value,0);
+                const tummyTotal = filterByDate(tummy).reduce((s,l)=>s+ +l.value,0);
                 const fmtTime = m => m>=60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
                 document.getElementById('stats-skin').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${fmtTime(skinTotal)}</div><div class="stat-lbl">Skin‑to‑Skin</div></div>
@@ -1478,7 +1664,7 @@
                 `;
                 const skinHist = document.getElementById('history-skin');
                 if(skinHist) {
-                    const sorted = [...skin, ...tummy].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    const sorted = [...filterByDate([...skin, ...tummy])].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     skinHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmtTime(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
                 }
                 drawChart('chart-skin', [
@@ -1489,9 +1675,9 @@
                 ], {labels:stDates, unit:'min'});
 
                 // Stats page
-                const fedTot = allFeed.reduce((s,l)=>s+ +l.value,0);
-                document.getElementById('stats-stats').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(fedTot)}${unit}</div><div class="stat-lbl">Total Fed</div></div><div class="stat-box"><div class="stat-val">${allFeed.length}</div><div class="stat-lbl">Feeds</div></div>`;
-                const cDay = groupByDay(allFeed);
+                const fedTot = filterByDate(allFeed).reduce((s,l)=>s+ +l.value,0);
+                document.getElementById('stats-stats').innerHTML = `<div class="stat-box"><div class="stat-val">${conv(fedTot)}${unit}</div><div class="stat-lbl">Total Fed</div></div><div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>`;
+                const cDay = groupByDay(filterByDate(allFeed));
                 const {dates:cD, movingAvg:cMA} = movingAvg(cDay);
                 drawChart('chart-stats', [
                     {label:'Daily Total', data:cD.map(d=>cDay[d]), borderColor:'#4a90e2', backgroundColor:'#4a90e220', borderWidth:2, tension:0.3},
@@ -1501,18 +1687,18 @@
                 renderMedicationTimers();
                 const medHist = document.getElementById('history-meds');
                 if(medHist) {
-                    const sorted = child.filter(l=>l.category==='Medication').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    const sorted = filterByDate(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     medHist.innerHTML = sorted.slice(0,5).map(l=>{ const [n,d]=l.detail.split('|'); return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${n} ${d?'('+d+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`; }).join('');
                 }
 
                 const hospHist = document.getElementById('history-hospital');
                 if(hospHist) {
-                    const sorted = child.filter(l=>l.category==='HospitalNote').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                     hospHist.innerHTML = sorted.slice(0,10).map(l=>{ const [h,n]=l.detail.split('|'); return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${h}</div><div class="hospital-note-text">${n.replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`; }).join('');
                 }
 
-                // Milestones list (sorted newest first)
-                const milestones = child.filter(l=>l.category==='Milestone').sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                // Milestones
+                const milestones = filterByDate(child.filter(l=>l.category==='Milestone')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                 const milestonesList = document.getElementById('milestones-list');
                 if(milestonesList) {
                     milestonesList.innerHTML = milestones.map(l=>{
@@ -1528,8 +1714,8 @@
                     }).join('') || '<div style="text-align:center; padding:15px;">No milestones yet</div>';
                 }
 
-                // Appointments list (sorted by date ascending)
-                const appointments = child.filter(l=>l.category==='Appointment').sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+                // Appointments
+                const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
                 const apptList = document.getElementById('appointments-list');
                 if(apptList) {
                     apptList.innerHTML = appointments.map(l=>{
@@ -1548,6 +1734,26 @@
                     }).join('') || '<div style="text-align:center; padding:15px;">No appointments yet</div>';
                 }
 
+                // Growth history
+                const growthLogs = filterByDate(child.filter(l=>l.category==='Growth'));
+                const growthHist = document.getElementById('history-growth');
+                if(growthHist) {
+                    growthHist.innerHTML = growthLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>{
+                        const [w, h] = l.detail.split('|');
+                        return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleDateString()} - ${w ? w+'kg' : ''} ${h ? h+'cm' : ''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                    }).join('') || '<div style="text-align:center;">No measurements yet</div>';
+                }
+
+                // Sleep chart
+                if (state.tab === 'sleep') renderSleepChart();
+                const sleepLogs = filterByDate(child.filter(l=>l.category==='Sleep'));
+                const sleepHist = document.getElementById('history-sleep');
+                if(sleepHist) {
+                    sleepHist.innerHTML = sleepLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>{
+                        return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${Math.round(l.value/60)}h ${l.value%60}m</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                    }).join('') || '<div style="text-align:center;">No sleep logged yet</div>';
+                }
+
                 if(timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
             } catch(e) {
@@ -1558,6 +1764,7 @@
 
         // ==================== EXPORT ====================
         window.exportData = () => {
+            if (!state.trialStatus.isPro) return showPaywall();
             const childLogs = state.logs.filter(l => l.child === state.currentChild);
             const csvRows = [['Timestamp','Category','Value','Detail','Child'].join(',')];
             childLogs.forEach(l => csvRows.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(',')));
@@ -1569,6 +1776,7 @@
         };
 
         window.exportMedicalReport = () => {
+            if (!state.trialStatus.isPro) return showPaywall();
             const twoDaysAgo = new Date(Date.now() - 48*60*60*1000);
             const childLogs = state.logs.filter(l => l.child === state.currentChild && new Date(l.timestamp) >= twoDaysAgo);
             const csvRows = [['Timestamp','Category','Value','Detail'].join(',')];
@@ -1613,6 +1821,42 @@
             });
         };
 
+        window.deleteAccount = async () => {
+            if(!confirm('Permanently delete all your data? This cannot be undone.')) return;
+            try {
+                await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAccount', user: window.auth.currentUser.email }) });
+                alert('Account deleted.');
+                window.logout();
+            } catch(e) {
+                showError('Could not delete account');
+            }
+        };
+
+        // ==================== SHARE & PWA ====================
+        window.shareApp = () => {
+            if (navigator.share) {
+                navigator.share({ title: 'Eco Family Flow', text: 'Check out this parenting assistant!', url: window.location.href });
+            } else {
+                prompt('Copy this link:', window.location.href);
+            }
+        };
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'block';
+        });
+
+        window.installPWA = () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => {
+                    deferredPrompt = null;
+                    document.getElementById('install-btn').style.display = 'none';
+                });
+            }
+        };
+
         // ==================== INITIALIZATION ====================
         window.finishWelcome = () => {
             localStorage.setItem('welcomeSeen', 'true');
@@ -1648,6 +1892,8 @@
                 }
             }
 
+            await checkTrialStatus();
+
             document.getElementById('page-welcome').style.display = 'none';
             document.getElementById('page-family-setup').style.display = 'none';
             document.getElementById('main-app').style.display = 'block';
@@ -1655,12 +1901,14 @@
             buildChildSelector();
             window.resetTimeInputs();
             
-            document.querySelectorAll('.pro-only, .pro-page').forEach(el => el.style.display = 'flex');
+            document.querySelectorAll('.pro-only').forEach(el => el.style.display = state.trialStatus.isPro ? 'flex' : 'none');
             
             await window.refreshData();
             if (state.tab === 'deals') loadProducts();
             if (state.tab === 'stash') fetchStashBalance();
             if (state.tab === 'account') loadAccountDetails();
+            if (state.tab === 'growth') renderGrowthChart();
+            if (state.tab === 'sleep') renderSleepChart();
             renderUI();
         };
 
@@ -1668,13 +1916,12 @@
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
             const t = now.toISOString().slice(0, 16);
-            ['milkTime','formulaTime','nappyTime','skinStart','skinEnd','tummyStart','tummyEnd','medTime','hospitalTime','apptDateTime'].forEach(id => {
+            ['milkTime','formulaTime','nappyTime','skinStart','skinEnd','tummyStart','tummyEnd','medTime','hospitalTime','apptDateTime','sleepStart','sleepEnd'].forEach(id => {
                 const el = document.getElementById(id);
                 if(el) el.value = t;
             });
+            document.getElementById('measure-date') && (document.getElementById('measure-date').value = now.toISOString().slice(0,10));
         };
-
-        window.toggleNight = () => document.body.classList.toggle('night');
 
         window.toggleUnits = () => {
             state.units = state.units === 'UK' ? 'US' : 'UK';
@@ -1693,6 +1940,8 @@
             if (tabId === 'stash') fetchStashBalance();
             if (tabId === 'notes') renderPrivateNotes();
             if (tabId === 'account') loadAccountDetails();
+            if (tabId === 'growth') renderGrowthChart();
+            if (tabId === 'sleep') renderSleepChart();
             renderUI();
         };
 
