@@ -6,1029 +6,2375 @@
     <title>Eco Family Flow</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js">
+    </script>
     <!-- Firebase SDK -->
     <script type="module">
-      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-      import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
-        authDomain: "ecofamilyflow.firebaseapp.com",
-        projectId: "ecofamilyflow",
-        storageBucket: "ecofamilyflow.firebasestorage.app",
-        messagingSenderId: "1013479772757",
-        appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc"
-      };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDXUhOImF9j322cMQ9AQ8CkZXfj0gvMalo",
+            authDomain: "ecofamilyflow.firebaseapp.com",
+            projectId: "ecofamilyflow",
+            storageBucket: "ecofamilyflow.firebasestorage.app",
+            messagingSenderId: "1013479772757",
+            appId: "1:1013479772757:web:7b2f33869b5ebc08e4badc"
+        };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const provider = new GoogleAuthProvider();
-      window.auth = auth;
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        window.auth = auth;
 
-      onAuthStateChanged(auth, (user) => {
-        if (user) {
-          document.getElementById('auth-screen').style.display = 'none';
-          document.getElementById('app-interface').style.display = 'block';
-          window.initApp();
-        } else {
-          document.getElementById('auth-screen').style.display = 'flex';
-          document.getElementById('app-interface').style.display = 'none';
-        }
-      });
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('auth-screen').style.display = 'none';
+                document.getElementById('app-interface').style.display = 'block';
+                window.initApp();
+            } else {
+                document.getElementById('auth-screen').style.display = 'flex';
+                document.getElementById('app-interface').style.display = 'none';
+            }
+        });
 
-      window.login = () => signInWithPopup(auth, provider);
-      window.logout = () => signOut(auth).then(() => location.reload());
+        window.login = () => signInWithPopup(auth, provider);
+        window.logout = () => signOut(auth).then(() => location.reload());
     </script>
     <style>
-        /* ===== VARIABLES ===== */
-        :root { --bg: #f2f7f4; --card: #ffffff; --text: #2f4f2f; --accent: #8fbca0; --accent-dark: #6a9c7d; --border: #e0ebe3; --btn-text: #ffffff; --delete: #ff6b6b; --warning: #ff9800; --success: #4caf50; }
-        body.night { --bg: #000000; --card: #0a0000; --text: #ff4d4d; --accent: #b30000; --accent-dark: #800000; --border: #330000; --btn-text: #ffcccc; --delete: #ff1a1a; --warning: #ff6600; --success: #00cc00; }
-        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: 90px; transition: background-color 0.5s, color 0.5s; }
-        #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
+        :root {
+            --bg: #f2f7f4;
+            --card: #ffffff;
+            --text: #2f4f2f;
+            --accent: #8fbca0;
+            --accent-dark: #6a9c7d;
+            --border: #e0ebe3;
+            --btn-text: #ffffff;
+            --delete: #ff6b6b;
+            --warning: #ff9800;
+            --success: #4caf50;
+        }
 
-        /* HEADER */
-        .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; position: relative; }
-        .header-left, .header-right { display: flex; align-items: center; gap: 8px; }
-        .header-title { font-size: 24px; font-weight: bold; color: var(--accent-dark); margin: 0; text-align: center; flex: 1; }
-        .header-icon-text { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 11px; opacity: 0.9; }
-        .header-icon-text span:first-child { font-size: 22px; }
-        #lang-select { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 6px; font-size: 14px; }
+        body.night {
+            --bg: #000000;
+            --card: #0a0000;
+            --text: #ff4d4d;
+            --accent: #b30000;
+            --accent-dark: #800000;
+            --border: #330000;
+            --btn-text: #ffcccc;
+            --delete: #ff1a1a;
+            --warning: #ff6600;
+            --success: #00cc00;
+        }
 
-        /* FIXED TRIAL BANNER */
-        #trial-banner { position: fixed; top: 0; left: 0; width: 100%; z-index: 150; padding: 8px 12px; text-align: center; font-weight: bold; font-size: 14px; transition: background-color 0.5s; display: none; }
-        .trial-green { background: #c8e6c9; color: #2e7d32; }
-        .trial-amber { background: #fff3cd; color: #856404; }
-        .trial-red { background: #ffcdd2; color: #b71c1c; }
+        body {
+            font-family: -apple-system, system-ui, sans-serif;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 90px;
+            transition: background-color 0.5s, color 0.5s;
+        }
 
-        .sync-banner { position: fixed; top: 0; left: 0; right: 0; padding: 8px; text-align: center; font-size: 14px; font-weight: bold; z-index: 200; transition: 0.3s; }
-        .banner-offline { background: #ff9800; color: white; }
-        .banner-synced { background: #4caf50; color: white; }
+        #app-interface {
+            display: none;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 15px;
+        }
 
-        .child-selector { display: flex; justify-content: center; flex-wrap: wrap; margin-bottom: 15px; gap: 5px; }
-        .child-btn { padding: 8px 12px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 14px; }
-        .child-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .current-child-badge { text-align: center; font-size: 14px; margin-top: -10px; margin-bottom: 15px; opacity: 0.8; }
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
 
-        #nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
-        .nav-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); padding: 4px; }
-        .nav-tile.wide { grid-column: span 4; aspect-ratio: auto; height: 50px; margin-bottom: 8px; }
-        .nav-tile.active { border-color: var(--accent); background: rgba(143, 188, 160, 0.1); }
-        .nav-emoji { font-size: 24px; margin-bottom: 2px; }
-        .nav-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; text-align: center; }
+        .header-left,
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-        .page { display: none; animation: fadeIn 0.3s; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-dark);
+            margin: 0;
+            text-align: center;
+            flex: 1;
+        }
 
-        .card { background: var(--card); padding: 18px; border-radius: 16px; margin-bottom: 15px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); }
-        .input-group { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
-        .input-group input, .input-group select, .input-group textarea { background: var(--bg); color: var(--text); border: 1px solid var(--border); padding: 14px; border-radius: 10px; box-sizing: border-box; font-size: 16px; outline: none; font-family: inherit; width: 100%; }
-        .input-group input { flex: 1; min-width: 80px; }
-        textarea { min-height: 80px; resize: vertical; }
-        input:focus, select:focus, textarea:focus { border-color: var(--accent); }
-        .btn-row { display: flex; gap: 8px; margin-bottom: 12px; }
-        .toggle-btn { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid var(--accent); background: var(--card); color: var(--accent-dark); font-weight: 600; cursor: pointer; }
-        .toggle-btn.active { background: var(--accent); color: var(--btn-text); }
-        .save-btn { background: var(--accent-dark); color: var(--btn-text); border: none; padding: 16px; border-radius: 10px; width: 100%; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .header-icon-text {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 11px;
+            opacity: 0.9;
+        }
 
-        .stat-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 15px; }
-        .stat-box { background: var(--card); padding: 15px; border-radius: 14px; text-align: center; border: 1px solid var(--border); border-left: 4px solid var(--accent); }
-        .stat-val { font-size: 22px; font-weight: bold; margin-bottom: 4px; }
-        .stat-lbl { font-size: 11px; text-transform: uppercase; opacity: 0.7; font-weight: 600; }
+        .header-icon-text span:first-child {
+            font-size: 22px;
+        }
 
-        .supply-card { background: var(--card); padding: 15px; border-radius: 14px; margin-bottom: 15px; border: 2px solid var(--border); }
-        .supply-indicator { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-        .supply-bar { flex: 1; height: 8px; background: var(--border); border-radius: 4px; margin: 0 10px; overflow: hidden; }
-        .supply-bar-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
-        .supply-status { font-weight: bold; padding: 5px 10px; border-radius: 20px; font-size: 12px; }
-        .status-surplus { background: var(--success); color: white; }
-        .status-balanced { background: var(--accent); color: white; }
-        .status-deficit { background: var(--warning); color: white; }
-        .status-critical { background: var(--delete); color: white; }
+        #lang-select {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 14px;
+        }
 
-        .history-list { margin-top: 5px; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
-        .history-item:last-child { border-bottom: none; }
-        .delete-btn { cursor: pointer; opacity: 0.6; font-size: 18px; margin-left: 10px; }
+        #trial-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 150;
+            padding: 8px 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background-color 0.5s;
+            display: none;
+        }
 
-        #fixed-bottom { position: fixed; bottom: 0; left: 0; width: 100%; height: 70px; background: var(--card); display: flex; align-items: center; justify-content: space-around; border-top: 1px solid var(--border); z-index: 100; }
-        .footer-action { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 12px; font-weight: 600; opacity: 0.8; }
+        .trial-green {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
 
-        #auth-screen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; }
-        .loading { text-align: center; padding: 20px; font-weight: bold; color: var(--accent); display: none; }
-        .chart-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 10px; font-size: 11px; }
-        .legend-item { display: flex; align-items: center; gap: 5px; }
-        .legend-color { width: 12px; height: 12px; border-radius: 3px; }
-        .error-banner { background: #ff6b6b; color: white; padding: 12px; border-radius: 10px; margin-bottom: 15px; display: none; font-size: 14px; }
+        .trial-amber {
+            background: #fff3cd;
+            color: #856404;
+        }
 
-        .med-timer-card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border-left: 4px solid var(--accent); }
-        .med-name { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
-        .med-dosage { font-size: 14px; opacity: 0.8; margin-bottom: 4px; }
-        .med-time { font-size: 13px; font-weight: 600; color: var(--accent-dark); }
+        .trial-red {
+            background: #ffcdd2;
+            color: #b71c1c;
+        }
 
-        .hospital-note-item { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; }
-        .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; }
-        .hospital-timestamp { font-size: 12px; opacity: 0.7; }
+        .sync-banner {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 8px;
+            text-align: center;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 200;
+            transition: 0.3s;
+        }
 
-        .product-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .price-per-unit { background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
-        .handover-note { background: #fff9c4; padding: 10px; border-radius: 8px; margin-bottom: 15px; }
-        .pro-only { display: none; }
-        .category-chip { padding: 10px 16px; border-radius: 30px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
-        .calendar-btn { background: none; border: 1px solid var(--accent); color: var(--accent-dark); padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 10px; }
-        .paywall-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .nap-suggestion { background: var(--accent); color: white; padding: 8px 12px; border-radius: 20px; margin: 5px; display: inline-block; }
+        .banner-offline {
+            background: #ff9800;
+            color: white;
+        }
+
+        .banner-synced {
+            background: #4caf50;
+            color: white;
+        }
+
+        .child-selector {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            gap: 5px;
+        }
+
+        .child-btn {
+            padding: 8px 12px;
+            border-radius: 20px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .child-btn.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .current-child-badge {
+            text-align: center;
+            font-size: 14px;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            opacity: 0.8;
+        }
+
+        #nav-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .nav-tile {
+            background: var(--card);
+            border-radius: 12px;
+            aspect-ratio: 1/1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--border);
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.03);
+            padding: 4px;
+        }
+
+        .nav-tile.wide {
+            grid-column: span 4;
+            aspect-ratio: auto;
+            height: 50px;
+            margin-bottom: 8px;
+        }
+
+        .nav-tile.active {
+            border-color: var(--accent);
+            background: rgba(143, 188, 160, 0.1);
+        }
+
+        .nav-emoji {
+            font-size: 24px;
+            margin-bottom: 2px;
+        }
+
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        .page {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card {
+            background: var(--card);
+            padding: 18px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
+        }
+
+        .input-group {
+            margin-bottom: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .input-group input,
+        .input-group select,
+        .input-group textarea {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 14px;
+            border-radius: 10px;
+            box-sizing: border-box;
+            font-size: 16px;
+            outline: none;
+            font-family: inherit;
+            width: 100%;
+        }
+
+        .input-group input {
+            flex: 1;
+            min-width: 80px;
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: var(--accent);
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid var(--accent);
+            background: var(--card);
+            color: var(--accent-dark);
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .toggle-btn.active {
+            background: var(--accent);
+            color: var(--btn-text);
+        }
+
+        .save-btn {
+            background: var(--accent-dark);
+            color: var(--btn-text);
+            border: none;
+            padding: 16px;
+            border-radius: 10px;
+            width: 100%;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .stat-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .stat-box {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 14px;
+            text-align: center;
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+        }
+
+        .stat-val {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .stat-lbl {
+            font-size: 11px;
+            text-transform: uppercase;
+            opacity: 0.7;
+            font-weight: 600;
+        }
+
+        .supply-card {
+            background: var(--card);
+            padding: 15px;
+            border-radius: 14px;
+            margin-bottom: 15px;
+            border: 2px solid var(--border);
+        }
+
+        .supply-indicator {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .supply-bar {
+            flex: 1;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            margin: 0 10px;
+            overflow: hidden;
+        }
+
+        .supply-bar-fill {
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .supply-status {
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .status-surplus {
+            background: var(--success);
+            color: white;
+        }
+
+        .status-balanced {
+            background: var(--accent);
+            color: white;
+        }
+
+        .status-deficit {
+            background: var(--warning);
+            color: white;
+        }
+
+        .status-critical {
+            background: var(--delete);
+            color: white;
+        }
+
+        .history-list {
+            margin-top: 5px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 14px;
+        }
+
+        .history-item:last-child {
+            border-bottom: none;
+        }
+
+        .delete-btn {
+            cursor: pointer;
+            opacity: 0.6;
+            font-size: 18px;
+            margin-left: 10px;
+        }
+
+        #fixed-bottom {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 70px;
+            background: var(--card);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            border-top: 1px solid var(--border);
+            z-index: 100;
+        }
+
+        .footer-action {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        #auth-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-weight: bold;
+            color: var(--accent);
+            display: none;
+        }
+
+        .chart-legend {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+
+        .error-banner {
+            background: #ff6b6b;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .med-timer-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--accent);
+        }
+
+        .med-name {
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .med-dosage {
+            font-size: 14px;
+            opacity: 0.8;
+            margin-bottom: 4px;
+        }
+
+        .med-time {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--accent-dark);
+        }
+
+        .hospital-note-item {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .hospital-name {
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .hospital-note-text {
+            font-size: 14px;
+            margin: 8px 0;
+            white-space: pre-wrap;
+        }
+
+        .hospital-timestamp {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .product-card {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .price-per-unit {
+            background: var(--accent);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        .handover-note {
+            background: #fff9c4;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .pro-only {
+            display: none;
+        }
+
+        .category-chip {
+            padding: 10px 16px;
+            border-radius: 30px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .category-chip.active {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .calendar-btn {
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--accent-dark);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        .paywall-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nap-suggestion {
+            background: var(--accent);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            margin: 5px;
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
-<div id="auth-screen">
-    <div class="header-title">Eco Family Flow</div>
-    <button onclick="window.login()" class="save-btn" style="width: auto; padding: 15px 40px;">Sign in with Google</button>
-</div>
-<div id="app-interface">
-    <div id="sync-banner" class="sync-banner" style="display: none;"></div>
-    
-    <!-- Welcome Page -->
-    <div id="page-welcome" class="page active">
-        <div class="card" style="text-align:center;">
-            <h2>🌿 Eco Family Flow</h2>
-            <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
-            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, sleep, medications, and more.</p>
-            <p><strong>60‑day full access trial – no card required.</strong></p>
-            <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
-        </div>
+    <div id="auth-screen">
+        <div class="header-title">Eco Family Flow</div>
+        <button onclick="window.login()" class="save-btn" style="width: auto; padding: 15px 40px;">Sign in with Google</button>
     </div>
+    <div id="app-interface">
+        <div id="sync-banner" class="sync-banner" style="display: none;"></div>
 
-    <!-- Family Setup Page -->
-    <div id="page-family-setup" class="page">
-        <div class="card" style="text-align:center;">
-            <h2>👨‍👩‍👧 Set Up Your Family</h2>
-            <p>Share data with your partner or caregiver.</p>
-        </div>
-        <div class="card">
-            <h3>Create a New Family</h3>
-            <div class="input-group"><input type="text" id="family-name" placeholder="Family name (optional)" value="My Family"></div>
-            <button class="save-btn" onclick="window.createFamily()">Create Family</button>
-        </div>
-        <div class="card">
-            <h3>Join an Existing Family</h3>
-            <p>Ask the primary caregiver for the 6‑digit invite code.</p>
-            <div class="input-group"><input type="text" id="invite-code" placeholder="Invite code (e.g., AB3X9K)"></div>
-            <button class="save-btn" onclick="window.joinFamily()">Join Family</button>
-        </div>
-    </div>
-
-    <!-- INFO PAGE (GUIDE - accessible via nav tile) -->
-    <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p><strong>All features listed…</strong></p></div>
-    </div>
-
-    <!-- Main App -->
-    <div id="main-app" style="display: none;">
-        <!-- NEW HEADER -->
-        <div class="app-header">
-            <div class="header-left">
-                <div class="header-icon-text" onclick="window.installApp()">
-                    <span>📲</span><span>Install</span>
-                </div>
-            </div>
-            <div class="header-title">Eco Family Flow</div>
-            <div class="header-right">
-                <select id="lang-select">
-                    <option value="en">🇬🇧 English</option>
-                </select>
+        <!-- Welcome Page -->
+        <div id="page-welcome" class="page active">
+            <div class="card" style="text-align:center;">
+                <h2>🌿 Eco Family Flow</h2>
+                <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
+                <p>Your private, all‑in‑one assistant for tracking feeds, nappies, sleep, medications, and more.</p>
+                <p><strong>60‑day full access trial – no card required.</strong></p>
+                <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
             </div>
         </div>
 
-        <!-- TRIAL BANNER (fixed) -->
-        <div id="trial-banner" class="trial-green"></div>
+        <!-- Family Setup Page -->
+        <div id="page-family-setup" class="page">
+            <div class="card" style="text-align:center;">
+                <h2>👨‍👩‍👧 Set Up Your Family</h2>
+                <p>Share data with your partner or caregiver.</p>
+            </div>
+            <div class="card">
+                <h3>Create a New Family</h3>
+                <div class="input-group"><input type="text" id="family-name" placeholder="Family name (optional)" value="My Family"></div>
+                <button class="save-btn" onclick="window.createFamily()">Create Family</button>
+            </div>
+            <div class="card">
+                <h3>Join an Existing Family</h3>
+                <p>Ask the primary caregiver for the 6‑digit invite code.</p>
+                <div class="input-group"><input type="text" id="invite-code" placeholder="Invite code (e.g., AB3X9K)"></div>
+                <button class="save-btn" onclick="window.joinFamily()">Join Family</button>
+            </div>
+        </div>
 
-        <!-- Child Selector -->
-        <div class="child-selector" id="child-selector-container"></div>
-        <div id="current-child-display" class="current-child-badge"></div>
+        <!-- Info Page (Your Guide) -->
+        <div id="page-info" class="page">
+            <div class="card">
+                <h2>📘 Your Guide</h2>
+                <p>All features are listed in the navigation tiles below.</p>
+            </div>
+        </div>
 
-        <!-- Handover Note -->
-        <div id="handover-note-container" class="handover-note"></div>
-
-        <div id="error-banner" class="error-banner"></div>
-
-        <!-- Navigation Grid (only one guide tile) -->
-        <section id="nav-grid">
-            <div id="tab-info" class="nav-tile wide" onclick="window.switchTab('info')"><span class="nav-emoji">🖋️</span><span class="nav-label">Your Guide</span></div>
-            
-            <div id="tab-milk" class="nav-tile" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
-            <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
-            <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
-            <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Tummy/Skin</span></div>
-            
-            <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
-            <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
-            <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
-            <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
-            
-            <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
-            <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
-            <div id="tab-milestones" class="nav-tile pro-only" onclick="window.switchTab('milestones')"><span class="nav-emoji">🌱</span><span class="nav-label">Milestones</span></div>
-            <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
-            
-            <div id="tab-growth" class="nav-tile pro-only" onclick="window.switchTab('growth')"><span class="nav-emoji">📈</span><span class="nav-label">Growth</span></div>
-            <div id="tab-sleep" class="nav-tile pro-only" onclick="window.switchTab('sleep')"><span class="nav-emoji">😴</span><span class="nav-label">Sleep</span></div>
-            
-            <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
-            <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
-        </section>
-
-        <div id="loading-indicator" class="loading">Syncing Data...</div>
-
-        <main>
-            <!-- MILK PAGE -->
-            <div id="page-milk" class="page active">
-                <div id="supply-status-card" class="supply-card">
-                    <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
-                    <div id="supply-status-content">Loading...</div>
-                </div>
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="milkTime"></div>
-                    <div class="btn-row">
-                        <button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button>
-                        <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
-                    </div>
-                    <div class="btn-row">
-                        <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
-                        <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
-                        <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
-                    </div>
-                    <div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
-                    <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
-                </div>
-                <div id="stats-milk" class="stat-container"></div>
-                <div class="card">
-                    <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
-                    <div class="chart-legend">
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div>
+        <!-- Main App -->
+        <div id="main-app" style="display: none;">
+            <!-- NEW HEADER -->
+            <div class="app-header">
+                <div class="header-left">
+                    <div class="header-icon-text" onclick="window.installApp()">
+                        <span>📲</span><span>Install</span>
                     </div>
                 </div>
-                <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
+                <div class="header-title">Eco Family Flow</div>
+                <div class="header-right">
+                    <select id="lang-select">
+                        <option value="en">🇬🇧 English</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- FORMULA PAGE -->
-            <div id="page-formula" class="page">
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
-                    <div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
-                    <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button>
-                </div>
-                <div id="stats-formula" class="stat-container"></div>
-                <div class="card">
-                    <div style="height:250px;"><canvas id="chart-formula"></canvas></div>
-                    <div class="chart-legend">
-                        <div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Daily Total</div>
-                        <div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> 7-Day Avg</div>
+            <!-- TRIAL BANNER (fixed) -->
+            <div id="trial-banner" class="trial-green"></div>
+
+            <!-- Child Selector -->
+            <div class="child-selector" id="child-selector-container"></div>
+            <div id="current-child-display" class="current-child-badge"></div>
+
+            <!-- Handover Note -->
+            <div id="handover-note-container" class="handover-note"></div>
+
+            <div id="error-banner" class="error-banner"></div>
+
+            <!-- Navigation Grid -->
+            <section id="nav-grid">
+                <div id="tab-info" class="nav-tile wide" onclick="window.switchTab('info')"><span class="nav-emoji">🖋️</span><span class="nav-label">Your Guide</span></div>
+
+                <div id="tab-milk" class="nav-tile" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
+                <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
+                <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
+                <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Tummy/Skin</span></div>
+
+                <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
+                <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
+                <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
+                <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
+
+                <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
+                <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
+                <div id="tab-milestones" class="nav-tile pro-only" onclick="window.switchTab('milestones')"><span class="nav-emoji">🌱</span><span class="nav-label">Milestones</span></div>
+                <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
+
+                <div id="tab-growth" class="nav-tile pro-only" onclick="window.switchTab('growth')"><span class="nav-emoji">📈</span><span class="nav-label">Growth</span></div>
+                <div id="tab-sleep" class="nav-tile pro-only" onclick="window.switchTab('sleep')"><span class="nav-emoji">😴</span><span class="nav-label">Sleep</span></div>
+
+                <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
+                <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
+            </section>
+
+            <div id="loading-indicator" class="loading">Syncing Data...</div>
+
+            <main>
+                <!-- MILK PAGE -->
+                <div id="page-milk" class="page active">
+                    <div id="supply-status-card" class="supply-card">
+                        <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
+                        <div id="supply-status-content">Loading...</div>
+                    </div>
+                    <div class="card">
+                        <div class="input-group"><input type="datetime-local" id="milkTime"></div>
+                        <div class="btn-row">
+                            <button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button>
+                            <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
+                        </div>
+                        <div class="btn-row">
+                            <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
+                            <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
+                            <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
+                        </div>
+                        <div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                        <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
+                    </div>
+                    <div id="stats-milk" class="stat-container"></div>
+                    <div class="card">
+                        <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">Recent History</div>
+                        <div id="history-milk" class="history-list"></div>
                     </div>
                 </div>
-                <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
-            </div>
 
-            <!-- NAPPY PAGE -->
-            <div id="page-nappy" class="page">
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
-                    <div class="btn-row">
-                        <button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button>
-                        <button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button>
-                        <button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button>
+                <!-- FORMULA PAGE -->
+                <div id="page-formula" class="page">
+                    <div class="card">
+                        <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
+                        <div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                        <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button>
                     </div>
-                    <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button>
-                </div>
-                <div id="stats-nappy" class="stat-container"></div>
-                <div class="card">
-                    <div style="height:250px;"><canvas id="chart-nappy"></canvas></div>
-                    <div class="chart-legend">
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #4a90e2;"></span> Wee</div>
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #8B4513;"></span> Poo</div>
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:2px dashed #ff9800;"></span> 7‑Day Avg Wee</div>
-                        <div class="legend-item"><span class="legend-color" style="border-bottom:2px dotted #ff9800;"></span> 7‑Day Avg Poo</div>
+                    <div id="stats-formula" class="stat-container"></div>
+                    <div class="card">
+                        <div style="height:250px;"><canvas id="chart-formula"></canvas></div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Daily Total</div>
+                            <div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> 7-Day Avg</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">Recent History</div>
+                        <div id="history-formula" class="history-list"></div>
                     </div>
                 </div>
-                <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
-            </div>
 
-            <!-- TUMMY/SKIN PAGE -->
-            <div id="page-skin" class="page">
-                <div class="card"><h3>🤱 Skin‑to‑Skin</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="skinStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="skinEnd"></div><button class="save-btn" onclick="window.saveSkin()">Save Skin‑to‑Skin</button></div>
-                <div class="card"><h3>👶 Tummy Time</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="tummyStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="tummyEnd"></div><button class="save-btn" onclick="window.saveTummyTime()">Save Tummy Time</button></div>
-                <div id="stats-skin" class="stat-container"></div>
-                <div class="card">
-                    <div style="height:250px;"><canvas id="chart-skin"></canvas></div>
-                    <div class="chart-legend">
-                        <div class="legend-item"><span class="legend-color" style="background:#b30000;"></span> Skin‑to‑Skin</div>
-                        <div class="legend-item"><span class="legend-color" style="background:#00bcd4;"></span> Tummy Time</div>
-                        <div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg (Skin)</div>
-                        <div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dotted;"></span> 7‑Day Avg (Tummy)</div>
+                <!-- NAPPY PAGE -->
+                <div id="page-nappy" class="page">
+                    <div class="card">
+                        <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
+                        <div class="btn-row">
+                            <button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button>
+                            <button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button>
+                            <button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button>
+                        </div>
+                        <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button>
+                    </div>
+                    <div id="stats-nappy" class="stat-container"></div>
+                    <div class="card">
+                        <div style="height:250px;"><canvas id="chart-nappy"></canvas></div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #4a90e2;"></span> Wee</div>
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #8B4513;"></span> Poo</div>
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:2px dashed #ff9800;"></span> 7‑Day Avg Wee</div>
+                            <div class="legend-item"><span class="legend-color" style="border-bottom:2px dotted #ff9800;"></span> 7‑Day Avg Poo</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">Recent History</div>
+                        <div id="history-nappy" class="history-list"></div>
                     </div>
                 </div>
-                <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
-            </div>
 
-            <!-- MEDICATION PAGE -->
-            <div id="page-meds" class="page">
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="medTime"></div>
-                    <div class="input-group"><input type="text" id="medName" placeholder="Medication name"></div>
-                    <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage"></div>
-                    <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
-                </div>
-                <div class="card"><div class="stat-lbl">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
-                <div class="card"><div class="stat-lbl">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
-            </div>
-
-            <!-- HOSPITAL NOTES -->
-            <div id="page-hospital" class="page">
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
-                    <div class="input-group"><input type="text" id="hospitalName" placeholder="Hospital name"></div>
-                    <div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div>
-                    <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button>
-                </div>
-                <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
-            </div>
-
-            <!-- STATS PAGE -->
-            <div id="page-stats" class="page">
-                <div class="card"><h3>📊 Your Summary</h3></div>
-                <div id="stats-overview" class="stat-container"></div>
-                <div class="card"><h4>Feeding Trends</h4><div style="height:200px;"><canvas id="chart-stats-feeding"></canvas></div></div>
-                <div class="card"><h4>Nappy Trends</h4><div style="height:200px;"><canvas id="chart-stats-nappy"></canvas></div></div>
-                <div class="card"><h4>Skin & Tummy Time</h4><div style="height:200px;"><canvas id="chart-stats-skin"></canvas></div></div>
-                <div class="card"><h4>Sleep</h4><div style="height:200px;"><canvas id="chart-stats-sleep"></canvas></div></div>
-                <div class="card"><h4>📈 Growth (Weight)</h4><div style="height:300px;"><canvas id="chart-stats-growth-weight"></canvas></div><div id="weight-percentile-stats" style="text-align:center;"></div></div>
-                <div class="card"><h4>📈 Growth (Height)</h4><div style="height:300px;"><canvas id="chart-stats-growth-height"></canvas></div><div id="height-percentile-stats" style="text-align:center;"></div></div>
-                <div class="card">
-                    <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
-                    <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
-                </div>
-            </div>
-
-            <!-- DEALS PAGE -->
-            <div id="page-deals" class="page">
-                <div class="card"><h3>🛒 Find Best Value</h3></div>
-                <div class="card">
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-                        <button class="category-chip active" data-category="">All</button>
-                        <button class="category-chip" data-category="Nappies">🧻 Nappies</button>
-                        <button class="category-chip" data-category="Wipes">🧼 Wipes</button>
-                        <button class="category-chip" data-category="Formula">🍼 Formula</button>
-                        <button class="category-chip" data-category="Dummies">👶 Dummies</button>
-                        <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
+                <!-- TUMMY/SKIN PAGE -->
+                <div id="page-skin" class="page">
+                    <div class="card">
+                        <h3>🤱 Skin‑to‑Skin</h3>
+                        <div class="stat-lbl">Start Time</div>
+                        <div class="input-group"><input type="datetime-local" id="skinStart"></div>
+                        <div class="stat-lbl">End Time</div>
+                        <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
+                        <button class="save-btn" onclick="window.saveSkin()">Save Skin‑to‑Skin</button>
+                    </div>
+                    <div class="card">
+                        <h3>👶 Tummy Time</h3>
+                        <div class="stat-lbl">Start Time</div>
+                        <div class="input-group"><input type="datetime-local" id="tummyStart"></div>
+                        <div class="stat-lbl">End Time</div>
+                        <div class="input-group"><input type="datetime-local" id="tummyEnd"></div>
+                        <button class="save-btn" onclick="window.saveTummyTime()">Save Tummy Time</button>
+                    </div>
+                    <div id="stats-skin" class="stat-container"></div>
+                    <div class="card">
+                        <div style="height:250px;"><canvas id="chart-skin"></canvas></div>
+                        <div class="chart-legend">
+                            <div class="legend-item"><span class="legend-color" style="background:#b30000;"></span> Skin‑to‑Skin</div>
+                            <div class="legend-item"><span class="legend-color" style="background:#00bcd4;"></span> Tummy Time</div>
+                            <div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg (Skin)</div>
+                            <div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dotted;"></span> 7‑Day Avg (Tummy)</div>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">Recent History</div>
+                        <div id="history-skin" class="history-list"></div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="input-group"><label>Brand</label><select id="brand-filter"><option value="">All Brands</option></select></div>
-                    <div class="input-group"><label>Size</label><select id="size-filter"><option value="">All Sizes</option></select></div>
+
+                <!-- MEDICATION PAGE -->
+                <div id="page-meds" class="page">
+                    <div class="card">
+                        <div class="input-group"><input type="datetime-local" id="medTime"></div>
+                        <div class="input-group"><input type="text" id="medName" placeholder="Medication name"></div>
+                        <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage"></div>
+                        <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">💊 Time Since Last Dose</div>
+                        <div id="med-timers-container"></div>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">Recent Medication History</div>
+                        <div id="history-meds" class="history-list"></div>
+                    </div>
                 </div>
-                <div id="product-list">Loading products...</div>
-            </div>
 
-            <!-- PRIVATE NOTES -->
-            <div id="page-notes" class="page">
-                <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
-                <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
-                <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
-            </div>
+                <!-- HOSPITAL NOTES -->
+                <div id="page-hospital" class="page">
+                    <div class="card">
+                        <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
+                        <div class="input-group"><input type="text" id="hospitalName" placeholder="Hospital name"></div>
+                        <div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div>
+                        <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button>
+                    </div>
+                    <div class="card">
+                        <div class="stat-lbl">📋 Recent Hospital Notes</div>
+                        <div id="history-hospital" class="history-list"></div>
+                    </div>
+                </div>
 
-            <!-- EMERGENCY -->
-            <div id="page-emergency" class="page">
-                <div class="card"><h3>🚨 Quick Access</h3></div>
-                <div class="card" style="background:#fff3cd;"><p>⚠️ Allow popups.</p></div>
-                <div><button class="save-btn" style="background:#4a90e2;" onclick="window.findNearby('pharmacy')">💊 Pharmacies</button><button class="save-btn" style="background:#e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 A&E</button><button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP</button></div>
-                <div id="emergency-fallback"></div>
-            </div>
+                <!-- STATS PAGE (with growth charts) -->
+                <div id="page-stats" class="page">
+                    <div class="card"><h3>📊 Your Summary</h3></div>
+                    <div id="stats-overview" class="stat-container"></div>
+                    <div class="card"><h4>Feeding Trends</h4><div style="height:200px;"><canvas id="chart-stats-feeding"></canvas></div></div>
+                    <div class="card"><h4>Nappy Trends</h4><div style="height:200px;"><canvas id="chart-stats-nappy"></canvas></div></div>
+                    <div class="card"><h4>Skin & Tummy Time</h4><div style="height:200px;"><canvas id="chart-stats-skin"></canvas></div></div>
+                    <div class="card"><h4>Sleep</h4><div style="height:200px;"><canvas id="chart-stats-sleep"></canvas></div></div>
+                    <div class="card"><h4>📈 Growth (Weight)</h4><div style="height:300px;"><canvas id="chart-stats-growth-weight"></canvas></div><div id="weight-percentile-stats" style="text-align:center;"></div></div>
+                    <div class="card"><h4>📈 Growth (Height)</h4><div style="height:300px;"><canvas id="chart-stats-growth-height"></canvas></div><div id="height-percentile-stats" style="text-align:center;"></div></div>
+                    <div class="card">
+                        <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
+                        <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
+                    </div>
+                </div>
 
-            <!-- STASH -->
-            <div id="page-stash" class="page">
-                <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;">Manual updates only</p></div>
-            </div>
+                <!-- DEALS PAGE -->
+                <div id="page-deals" class="page">
+                    <div class="card"><h3>🛒 Find Best Value</h3></div>
+                    <div class="card">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+                            <button class="category-chip active" data-category="">All</button>
+                            <button class="category-chip" data-category="Nappies">🧻 Nappies</button>
+                            <button class="category-chip" data-category="Wipes">🧼 Wipes</button>
+                            <button class="category-chip" data-category="Formula">🍼 Formula</button>
+                            <button class="category-chip" data-category="Dummies">👶 Dummies</button>
+                            <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <div class="input-group"><label>Brand</label><select id="brand-filter"><option value="">All Brands</option></select></div>
+                        <div class="input-group"><label>Size</label><select id="size-filter"><option value="">All Sizes</option></select></div>
+                    </div>
+                    <div id="product-list">Loading products...</div>
+                </div>
 
-            <!-- APPOINTMENTS -->
-            <div id="page-appointments" class="page">
-                <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
-                <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
-            </div>
+                <!-- PRIVATE NOTES -->
+                <div id="page-notes" class="page">
+                    <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
+                    <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
+                    <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
+                </div>
 
-            <!-- MILESTONES -->
-            <div id="page-milestones" class="page">
-                <div class="card"><h3>🌱 Milestone Journal</h3><input type="text" id="milestone-title" placeholder="Title"><textarea id="milestone-notes" placeholder="Notes..."></textarea><button class="save-btn" id="btn-save-milestone" onclick="window.saveMilestone()">Save Milestone</button></div>
-                <div class="card"><div class="stat-lbl">Recent Milestones</div><div id="milestones-list" class="history-list"></div></div>
-            </div>
+                <!-- EMERGENCY -->
+                <div id="page-emergency" class="page">
+                    <div class="card"><h3>🚨 Quick Access</h3></div>
+                    <div class="card" style="background:#fff3cd;"><p>⚠️ Allow popups.</p></div>
+                    <div><button class="save-btn" style="background:#4a90e2;" onclick="window.findNearby('pharmacy')">💊 Pharmacies</button><button class="save-btn" style="background:#e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 A&E</button><button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP</button></div>
+                    <div id="emergency-fallback"></div>
+                </div>
 
-            <!-- SAVINGS -->
-            <div id="page-savings" class="page">
-                <div class="card"><h3>💰 Save Money</h3></div>
-                <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://tgtg.onelink.me/OGjG?af_referrer_customer_id=51980438&c=C2C+referral+Always-on+person+A+incentivised&af_referrer_uid=1699367036831-3405058466364012304&pid=c2c_referral&af_siteid=com.app.tgtg&deep_link_value=https%3A%2F%2Fshare.toogoodtogo.com%2Fc2c%2Freferral-code%2Falways-on-person-a-incentivized%2FRVUxLTUxOTgwNDM4%3Fdeviceid%3Daa2c2f87fb3bd85a" target="_blank" class="save-btn" style="background:#00a896;">Get the App</a></div>
-            </div>
+                <!-- STASH -->
+                <div id="page-stash" class="page">
+                    <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;">Manual updates only</p></div>
+                </div>
 
-            <!-- GROWTH PAGE -->
-            <div id="page-growth" class="page">
-                <div class="card"><h3>📈 Growth Tracker</h3><div class="input-group"><input type="date" id="child-dob"></div><button class="save-btn" onclick="window.saveDOB()">Save DOB</button></div>
-                <div class="card"><h4>Log Measurement</h4><div class="input-group"><input type="date" id="measure-date"></div>
-                <div class="input-group" id="weight-inputs"><input type="number" id="weight-kg" placeholder="Weight (kg)" step="0.01"></div>
-                <div class="input-group" id="us-weight-inputs" style="display:none;"><input type="number" id="weight-lbs" placeholder="lbs" step="1"><input type="number" id="weight-oz" placeholder="oz" step="0.1"></div>
-                <div class="input-group"><input type="number" id="height-cm" placeholder="Height (cm)" step="0.1"></div>
-                <button class="save-btn" onclick="window.saveGrowth()">Save</button></div>
-                <div class="card"><h4>Weight</h4><div style="height:300px;"><canvas id="chart-growth-weight"></canvas></div><div id="weight-percentile" style="text-align:center;"></div></div>
-                <div class="card"><h4>Height</h4><div style="height:300px;"><canvas id="chart-growth-height"></canvas></div><div id="height-percentile" style="text-align:center;"></div></div>
-                <div class="card"><div class="stat-lbl">Recent Measurements</div><div id="history-growth" class="history-list"></div></div>
-            </div>
+                <!-- APPOINTMENTS -->
+                <div id="page-appointments" class="page">
+                    <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
+                    <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
+                </div>
 
-            <!-- SLEEP PAGE -->
-            <div id="page-sleep" class="page">
-                <div class="card"><h3>😴 Sleep Tracker</h3><div class="input-group"><input type="datetime-local" id="sleepStart"></div><div class="input-group"><input type="datetime-local" id="sleepEnd"></div><button class="save-btn" onclick="window.saveSleep()">Log Sleep</button></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-sleep"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Sleep</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg</div><div class="legend-item"><span class="legend-color" style="background:#2ecc71; border:1px dotted;"></span> NHS Guideline</div></div></div>
-                <div class="card"><h4>💤 Nap Suggestions</h4><div id="nap-suggestions"></div></div>
-                <div class="card"><div class="stat-lbl">Recent Sleep</div><div id="history-sleep" class="history-list"></div></div>
-            </div>
+                <!-- MILESTONES -->
+                <div id="page-milestones" class="page">
+                    <div class="card"><h3>🌱 Milestone Journal</h3><input type="text" id="milestone-title" placeholder="Title"><textarea id="milestone-notes" placeholder="Notes..."></textarea><button class="save-btn" id="btn-save-milestone" onclick="window.saveMilestone()">Save Milestone</button></div>
+                    <div class="card"><div class="stat-lbl">Recent Milestones</div><div id="milestones-list" class="history-list"></div></div>
+                </div>
 
-            <!-- ACCOUNT PAGE -->
-            <div id="page-account" class="page">
-                <div class="card"><h2>👤 Account</h2></div>
-                <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
-                <div class="card"><div class="stat-lbl">Family Name</div><div id="account-family-name"></div></div>
-                <div class="card"><div class="stat-lbl">Family ID</div><div id="account-family-id"></div></div>
-                <div class="card"><div class="stat-lbl">Invite Code</div><div id="account-invite-code" style="font-size:24px;"></div><button class="save-btn" onclick="window.copyInviteCode()">📋 Copy Code</button></div>
-                <div class="card"><div class="stat-lbl">Members</div><div id="account-members"></div></div>
-                <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in your own Google Sheet. We do not share or sell your information. You can delete your account and all associated data at any time.</p></div>
-                <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.deleteAccount()">🗑️ Delete Account & Data</button></div>
-                <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.logout()">🚪 Sign Out</button></div>
-            </div>
-        </main>
+                <!-- SAVINGS -->
+                <div id="page-savings" class="page">
+                    <div class="card"><h3>💰 Save Money</h3></div>
+                    <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://tgtg.onelink.me/OGjG?af_referrer_customer_id=51980438&c=C2C+referral+Always-on+person+A+incentivised&af_referrer_uid=1699367036831-3405058466364012304&pid=c2c_referral&af_siteid=com.app.tgtg&deep_link_value=https%3A%2F%2Fshare.toogoodtogo.com%2Fc2c%2Freferral-code%2Falways-on-person-a-incentivized%2FRVUxLTUxOTgwNDM4%3Fdeviceid%3Daa2c2f87fb3bd85a" target="_blank" class="save-btn" style="background:#00a896;">Get the App</a></div>
+                </div>
+
+                <!-- GROWTH PAGE -->
+                <div id="page-growth" class="page">
+                    <div class="card"><h3>📈 Growth Tracker</h3><div class="input-group"><input type="date" id="child-dob"></div><button class="save-btn" onclick="window.saveDOB()">Save DOB</button></div>
+                    <div class="card"><h4>Log Measurement</h4><div class="input-group"><input type="date" id="measure-date"></div>
+                        <div class="input-group" id="weight-inputs"><input type="number" id="weight-kg" placeholder="Weight (kg)" step="0.01"></div>
+                        <div class="input-group" id="us-weight-inputs" style="display:none;"><input type="number" id="weight-lbs" placeholder="lbs" step="1"><input type="number" id="weight-oz" placeholder="oz" step="0.1"></div>
+                        <div class="input-group"><input type="number" id="height-cm" placeholder="Height (cm)" step="0.1"></div>
+                        <button class="save-btn" onclick="window.saveGrowth()">Save</button></div>
+                    <div class="card"><h4>Weight</h4><div style="height:300px;"><canvas id="chart-growth-weight"></canvas></div><div id="weight-percentile" style="text-align:center;"></div></div>
+                    <div class="card"><h4>Height</h4><div style="height:300px;"><canvas id="chart-growth-height"></canvas></div><div id="height-percentile" style="text-align:center;"></div></div>
+                    <div class="card"><div class="stat-lbl">Recent Measurements</div><div id="history-growth" class="history-list"></div></div>
+                </div>
+
+                <!-- SLEEP PAGE -->
+                <div id="page-sleep" class="page">
+                    <div class="card"><h3>😴 Sleep Tracker</h3><div class="input-group"><input type="datetime-local" id="sleepStart"></div><div class="input-group"><input type="datetime-local" id="sleepEnd"></div><button class="save-btn" onclick="window.saveSleep()">Log Sleep</button></div>
+                    <div class="card"><div style="height:250px;"><canvas id="chart-sleep"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Sleep</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg</div><div class="legend-item"><span class="legend-color" style="background:#2ecc71; border:1px dotted;"></span> NHS Guideline</div></div></div>
+                    <div class="card"><h4>💤 Nap Suggestions</h4><div id="nap-suggestions"></div></div>
+                    <div class="card"><div class="stat-lbl">Recent Sleep</div><div id="history-sleep" class="history-list"></div></div>
+                </div>
+
+                <!-- ACCOUNT PAGE -->
+                <div id="page-account" class="page">
+                    <div class="card"><h2>👤 Account</h2></div>
+                    <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
+                    <div class="card"><div class="stat-lbl">Family Name</div><div id="account-family-name"></div></div>
+                    <div class="card"><div class="stat-lbl">Family ID</div><div id="account-family-id"></div></div>
+                    <div class="card"><div class="stat-lbl">Invite Code</div><div id="account-invite-code" style="font-size:24px;"></div><button class="save-btn" onclick="window.copyInviteCode()">📋 Copy Code</button></div>
+                    <div class="card"><div class="stat-lbl">Members</div><div id="account-members"></div></div>
+                    <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in your own Google Sheet. We do not share or sell your information. You can delete your account and all associated data at any time.</p></div>
+                    <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.deleteAccount()">🗑️ Delete Account & Data</button></div>
+                    <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.logout()">🚪 Sign Out</button></div>
+                </div>
+            </main>
+        </div>
     </div>
-</div>
 
-<!-- Paywall Overlay -->
-<div id="paywall-overlay" class="paywall-overlay">
-    <div class="card" style="max-width:350px;text-align:center;">
-        <h3>✨ Pro Features</h3>
-        <p>Your 60‑day trial has ended.</p>
-        <p>Upgrade to continue using:</p>
-        <ul style="text-align:left;"><li>Night Mode</li><li>Export Graphs</li><li>History >30 days</li><li>All Pro tabs</li></ul>
-        <p style="font-size:24px;">£2.99 <span style="font-size:14px;">/ month</span></p>
-        <button class="save-btn" onclick="window.upgradeToPro()">Upgrade Now</button>
-        <button style="background:none;border:none;color:var(--text);margin-top:10px;" onclick="window.continueFree()">Continue with Free Plan</button>
+    <!-- Paywall Overlay -->
+    <div id="paywall-overlay" class="paywall-overlay">
+        <div class="card" style="max-width:350px;text-align:center;">
+            <h3>✨ Pro Features</h3>
+            <p>Your 60‑day trial has ended.</p>
+            <p>Upgrade to continue using:</p>
+            <ul style="text-align:left;"><li>Night Mode</li><li>Export Graphs</li><li>History >30 days</li><li>All Pro tabs</li></ul>
+            <p style="font-size:24px;">£2.99 <span style="font-size:14px;">/ month</span></p>
+            <button class="save-btn" onclick="window.upgradeToPro()">Upgrade Now</button>
+            <button style="background:none;border:none;color:var(--text);margin-top:10px;" onclick="window.continueFree()">Continue with Free Plan</button>
+        </div>
     </div>
-</div>
 
-<footer id="fixed-bottom">
-    <div class="footer-action" onclick="window.toggleNight()"><span>🌗</span><span>Night</span></div>
-    <div class="footer-action" onclick="window.toggleUnits()"><span id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span></div>
-    <div class="footer-action" onclick="window.switchTab('account')"><span>👤</span><span>Account</span></div>
-</footer>
+    <footer id="fixed-bottom">
+        <div class="footer-action" onclick="window.toggleNight()"><span>🌗</span><span>Night</span></div>
+        <div class="footer-action" onclick="window.toggleUnits()"><span id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span></div>
+        <div class="footer-action" onclick="window.switchTab('account')"><span>👤</span><span>Account</span></div>
+    </footer>
 
-<script>
-    (function() {
-        const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-        
-        let state = {
-            units: 'UK',
-            tab: 'milk',
-            currentChild: 'Child A',
-            milkMode: 'Pump',
-            milkSide: 'Left',
-            nappyType: 'Wee',
-            logs: [],
-            offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
-            allProducts: [],
-            trialStatus: { daysLeft: 60, isPro: true },
-            children: [
-                { name: 'Child A', color: '#8fbca0' },
-                { name: 'Child B', color: '#f4a261' },
-                { name: 'Child C', color: '#e76f51' },
-                { name: 'Child D', color: '#9b5de5' },
-                { name: 'Child E', color: '#00b4d8' }
-            ],
-            stashBalance: 0,
-            childDOB: null
-        };
+    <script>
+        (function() {
+            const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
 
-        let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
-        let handoverNotes = JSON.parse(localStorage.getItem('handoverNotes') || '{}');
-        let charts = {};
-        let timerInterval = null;
-        let currentCategory = '';
-        let deferredPrompt;
-
-        const percentiles = {
-            weight: {
-                male: [
-                    {age:0, p3:2.5, p50:3.3, p97:4.3},
-                    {age:1, p3:3.0, p50:4.5, p97:5.5},
-                    {age:2, p3:4.0, p50:5.6, p97:7.0},
-                    {age:3, p3:5.0, p50:6.4, p97:8.0},
-                    {age:6, p3:6.6, p50:8.0, p97:10.0},
-                    {age:9, p3:7.8, p50:9.2, p97:11.5},
-                    {age:12, p3:8.8, p50:10.2, p97:12.8}
+            // ==================== STATE ====================
+            let state = {
+                units: 'UK',
+                tab: 'milk',
+                currentChild: 'Child A',
+                milkMode: 'Pump',
+                milkSide: 'Left',
+                nappyType: 'Wee',
+                logs: [],
+                offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
+                allProducts: [],
+                trialStatus: { daysLeft: 60, isPro: true },
+                children: [
+                    { name: 'Child A', color: '#8fbca0' },
+                    { name: 'Child B', color: '#f4a261' },
+                    { name: 'Child C', color: '#e76f51' },
+                    { name: 'Child D', color: '#9b5de5' },
+                    { name: 'Child E', color: '#00b4d8' }
                 ],
-                female: [
-                    {age:0, p3:2.4, p50:3.2, p97:4.2},
-                    {age:1, p3:2.8, p50:4.2, p97:5.0},
-                    {age:2, p3:3.8, p50:5.1, p97:6.4},
-                    {age:3, p3:4.7, p50:5.8, p97:7.4},
-                    {age:6, p3:6.2, p50:7.3, p97:9.0},
-                    {age:9, p3:7.2, p50:8.4, p97:10.2},
-                    {age:12, p3:8.0, p50:9.2, p97:11.2}
-                ]
-            },
-            height: {
-                male: [
-                    {age:0, p3:46, p50:50, p97:54},
-                    {age:1, p3:51, p50:55, p97:59},
-                    {age:2, p3:56, p50:60, p97:64},
-                    {age:3, p3:60, p50:64, p97:68},
-                    {age:6, p3:66, p50:70, p97:74},
-                    {age:9, p3:71, p50:75, p97:79},
-                    {age:12, p3:76, p50:80, p97:84}
-                ],
-                female: [
-                    {age:0, p3:45, p50:49, p97:53},
-                    {age:1, p3:50, p50:54, p97:58},
-                    {age:2, p3:54, p50:58, p97:62},
-                    {age:3, p3:58, p50:62, p97:66},
-                    {age:6, p3:64, p50:68, p97:72},
-                    {age:9, p3:69, p50:73, p97:77},
-                    {age:12, p3:73, p50:77, p97:81}
-                ]
-            }
-        };
-
-        function showError(msg) {
-            const banner = document.getElementById('error-banner');
-            banner.style.display = 'block';
-            banner.textContent = '⚠️ ' + msg;
-            setTimeout(() => banner.style.display = 'none', 5000);
-        }
-        function showBanner(text, type) {
-            const banner = document.getElementById('sync-banner');
-            banner.textContent = text;
-            banner.className = `sync-banner banner-${type}`;
-            banner.style.display = 'block';
-            if (type === 'synced') setTimeout(() => banner.style.display = 'none', 3000);
-        }
-
-        async function processOfflineQueue() {
-            if (!navigator.onLine || state.offlineQueue.length === 0) return;
-            showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
-            const queue = [...state.offlineQueue];
-            for (const item of queue) {
-                try {
-                    const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(item) });
-                    const result = await response.json();
-                    if (result.success) {
-                        state.offlineQueue = state.offlineQueue.filter(i => i.timestamp !== item.timestamp);
-                        state.logs.push(item);
-                    }
-                } catch (e) {}
-            }
-            localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-            if (state.offlineQueue.length === 0) {
-                showBanner('All data synced ✓', 'synced');
-                renderUI();
-            } else {
-                showBanner(`${state.offlineQueue.length} items pending`, 'offline');
-            }
-        }
-        window.addEventListener('online', processOfflineQueue);
-        setInterval(processOfflineQueue, 30000);
-
-        function saveWithOfflineSupport(payload, btnId, defaultText) {
-            const btn = btnId ? document.getElementById(btnId) : null;
-            if (btn) btn.innerText = "Saving...";
-            const attemptSave = async () => {
-                try {
-                    const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                    const result = await response.json();
-                    if (result.success) {
-                        if (btn) btn.innerText = "Saved!";
-                        state.logs.push(payload);
-                        showBanner('Saved to cloud', 'synced');
-                        setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
-                        return true;
-                    }
-                } catch (e) {}
-                return false;
+                stashBalance: 0,
+                childDOB: null
             };
-            if (navigator.onLine) {
-                attemptSave().then(success => {
-                    if (!success) {
-                        state.offlineQueue.push(payload);
-                        localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-                        if (btn) btn.innerText = "Queued (offline)";
-                        showBanner('Saved offline – will sync later', 'offline');
-                        setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
-                    }
-                });
-            } else {
-                state.offlineQueue.push(payload);
-                localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-                if (btn) btn.innerText = "Queued (offline)";
-                showBanner('Saved offline – will sync later', 'offline');
-                setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
-            }
-        }
 
-        function buildChildSelector() {
-            const container = document.getElementById('child-selector-container');
-            container.innerHTML = state.children.map((child, idx) => `
-                <button class="child-btn ${idx === 0 ? 'active' : ''}" data-child="${child.name}" style="border-color: ${child.color};">
-                    👶 ${child.name.charAt(child.name.length-1)}
-                </button>
-            `).join('');
-            if (!state.currentChild) state.currentChild = state.children[0].name;
-            applyChildTheme(state.currentChild);
-            document.querySelectorAll('.child-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => { window.setChild(e.currentTarget.getAttribute('data-child')); });
-            });
-            document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
-            renderHandoverNote();
-        }
-        window.setChild = (childName) => {
-            state.currentChild = childName;
-            document.querySelectorAll('.child-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.getAttribute('data-child') === childName) btn.classList.add('active');
-            });
-            applyChildTheme(childName);
-            document.getElementById('current-child-display').textContent = `👤 ${childName}`;
-            renderHandoverNote();
-            renderUI();
-        };
-        function applyChildTheme(childName) {
-            const child = state.children.find(c => c.name === childName);
-            if (child) {
-                document.documentElement.style.setProperty('--accent', child.color);
-                document.documentElement.style.setProperty('--accent-dark', adjustColor(child.color, -20));
+            let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
+            let handoverNotes = JSON.parse(localStorage.getItem('handoverNotes') || '{}');
+            let charts = {};
+            let timerInterval = null;
+            let currentCategory = '';
+            let deferredPrompt;
+
+            // UK-WHO Percentile Data (simplified)
+            const percentiles = {
+                weight: {
+                    male: [
+                        { age: 0, p3: 2.5, p50: 3.3, p97: 4.3 },
+                        { age: 1, p3: 3.0, p50: 4.5, p97: 5.5 },
+                        { age: 2, p3: 4.0, p50: 5.6, p97: 7.0 },
+                        { age: 3, p3: 5.0, p50: 6.4, p97: 8.0 },
+                        { age: 6, p3: 6.6, p50: 8.0, p97: 10.0 },
+                        { age: 9, p3: 7.8, p50: 9.2, p97: 11.5 },
+                        { age: 12, p3: 8.8, p50: 10.2, p97: 12.8 }
+                    ],
+                    female: [
+                        { age: 0, p3: 2.4, p50: 3.2, p97: 4.2 },
+                        { age: 1, p3: 2.8, p50: 4.2, p97: 5.0 },
+                        { age: 2, p3: 3.8, p50: 5.1, p97: 6.4 },
+                        { age: 3, p3: 4.7, p50: 5.8, p97: 7.4 },
+                        { age: 6, p3: 6.2, p50: 7.3, p97: 9.0 },
+                        { age: 9, p3: 7.2, p50: 8.4, p97: 10.2 },
+                        { age: 12, p3: 8.0, p50: 9.2, p97: 11.2 }
+                    ]
+                },
+                height: {
+                    male: [
+                        { age: 0, p3: 46, p50: 50, p97: 54 },
+                        { age: 1, p3: 51, p50: 55, p97: 59 },
+                        { age: 2, p3: 56, p50: 60, p97: 64 },
+                        { age: 3, p3: 60, p50: 64, p97: 68 },
+                        { age: 6, p3: 66, p50: 70, p97: 74 },
+                        { age: 9, p3: 71, p50: 75, p97: 79 },
+                        { age: 12, p3: 76, p50: 80, p97: 84 }
+                    ],
+                    female: [
+                        { age: 0, p3: 45, p50: 49, p97: 53 },
+                        { age: 1, p3: 50, p50: 54, p97: 58 },
+                        { age: 2, p3: 54, p50: 58, p97: 62 },
+                        { age: 3, p3: 58, p50: 62, p97: 66 },
+                        { age: 6, p3: 64, p50: 68, p97: 72 },
+                        { age: 9, p3: 69, p50: 73, p97: 77 },
+                        { age: 12, p3: 73, p50: 77, p97: 81 }
+                    ]
+                }
+            };
+
+            // ==================== UTILS ====================
+            function showError(msg) {
+                const banner = document.getElementById('error-banner');
+                banner.style.display = 'block';
+                banner.textContent = '⚠️ ' + msg;
+                setTimeout(() => banner.style.display = 'none', 5000);
             }
-        }
-        function adjustColor(hex, percent) {
-            let R = parseInt(hex.substring(1,3),16), G = parseInt(hex.substring(3,5),16), B = parseInt(hex.substring(5,7),16);
-            R = Math.max(0, R + percent); G = Math.max(0, G + percent); B = Math.max(0, B + percent);
-            return `#${((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1)}`;
-        }
-        function renderHandoverNote() {
-            const container = document.getElementById('handover-note-container');
-            const note = handoverNotes[state.currentChild] || '';
-            container.innerHTML = `<div style="display:flex; justify-content:space-between;"><strong>📝 Handover Note</strong><span style="cursor:pointer;" onclick="window.editHandoverNote()">✏️</span></div><div style="margin-top:5px;">${note || 'No note yet. Tap ✏️ to add.'}</div>`;
-        }
-        window.editHandoverNote = () => {
-            const newNote = prompt('Enter handover note for caregivers:', handoverNotes[state.currentChild] || '');
-            if (newNote !== null) {
-                handoverNotes[state.currentChild] = newNote;
-                localStorage.setItem('handoverNotes', JSON.stringify(handoverNotes));
+
+            function showBanner(text, type) {
+                const banner = document.getElementById('sync-banner');
+                banner.textContent = text;
+                banner.className = `sync-banner banner-${type}`;
+                banner.style.display = 'block';
+                if (type === 'synced') setTimeout(() => banner.style.display = 'none', 3000);
+            }
+
+            async function processOfflineQueue() {
+                if (!navigator.onLine || state.offlineQueue.length === 0) return;
+                showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
+                const queue = [...state.offlineQueue];
+                for (const item of queue) {
+                    try {
+                        const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(item) });
+                        const result = await response.json();
+                        if (result.success) {
+                            state.offlineQueue = state.offlineQueue.filter(i => i.timestamp !== item.timestamp);
+                            state.logs.push(item);
+                        }
+                    } catch (e) {}
+                }
+                localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+                if (state.offlineQueue.length === 0) {
+                    showBanner('All data synced ✓', 'synced');
+                    renderUI();
+                } else {
+                    showBanner(`${state.offlineQueue.length} items pending`, 'offline');
+                }
+            }
+            window.addEventListener('online', processOfflineQueue);
+            setInterval(processOfflineQueue, 30000);
+
+            function saveWithOfflineSupport(payload, btnId, defaultText) {
+                const btn = btnId ? document.getElementById(btnId) : null;
+                if (btn) btn.innerText = "Saving...";
+                const attemptSave = async () => {
+                    try {
+                        const response = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                        const result = await response.json();
+                        if (result.success) {
+                            if (btn) btn.innerText = "Saved!";
+                            state.logs.push(payload);
+                            showBanner('Saved to cloud', 'synced');
+                            setTimeout(() => { if (btn) btn.innerText = defaultText;
+                                renderUI(); }, 1000);
+                            return true;
+                        }
+                    } catch (e) {}
+                    return false;
+                };
+                if (navigator.onLine) {
+                    attemptSave().then(success => {
+                        if (!success) {
+                            state.offlineQueue.push(payload);
+                            localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+                            if (btn) btn.innerText = "Queued (offline)";
+                            showBanner('Saved offline – will sync later', 'offline');
+                            setTimeout(() => { if (btn) btn.innerText = defaultText;
+                                renderUI(); }, 1000);
+                        }
+                    });
+                } else {
+                    state.offlineQueue.push(payload);
+                    localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+                    if (btn) btn.innerText = "Queued (offline)";
+                    showBanner('Saved offline – will sync later', 'offline');
+                    setTimeout(() => { if (btn) btn.innerText = defaultText;
+                        renderUI(); }, 1000);
+                }
+            }
+
+            // Child management
+            function buildChildSelector() {
+                const container = document.getElementById('child-selector-container');
+                container.innerHTML = state.children.map((child, idx) => `
+                    <button class="child-btn ${idx === 0 ? 'active' : ''}" data-child="${child.name}" style="border-color: ${child.color};">
+                        👶 ${child.name.charAt(child.name.length-1)}
+                    </button>
+                `).join('');
+                if (!state.currentChild) state.currentChild = state.children[0].name;
+                applyChildTheme(state.currentChild);
+                document.querySelectorAll('.child-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        window.setChild(e.currentTarget.getAttribute('data-child'));
+                    });
+                });
+                document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
                 renderHandoverNote();
             }
-        };
+            window.setChild = (childName) => {
+                state.currentChild = childName;
+                document.querySelectorAll('.child-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                    if (btn.getAttribute('data-child') === childName) btn.classList.add('active');
+                });
+                applyChildTheme(childName);
+                document.getElementById('current-child-display').textContent = `👤 ${childName}`;
+                renderHandoverNote();
+                renderUI();
+            };
 
-        window.createFamily = async () => {
-            const familyName = document.getElementById('family-name').value.trim() || 'My Family';
-            const payload = { action: 'createFamily', user: window.auth.currentUser.email, familyName };
-            try {
-                const resp = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await resp.json();
-                if (result.familyId) {
-                    localStorage.setItem('familySetupComplete', 'true');
-                    alert(`Family created! Your invite code is: ${result.inviteCode}\n\nShare this with your partner.`);
-                    window.initApp();
+            function applyChildTheme(childName) {
+                const child = state.children.find(c => c.name === childName);
+                if (child) {
+                    document.documentElement.style.setProperty('--accent', child.color);
+                    document.documentElement.style.setProperty('--accent-dark', adjustColor(child.color, -20));
                 }
-            } catch(e) { showError('Could not create family'); }
-        };
-        window.joinFamily = async () => {
-            const code = document.getElementById('invite-code').value.trim().toUpperCase();
-            if (!code) return alert('Enter invite code');
-            const payload = { action: 'joinFamily', user: window.auth.currentUser.email, inviteCode: code };
-            try {
-                const resp = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await resp.json();
-                if (result.success) {
-                    localStorage.setItem('familySetupComplete', 'true');
-                    alert('Successfully joined family!');
-                    window.initApp();
-                } else {
-                    alert('Invalid invite code');
-                }
-            } catch(e) { showError('Could not join family'); }
-        };
-
-        function updateTrialBanner() {
-            const banner = document.getElementById('trial-banner');
-            if (!banner) return;
-            if (state.trialStatus.isPro) {
-                banner.style.display = 'none';
-                return;
             }
-            const days = state.trialStatus.daysLeft;
-            banner.style.display = 'block';
-            banner.textContent = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
-            banner.className = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
-        }
-        setInterval(() => {
-            if (state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--;
-            updateTrialBanner();
-        }, 1000 * 60 * 60 * 24);
-        async function checkTrialStatus() {
-            try {
-                const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
-                state.trialStatus = await resp.json();
-                if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0) showPaywall();
+
+            function adjustColor(hex, percent) {
+                let R = parseInt(hex.substring(1, 3), 16),
+                    G = parseInt(hex.substring(3, 5), 16),
+                    B = parseInt(hex.substring(5, 7), 16);
+                R = Math.max(0, R + percent);
+                G = Math.max(0, G + percent);
+                B = Math.max(0, B + percent);
+                return `#${((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1)}`;
+            }
+
+            function renderHandoverNote() {
+                const container = document.getElementById('handover-note-container');
+                const note = handoverNotes[state.currentChild] || '';
+                container.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>📝 Handover Note</strong>
+                        <span style="cursor:pointer;" onclick="window.editHandoverNote()">✏️</span>
+                    </div>
+                    <div style="margin-top:5px;">${note || 'No note yet. Tap ✏️ to add.'}</div>
+                `;
+            }
+            window.editHandoverNote = () => {
+                const newNote = prompt('Enter handover note for caregivers:', handoverNotes[state.currentChild] || '');
+                if (newNote !== null) {
+                    handoverNotes[state.currentChild] = newNote;
+                    localStorage.setItem('handoverNotes', JSON.stringify(handoverNotes));
+                    renderHandoverNote();
+                }
+            };
+
+            // Family setup
+            window.createFamily = async () => {
+                const familyName = document.getElementById('family-name').value.trim() || 'My Family';
+                const payload = { action: 'createFamily', user: window.auth.currentUser.email, familyName };
+                try {
+                    const resp = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const result = await resp.json();
+                    if (result.familyId) {
+                        localStorage.setItem('familySetupComplete', 'true');
+                        alert(`Family created! Your invite code is: ${result.inviteCode}\n\nShare this with your partner.`);
+                        window.initApp();
+                    }
+                } catch (e) { showError('Could not create family'); }
+            };
+            window.joinFamily = async () => {
+                const code = document.getElementById('invite-code').value.trim().toUpperCase();
+                if (!code) return alert('Enter invite code');
+                const payload = { action: 'joinFamily', user: window.auth.currentUser.email, inviteCode: code };
+                try {
+                    const resp = await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    const result = await resp.json();
+                    if (result.success) {
+                        localStorage.setItem('familySetupComplete', 'true');
+                        alert('Successfully joined family!');
+                        window.initApp();
+                    } else {
+                        alert('Invalid invite code');
+                    }
+                } catch (e) { showError('Could not join family'); }
+            };
+
+            // Trial
+            function updateTrialBanner() {
+                const banner = document.getElementById('trial-banner');
+                if (!banner) return;
+                if (state.trialStatus.isPro) {
+                    banner.style.display = 'none';
+                    return;
+                }
+                const days = state.trialStatus.daysLeft;
+                banner.style.display = 'block';
+                banner.textContent = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
+                banner.className = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
+            }
+            setInterval(() => {
+                if (state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--;
+                updateTrialBanner();
+            }, 1000 * 60 * 60 * 24);
+            async function checkTrialStatus() {
+                try {
+                    const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
+                    state.trialStatus = await resp.json();
+                    if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0) showPaywall();
+                    updateProUI();
+                    updateTrialBanner();
+                } catch (e) { state.trialStatus = { daysLeft: 60, isPro: true }; }
+            }
+
+            function updateProUI() {
+                const isPro = state.trialStatus.isPro;
+                document.querySelectorAll('.pro-only').forEach(el => el.style.display = isPro ? 'flex' : 'none');
+                const nightBtn = document.querySelector('.footer-action[onclick*="toggleNight"]');
+                if (nightBtn) nightBtn.style.display = isPro ? 'flex' : 'none';
+            }
+
+            function showPaywall() { document.getElementById('paywall-overlay').style.display = 'flex'; }
+            window.upgradeToPro = () => {
+                alert('Upgrade flow would go here. For now, enjoy Pro!');
+                state.trialStatus.isPro = true;
+                document.getElementById('paywall-overlay').style.display = 'none';
                 updateProUI();
                 updateTrialBanner();
-            } catch(e) { state.trialStatus = { daysLeft: 60, isPro: true }; }
-        }
-        function updateProUI() {
-            const isPro = state.trialStatus.isPro;
-            document.querySelectorAll('.pro-only').forEach(el => el.style.display = isPro ? 'flex' : 'none');
-            const nightBtn = document.querySelector('.footer-action[onclick*="toggleNight"]');
-            if (nightBtn) nightBtn.style.display = isPro ? 'flex' : 'none';
-        }
-        function showPaywall() { document.getElementById('paywall-overlay').style.display = 'flex'; }
-        window.upgradeToPro = () => {
-            alert('Upgrade flow would go here. For now, enjoy Pro!');
-            state.trialStatus.isPro = true;
-            document.getElementById('paywall-overlay').style.display = 'none';
-            updateProUI();
-            updateTrialBanner();
-            renderUI();
-        };
-        window.continueFree = () => {
-            state.trialStatus.isPro = false;
-            document.getElementById('paywall-overlay').style.display = 'none';
-            updateProUI();
-            updateTrialBanner();
-            renderUI();
-        };
-        window.toggleNight = () => {
-            if (!state.trialStatus.isPro) return showPaywall();
-            document.body.classList.toggle('night');
-        };
-
-        // ---------- DATA LOADING & DELETE ----------
-        window.refreshData = async () => {
-            if(!window.auth?.currentUser) return;
-            document.getElementById('loading-indicator').style.display = 'block';
-            try {
-                const response = await fetch(`${GOOGLE_URL}?type=logs&email=${window.auth.currentUser.email}`);
-                const data = await response.json();
-                state.logs = Array.isArray(data) ? data : [];
                 renderUI();
-            } catch (error) { showError('Could not load data.'); }
-            finally { document.getElementById('loading-indicator').style.display = 'none'; }
-        };
-        window.deleteEntry = async (timestamp) => {
-            if(!confirm('Delete this entry?')) return;
-            const payload = { action: 'delete', timestamp, user: window.auth.currentUser.email };
-            try {
-                await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
-                state.logs = state.logs.filter(l => l.timestamp !== timestamp);
+            };
+            window.continueFree = () => {
+                state.trialStatus.isPro = false;
+                document.getElementById('paywall-overlay').style.display = 'none';
+                updateProUI();
+                updateTrialBanner();
                 renderUI();
-            } catch(e) { showError('Network error during delete'); }
-        };
-
-        // ---------- SAVE FUNCTIONS ----------
-        window.saveData = (category) => {
-            const isMilk = category === 'Milk';
-            const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
-            let val = parseFloat(amtInput.value);
-            if(isNaN(val)) return alert("Please enter a valid amount");
-            if(state.units === 'US') val = val * 29.5735;
-            const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
-            const timeId = isMilk ? 'milkTime' : 'formulaTime';
-            const payload = {
-                action: 'save',
-                timestamp: new Date(document.getElementById(timeId).value).toISOString(),
-                category: category,
-                value: Math.round(val),
-                detail: detail,
-                user: window.auth.currentUser.email,
-                child: state.currentChild
             };
-            amtInput.value = '';
-            saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
-        };
-
-        window.saveSkin = () => {
-            const start = new Date(document.getElementById('skinStart').value);
-            const end = new Date(document.getElementById('skinEnd').value);
-            const mins = Math.round((end - start) / 60000);
-            if(mins <= 0) return alert("End time must be after start time");
-            const payload = {
-                action: 'save',
-                timestamp: start.toISOString(),
-                category: 'SkinToSkin',
-                value: mins,
-                detail: 'Session',
-                user: window.auth.currentUser.email,
-                child: state.currentChild
+            window.toggleNight = () => {
+                if (!state.trialStatus.isPro) return showPaywall();
+                document.body.classList.toggle('night');
             };
-            saveWithOfflineSupport(payload, 'btn-save-skin', 'Save Skin-to-Skin');
-            window.resetTimeInputs();
-        };
 
-        window.saveTummyTime = () => {
-            const start = new Date(document.getElementById('tummyStart').value);
-            const end = new Date(document.getElementById('tummyEnd').value);
-            const mins = Math.round((end - start) / 60000);
-            if(mins <= 0) return alert("End time must be after start time");
-            const payload = {
-                action: 'save',
-                timestamp: start.toISOString(),
-                category: 'TummyTime',
-                value: mins,
-                detail: 'Tummy Time',
-                user: window.auth.currentUser.email,
-                child: state.currentChild
-            };
-            saveWithOfflineSupport(payload, 'btn-save-tummy', 'Save Tummy Time');
-            window.resetTimeInputs();
-        };
-
-        window.saveNappy = () => {
-            const time = new Date(document.getElementById('nappyTime').value).toISOString();
-            if (state.nappyType === 'Both') {
-                saveWithOfflineSupport({
-                    action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Wee',
-                    user: window.auth.currentUser.email, child: state.currentChild
-                }, null, null);
-                setTimeout(() => saveWithOfflineSupport({
-                    action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Poo',
-                    user: window.auth.currentUser.email, child: state.currentChild
-                }, null, null), 100);
-                document.getElementById('btn-save-nappy').innerText = 'Saved!';
-                setTimeout(() => { document.getElementById('btn-save-nappy').innerText = 'Log Nappy'; renderUI(); }, 1000);
-            } else {
-                saveWithOfflineSupport({
-                    action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: state.nappyType,
-                    user: window.auth.currentUser.email, child: state.currentChild
-                }, 'btn-save-nappy', 'Log Nappy');
-            }
-        };
-
-        window.saveMedication = () => {
-            const name = document.getElementById('medName').value.trim();
-            if (!name) return alert("Please enter medication name");
-            const dosage = document.getElementById('medDosage').value.trim();
-            const time = new Date(document.getElementById('medTime').value).toISOString();
-            const payload = {
-                action: 'save', timestamp: time, category: 'Medication', value: 0,
-                detail: `${name}|${dosage}`, user: window.auth.currentUser.email, child: state.currentChild
-            };
-            document.getElementById('medName').value = '';
-            document.getElementById('medDosage').value = '';
-            saveWithOfflineSupport(payload, 'btn-save-med', 'Log Medication');
-            window.resetTimeInputs();
-        };
-
-        window.saveHospitalNote = () => {
-            const hospital = document.getElementById('hospitalName').value.trim();
-            if (!hospital) return alert("Please enter hospital name");
-            const notes = document.getElementById('hospitalNotes').value.trim();
-            const time = new Date(document.getElementById('hospitalTime').value).toISOString();
-            const payload = {
-                action: 'save', timestamp: time, category: 'HospitalNote', value: 0,
-                detail: `${hospital}|${notes}`, user: window.auth.currentUser.email, child: state.currentChild
-            };
-            document.getElementById('hospitalName').value = '';
-            document.getElementById('hospitalNotes').value = '';
-            saveWithOfflineSupport(payload, 'btn-save-hospital', 'Save Note');
-            window.resetTimeInputs();
-        };
-
-        window.saveSleep = () => {
-            const start = new Date(document.getElementById('sleepStart').value);
-            const end = new Date(document.getElementById('sleepEnd').value);
-            const mins = Math.round((end - start) / 60000);
-            if (mins <= 0) return alert("End time must be after start time");
-            const payload = {
-                action: 'save', timestamp: start.toISOString(), category: 'Sleep', value: mins,
-                detail: 'Sleep', user: window.auth.currentUser.email, child: state.currentChild
-            };
-            saveWithOfflineSupport(payload, 'btn-save-sleep', 'Save Sleep');
-            window.resetTimeInputs();
-        };
-
-        window.saveGrowth = () => {
-            const date = document.getElementById('measure-date').value;
-            let weight = null, height = null;
-            if (state.units === 'US') {
-                const lbs = parseFloat(document.getElementById('weight-lbs').value);
-                const oz = parseFloat(document.getElementById('weight-oz').value);
-                if (!isNaN(lbs) || !isNaN(oz)) {
-                    const totalOz = (isNaN(lbs)?0:lbs) * 16 + (isNaN(oz)?0:oz);
-                    weight = totalOz * 0.0283495;
-                }
-            } else {
-                weight = parseFloat(document.getElementById('weight-kg').value);
-            }
-            height = parseFloat(document.getElementById('height-cm').value);
-            if (!date || (isNaN(weight) && isNaN(height))) return alert('Enter at least one measurement');
-            const payload = {
-                action: 'save', timestamp: new Date(date).toISOString(), category: 'Growth', value: 0,
-                detail: `${isNaN(weight)?'':weight.toFixed(2)}|${isNaN(height)?'':height.toFixed(1)}`,
-                user: window.auth.currentUser.email, child: state.currentChild
-            };
-            // clear inputs
-            if (state.units === 'US') { document.getElementById('weight-lbs').value = ''; document.getElementById('weight-oz').value = ''; }
-            else { document.getElementById('weight-kg').value = ''; }
-            document.getElementById('height-cm').value = '';
-            saveWithOfflineSupport(payload, 'btn-save-growth', 'Save Measurement');
-        };
-
-        // Other saves (milestone, appointment, private notes) unchanged – included full code if needed.
-
-        // ==================== UI RENDERING ====================
-        const groupByDay = (logs, key='value') => {
-            const daily = {};
-            logs.forEach(l => { const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'}); daily[d] = (daily[d]||0) + Number(l[key]); });
-            return daily;
-        };
-        const movingAvg = (obj, days=7) => {
-            const dates = Object.keys(obj).sort((a,b) => new Date(a)-new Date(b));
-            const vals = dates.map(d => obj[d]);
-            const avg = [];
-            for (let i=0; i<vals.length; i++) {
-                if (i < days-1) avg.push(null);
-                else avg.push(vals.slice(i-days+1, i+1).reduce((a,b)=>a+b,0)/days);
-            }
-            return { dates, movingAvg: avg };
-        };
-        const supplyStatus = (pump, feed) => { /* unchanged */ };
-
-        function drawChart(id, datasets, opts={}) { /* unchanged */ }
-
-        function renderMedicationTimers() { /* unchanged */ }
-
-        const renderUI = () => {
-            try {
-                const child = state.logs.filter(l => l.child === state.currentChild);
-                const isUS = state.units==='US';
-                const conv = v => isUS ? (v/29.5735).toFixed(1) : Math.round(v);
-                const unit = isUS ? 'oz' : 'ml';
-                document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
-                document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
-
-                // Units display
-                if (isUS) {
-                    document.getElementById('weight-inputs').style.display = 'none';
-                    document.getElementById('us-weight-inputs').style.display = 'flex';
-                } else {
-                    document.getElementById('weight-inputs').style.display = 'flex';
-                    document.getElementById('us-weight-inputs').style.display = 'none';
-                }
-
-                // ... full rendering code from previous update (includes growth, sleep, nappy, stats)
-
-                // For brevity, the full renderUI() is present in the complete code above; it includes growth charts in stats.
-                // This placeholder indicates the full function is in the provided HTML. (The actual full renderUI is included in the file).
-            } catch(e) { console.error(e); showError('Display error: '+e.message); }
-        };
-
-        // ==================== INIT ====================
-        window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
-        window.initApp = async () => {
-            if (!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
-            const familyComplete = localStorage.getItem('familySetupComplete');
-            if (!familyComplete) {
+            // Data
+            window.refreshData = async () => {
+                if (!window.auth?.currentUser) return;
+                document.getElementById('loading-indicator').style.display = 'block';
                 try {
-                    const resp = await fetch(`${GOOGLE_URL}?type=family&email=${window.auth.currentUser.email}`);
-                    const data = await resp.json();
-                    if (!data.familyId) {
-                        document.getElementById('page-family-setup').style.display='block';
-                        document.getElementById('main-app').style.display='none';
-                        return;
-                    } else localStorage.setItem('familySetupComplete','true');
-                } catch(e) {}
+                    const response = await fetch(`${GOOGLE_URL}?type=logs&email=${window.auth.currentUser.email}`);
+                    const data = await response.json();
+                    state.logs = Array.isArray(data) ? data : [];
+                    renderUI();
+                } catch (error) { showError('Could not load data.'); } finally { document.getElementById(
+                        'loading-indicator').style.display = 'none'; }
+            };
+            window.deleteEntry = async (timestamp) => {
+                if (!confirm('Delete this entry?')) return;
+                const payload = { action: 'delete', timestamp, user: window.auth.currentUser.email };
+                try {
+                    await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+                    state.logs = state.logs.filter(l => l.timestamp !== timestamp);
+                    renderUI();
+                } catch (e) { showError('Network error during delete'); }
+            };
+
+            // ==================== SAVE FUNCTIONS ====================
+            window.saveData = (category) => {
+                const isMilk = category === 'Milk';
+                const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
+                let val = parseFloat(amtInput.value);
+                if (isNaN(val)) return alert("Please enter a valid amount");
+                if (state.units === 'US') val = val * 29.5735;
+                const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
+                const timeId = isMilk ? 'milkTime' : 'formulaTime';
+                const payload = {
+                    action: 'save',
+                    timestamp: new Date(document.getElementById(timeId).value).toISOString(),
+                    category: category,
+                    value: Math.round(val),
+                    detail: detail,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                amtInput.value = '';
+                saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+            };
+
+            window.saveSkin = () => {
+                const start = new Date(document.getElementById('skinStart').value);
+                const end = new Date(document.getElementById('skinEnd').value);
+                const mins = Math.round((end - start) / 60000);
+                if (mins <= 0) return alert("End time must be after start time");
+                const payload = {
+                    action: 'save',
+                    timestamp: start.toISOString(),
+                    category: 'SkinToSkin',
+                    value: mins,
+                    detail: 'Session',
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                saveWithOfflineSupport(payload, 'btn-save-skin', 'Save Skin-to-Skin');
+                window.resetTimeInputs();
+            };
+
+            window.saveTummyTime = () => {
+                const start = new Date(document.getElementById('tummyStart').value);
+                const end = new Date(document.getElementById('tummyEnd').value);
+                const mins = Math.round((end - start) / 60000);
+                if (mins <= 0) return alert("End time must be after start time");
+                const payload = {
+                    action: 'save',
+                    timestamp: start.toISOString(),
+                    category: 'TummyTime',
+                    value: mins,
+                    detail: 'Tummy Time',
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                saveWithOfflineSupport(payload, 'btn-save-tummy', 'Save Tummy Time');
+                window.resetTimeInputs();
+            };
+
+            window.saveNappy = () => {
+                const time = new Date(document.getElementById('nappyTime').value).toISOString();
+                if (state.nappyType === 'Both') {
+                    saveWithOfflineSupport({
+                        action: 'save',
+                        timestamp: time,
+                        category: 'Nappy',
+                        value: 1,
+                        detail: 'Wee',
+                        user: window.auth.currentUser.email,
+                        child: state.currentChild
+                    }, null, null);
+                    setTimeout(() => saveWithOfflineSupport({
+                        action: 'save',
+                        timestamp: time,
+                        category: 'Nappy',
+                        value: 1,
+                        detail: 'Poo',
+                        user: window.auth.currentUser.email,
+                        child: state.currentChild
+                    }, null, null), 100);
+                    document.getElementById('btn-save-nappy').innerText = 'Saved!';
+                    setTimeout(() => {
+                        document.getElementById('btn-save-nappy').innerText = 'Log Nappy';
+                        renderUI();
+                    }, 1000);
+                } else {
+                    saveWithOfflineSupport({
+                        action: 'save',
+                        timestamp: time,
+                        category: 'Nappy',
+                        value: 1,
+                        detail: state.nappyType,
+                        user: window.auth.currentUser.email,
+                        child: state.currentChild
+                    }, 'btn-save-nappy', 'Log Nappy');
+                }
+            };
+
+            window.saveMedication = () => {
+                const name = document.getElementById('medName').value.trim();
+                if (!name) return alert("Please enter medication name");
+                const dosage = document.getElementById('medDosage').value.trim();
+                const time = new Date(document.getElementById('medTime').value).toISOString();
+                const payload = {
+                    action: 'save',
+                    timestamp: time,
+                    category: 'Medication',
+                    value: 0,
+                    detail: `${name}|${dosage}`,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                document.getElementById('medName').value = '';
+                document.getElementById('medDosage').value = '';
+                saveWithOfflineSupport(payload, 'btn-save-med', 'Log Medication');
+                window.resetTimeInputs();
+            };
+
+            window.saveHospitalNote = () => {
+                const hospital = document.getElementById('hospitalName').value.trim();
+                if (!hospital) return alert("Please enter hospital name");
+                const notes = document.getElementById('hospitalNotes').value.trim();
+                const time = new Date(document.getElementById('hospitalTime').value).toISOString();
+                const payload = {
+                    action: 'save',
+                    timestamp: time,
+                    category: 'HospitalNote',
+                    value: 0,
+                    detail: `${hospital}|${notes}`,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                document.getElementById('hospitalName').value = '';
+                document.getElementById('hospitalNotes').value = '';
+                saveWithOfflineSupport(payload, 'btn-save-hospital', 'Save Note');
+                window.resetTimeInputs();
+            };
+
+            window.saveSleep = () => {
+                const start = new Date(document.getElementById('sleepStart').value);
+                const end = new Date(document.getElementById('sleepEnd').value);
+                const mins = Math.round((end - start) / 60000);
+                if (mins <= 0) return alert("End time must be after start time");
+                const payload = {
+                    action: 'save',
+                    timestamp: start.toISOString(),
+                    category: 'Sleep',
+                    value: mins,
+                    detail: 'Sleep',
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                saveWithOfflineSupport(payload, 'btn-save-sleep', 'Save Sleep');
+                window.resetTimeInputs();
+            };
+
+            window.saveGrowth = () => {
+                const date = document.getElementById('measure-date').value;
+                let weight = null,
+                    height = null;
+                if (state.units === 'US') {
+                    const lbs = parseFloat(document.getElementById('weight-lbs').value);
+                    const oz = parseFloat(document.getElementById('weight-oz').value);
+                    if (!isNaN(lbs) || !isNaN(oz)) {
+                        const totalOz = (isNaN(lbs) ? 0 : lbs) * 16 + (isNaN(oz) ? 0 : oz);
+                        weight = totalOz * 0.0283495;
+                    }
+                } else {
+                    weight = parseFloat(document.getElementById('weight-kg').value);
+                }
+                height = parseFloat(document.getElementById('height-cm').value);
+                if (!date || (isNaN(weight) && isNaN(height))) return alert('Enter at least one measurement');
+                const payload = {
+                    action: 'save',
+                    timestamp: new Date(date).toISOString(),
+                    category: 'Growth',
+                    value: 0,
+                    detail: `${isNaN(weight)?'':weight.toFixed(2)}|${isNaN(height)?'':height.toFixed(1)}`,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                if (state.units === 'US') {
+                    document.getElementById('weight-lbs').value = '';
+                    document.getElementById('weight-oz').value = '';
+                } else {
+                    document.getElementById('weight-kg').value = '';
+                }
+                document.getElementById('height-cm').value = '';
+                saveWithOfflineSupport(payload, 'btn-save-growth', 'Save Measurement');
+            };
+
+            window.savePrivateNote = () => {
+                const title = document.getElementById('note-title').value.trim();
+                const content = document.getElementById('note-content').value.trim();
+                if (!title) return alert('Please enter a title');
+                const note = { id: Date.now(), title, content, updated: new Date().toISOString() };
+                privateNotes.push(note);
+                localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+                document.getElementById('note-title').value = '';
+                document.getElementById('note-content').value = '';
+                renderPrivateNotes();
+            };
+            window.deletePrivateNote = (id) => {
+                if (!confirm('Delete this note?')) return;
+                privateNotes = privateNotes.filter(n => n.id !== id);
+                localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+                renderPrivateNotes();
+            };
+
+            function renderPrivateNotes() {
+                const container = document.getElementById('private-notes-list');
+                if (!container) return;
+                if (privateNotes.length === 0) {
+                    container.innerHTML =
+                        '<div style="text-align:center; padding:15px; opacity:0.6;">No private notes yet</div>';
+                    return;
+                }
+                const sorted = [...privateNotes].sort((a, b) => new Date(b.updated) - new Date(a.updated));
+                container.innerHTML = sorted.map(note => `
+                    <div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>
+                `).join('');
             }
-            await checkTrialStatus();
-            document.getElementById('page-family-setup').style.display='none';
-            document.getElementById('main-app').style.display='block';
-            buildChildSelector();
-            window.resetTimeInputs();
-            document.querySelectorAll('.pro-only').forEach(el => el.style.display = state.trialStatus.isPro ? 'flex' : 'none');
-            await window.refreshData();
-            if (state.tab === 'deals') loadProducts();
-            if (state.tab === 'stash') fetchStashBalance();
-            if (state.tab === 'account') loadAccountDetails();
-            if (state.tab === 'growth') renderGrowthChart('chart-growth-weight', 'weight');
-            if (state.tab === 'sleep') renderSleepChart();
-            renderUI();
-        };
-        window.resetTimeInputs = () => { /* unchanged */ };
-        window.toggleUnits = () => { /* unchanged */ };
-        window.switchTab = (tabId) => { /* unchanged */ };
-        window.setParam = (param, value) => { /* unchanged */ };
-        if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
-    })();
-</script>
+
+            window.saveMilestone = () => {
+                const title = document.getElementById('milestone-title').value.trim();
+                if (!title) return alert('Please enter a milestone title');
+                const notes = document.getElementById('milestone-notes').value.trim();
+                const payload = {
+                    action: 'save',
+                    timestamp: new Date().toISOString(),
+                    category: 'Milestone',
+                    value: 0,
+                    detail: `${title}|${notes}`,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                document.getElementById('milestone-title').value = '';
+                document.getElementById('milestone-notes').value = '';
+                saveWithOfflineSupport(payload, 'btn-save-milestone', 'Save Milestone');
+            };
+
+            window.saveAppointment = () => {
+                const dt = document.getElementById('apptDateTime').value;
+                if (!dt) return alert('Please select date/time');
+                const title = document.getElementById('apptTitle').value.trim();
+                if (!title) return alert('Please enter a title');
+                const location = document.getElementById('apptLocation').value.trim();
+                const notes = document.getElementById('apptNotes').value.trim();
+                const payload = {
+                    action: 'save',
+                    timestamp: new Date(dt).toISOString(),
+                    category: 'Appointment',
+                    value: 0,
+                    detail: `${title}|${location}|${notes}`,
+                    user: window.auth.currentUser.email,
+                    child: state.currentChild
+                };
+                document.getElementById('apptTitle').value = '';
+                document.getElementById('apptLocation').value = '';
+                document.getElementById('apptNotes').value = '';
+                saveWithOfflineSupport(payload, 'btn-save-appointment', 'Save Appointment');
+                window.resetTimeInputs();
+            };
+
+            window.saveDOB = () => {
+                const dob = document.getElementById('child-dob').value;
+                state.childDOB = dob;
+                localStorage.setItem(`dob_${state.currentChild}`, dob);
+                renderGrowthChart('chart-growth-weight', 'weight');
+                renderGrowthChart('chart-growth-height', 'height');
+            };
+
+            // ==================== RENDER GROWTH CHARTS ====================
+            function renderGrowthChart(elementId, type) {
+                const dob = state.childDOB || localStorage.getItem(`dob_${state.currentChild}`);
+                if (!dob) {
+                    const ctx = document.getElementById(elementId).getContext('2d');
+                    if (charts[elementId]) charts[elementId].destroy();
+                    charts[elementId] = new Chart(ctx, { type: 'line', data: { labels: ['No DOB set'], datasets: [] },
+                        options: { plugins: { title: { display: true, text: 'Set DOB first' } } } });
+                    return;
+                }
+                const growthLogs = state.logs.filter(l => l.child === state.currentChild && l.category ===
+                    'Growth');
+                const data = type === 'weight' ?
+                    growthLogs.filter(l => l.detail.split('|')[0] !== '').map(l => ({
+                        age: (new Date(l.timestamp) - new Date(dob)) / (1000 * 60 * 60 * 24 * 30.4375),
+                        value: parseFloat(l.detail.split('|')[0])
+                    })) :
+                    growthLogs.filter(l => l.detail.split('|')[1] !== '').map(l => ({
+                        age: (new Date(l.timestamp) - new Date(dob)) / (1000 * 60 * 60 * 24 * 30.4375),
+                        height: parseFloat(l.detail.split('|')[1])
+                    }));
+                if (data.length === 0) {
+                    const ctx = document.getElementById(elementId).getContext('2d');
+                    if (charts[elementId]) charts[elementId].destroy();
+                    charts[elementId] = new Chart(ctx, { type: 'line', data: { labels: ['No data'], datasets: [] },
+                        options: { plugins: { title: { display: true, text: 'Add measurements' } } } });
+                    return;
+                }
+                const refData = percentiles[type].male;
+                const datasets = [
+                    { label: 'P3', data: refData.map(p => ({ x: p.age, y: p.p3 })), borderColor: '#ccc',
+                        showLine: true, pointRadius: 0 },
+                    { label: 'P50', data: refData.map(p => ({ x: p.age, y: p.p50 })), borderColor: '#888',
+                        showLine: true, pointRadius: 0 },
+                    { label: 'P97', data: refData.map(p => ({ x: p.age, y: p.p97 })), borderColor: '#ccc',
+                        showLine: true, pointRadius: 0 },
+                    { label: 'Your Child', data: data.map(d => ({ x: d.age, y: type === 'weight' ? d.value : d
+                            .height })), backgroundColor: '#ff6384', pointRadius: 5 }
+                ];
+                const ctx = document.getElementById(elementId).getContext('2d');
+                if (charts[elementId]) charts[elementId].destroy();
+                charts[elementId] = new Chart(ctx, {
+                    type: 'scatter',
+                    data: { datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            x: { title: { display: true, text: 'Age (months)' } },
+                            y: { title: { display: true, text: type === 'weight' ? 'Weight (kg)' :
+                                    'Height (cm)' } }
+                        }
+                    }
+                });
+                const latest = data[data.length - 1];
+                const ref = refData.reduce((prev, curr) => (latest.age >= curr.age ? curr : prev));
+                const pct = ref ? Math.round((latest.value - ref.p3) / (ref.p97 - ref.p3) * 100) : 0;
+                const displayId = elementId.includes('weight') ? 'weight-percentile' : 'height-percentile';
+                const statsDisplayId = elementId.includes('stats') ? (type === 'weight' ? 'weight-percentile-stats' :
+                    'height-percentile-stats') : null;
+                if (elementId.includes('stats')) {
+                    document.getElementById(statsDisplayId).textContent =
+                        `Approx. percentile: ${pct}% (vs UK-WHO)`;
+                } else {
+                    document.getElementById(displayId).textContent = `Approx. percentile: ${pct}% (vs UK-WHO)`;
+                }
+            }
+
+            // ==================== CHART DRAWING HELPERS ====================
+            const groupByDay = (logs, key = 'value') => {
+                const daily = {};
+                logs.forEach(l => {
+                    const d = new Date(l.timestamp).toLocaleDateString(undefined, { month: 'short',
+                        day: 'numeric' });
+                    daily[d] = (daily[d] || 0) + Number(l[key]);
+                });
+                return daily;
+            };
+            const movingAvg = (obj, days = 7) => {
+                const dates = Object.keys(obj).sort((a, b) => new Date(a) - new Date(b));
+                const vals = dates.map(d => obj[d]);
+                const avg = [];
+                for (let i = 0; i < vals.length; i++) {
+                    if (i < days - 1) avg.push(null);
+                    else avg.push(vals.slice(i - days + 1, i + 1).reduce((a, b) => a + b, 0) / days);
+                }
+                return { dates, movingAvg: avg };
+            };
+            const supplyStatus = (pump, feed) => {
+                const week = new Date();
+                week.setDate(week.getDate() - 6);
+                const f = l => new Date(l.timestamp) >= week;
+                const p = pump.filter(f).reduce((s, l) => s + +l.value, 0);
+                const fd = feed.filter(f).reduce((s, l) => s + +l.value, 0);
+                const diff = p - fd;
+                const ratio = p ? Math.min(fd / p * 100, 100) : 0;
+                let status, cls, msg;
+                if (diff > 100) { status = 'Surplus';
+                    cls = 'status-surplus';
+                    msg = `👍 Surplus: +${Math.round(diff)}ml`; } else if (diff > 0) { status = 'Balanced';
+                    cls = 'status-balanced';
+                    msg = `✓ Balanced: +${Math.round(diff)}ml`; } else if (diff > -50) { status =
+                        'Slight Deficit';
+                    cls = 'status-deficit';
+                    msg = `⚠️ Slight Deficit: ${Math.round(diff)}ml`; } else { status = 'Critical Deficit';
+                    cls = 'status-critical';
+                    msg = `🚨 Critical Deficit: ${Math.round(diff)}ml`; }
+                return { pumpTotal: p, feedTotal: fd, diff, ratio, status, statusClass: cls, message: msg };
+            };
+
+            function drawChart(id, datasets, opts = {}) {
+                try {
+                    const canvas = document.getElementById(id);
+                    if (!canvas) return;
+                    const ctx = canvas.getContext('2d');
+                    if (charts[id]) charts[id].destroy();
+                    if (datasets.every(ds => ds.data.length === 0)) {
+                        charts[id] = new Chart(ctx, { type: 'line', data: { labels: ['No data'], datasets: [] },
+                            options: { plugins: { title: { display: true, text: 'Add entries' } } } });
+                        return;
+                    }
+                    charts[id] = new Chart(ctx, {
+                        type: 'line',
+                        data: { labels: opts.labels, datasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            let lbl = ctx.dataset.label + ': ';
+                                            const v = ctx.parsed.y;
+                                            if (opts.unit === 'min') lbl += v + ' min';
+                                            else if (opts.unit === 'count') lbl += v;
+                                            else lbl += state.units === 'US' ? (v / 29.5735).toFixed(
+                                                    1) + ' oz' : Math.round(v) + ' ml';
+                                            return lbl;
+                                        }
+                                    }
+                                },
+                                legend: { display: false }
+                            },
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                } catch (e) {}
+            }
+
+            // ==================== RENDER UI ====================
+            function renderMedicationTimers() {
+                const container = document.getElementById('med-timers-container');
+                if (!container) return;
+                const childLogs = state.logs.filter(l => l.child === state.currentChild);
+                const medLogs = childLogs.filter(l => l.category === 'Medication').sort((a, b) => new Date(b.timestamp) -
+                    new Date(a.timestamp));
+                const latest = {};
+                medLogs.forEach(l => {
+                    const name = l.detail.split('|')[0].toLowerCase();
+                    if (!latest[name] || new Date(l.timestamp) > new Date(latest[name].timestamp)) latest[name] =
+                        l;
+                });
+                container.innerHTML = Object.values(latest).map(l =>
+                    `<div class="med-timer-card"><div class="med-name">${l.detail.split('|')[0]}</div><div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`
+                ).join('') || '<div>No medications</div>';
+            }
+
+            function formatTimeAgo(ts) {
+                const diff = (new Date() - new Date(ts)) / 1000;
+                if (diff < 60) return 'Just now';
+                if (diff < 3600) return `${Math.floor(diff/60)} min ago`;
+                if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+                if (diff < 172800) return '1d ago';
+                return '>2d';
+            }
+
+            const renderUI = () => {
+                try {
+                    const child = state.logs.filter(l => l.child === state.currentChild);
+                    const isUS = state.units === 'US';
+                    const conv = v => isUS ? (v / 29.5735).toFixed(1) : Math.round(v);
+                    const unit = isUS ? 'oz' : 'ml';
+                    document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
+                    document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
+
+                    if (isUS) {
+                        document.getElementById('weight-inputs').style.display = 'none';
+                        document.getElementById('us-weight-inputs').style.display = 'flex';
+                    } else {
+                        document.getElementById('weight-inputs').style.display = 'flex';
+                        document.getElementById('us-weight-inputs').style.display = 'none';
+                    }
+
+                    const milk = child.filter(l => l.category === 'Milk');
+                    const formula = child.filter(l => l.category === 'Formula');
+                    const skin = child.filter(l => l.category === 'SkinToSkin');
+                    const tummy = child.filter(l => l.category === 'TummyTime');
+                    const nappy = child.filter(l => l.category === 'Nappy');
+                    const pump = milk.filter(l => l.detail.includes('Pump'));
+                    const feedMilk = milk.filter(l => l.detail.includes('Feed'));
+                    const allFeed = child.filter(l => (l.category === 'Milk' && l.detail.includes('Feed')) || l
+                        .category === 'Formula');
+
+                    const cutoff = state.trialStatus.isPro ? null : new Date(Date.now() - 30 * 24 * 60 * 60 *
+                        1000);
+                    const filterByDate = (logs) => cutoff ? logs.filter(l => new Date(l.timestamp) >= cutoff) :
+                        logs;
+
+                    const sc = document.getElementById('supply-status-content');
+                    if (sc) {
+                        const st = supplyStatus(pump, allFeed);
+                        sc.innerHTML =
+                            `<div style="display:grid;grid-template-columns:1fr 1fr"><div><strong>Pumped:</strong> ${conv(st.pumpTotal)}${unit}</div><div><strong>Fed:</strong> ${conv(st.feedTotal)}${unit}</div></div>
+                            <div class="supply-indicator"><span>${Math.round(st.ratio)}% used</span><div class="supply-bar"><div class="supply-bar-fill" style="width:${st.ratio}%"></div></div><span class="supply-status ${st.statusClass}">${st.status}</span></div>`;
+                    }
+
+                    const renderSec = (logs, pref, fmt) => {
+                        const filtered = filterByDate(logs);
+                        const tot = filtered.reduce((s, l) => s + +l.value, 0);
+                        document.getElementById(`stats-${pref}`).innerHTML =
+                            `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total</div></div><div class="stat-box"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Entries</div></div>`;
+                        const hist = document.getElementById(`history-${pref}`);
+                        if (hist) hist.innerHTML = filtered.sort((a, b) => new Date(b.timestamp) - new Date(a
+                            .timestamp)).slice(0, 5).map(l =>
+                            `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`
+                        ).join('');
+                    };
+
+                    renderSec(milk, 'milk', v => `${conv(v)}${unit}`);
+                    const pumpDay = groupByDay(filterByDate(pump));
+                    const feedDay = groupByDay(filterByDate(feedMilk));
+                    const allDates = [...new Set([...Object.keys(pumpDay), ...Object.keys(feedDay)])].sort((a,
+                        b) => new Date(a) - new Date(b));
+                    const { movingAvg: pumpMA } = movingAvg(pumpDay);
+                    drawChart('chart-milk', [
+                        { label: 'Total Pumped', data: allDates.map(d => pumpDay[d] || 0),
+                            borderColor: '#9C27B0', tension: 0.3 },
+                        { label: 'Feed', data: allDates.map(d => feedDay[d] || 0), borderColor: '#f44336',
+                            tension: 0.3 },
+                        { label: '7‑Day Avg Pump', data: allDates.map((_, i) => pumpMA[i] || null),
+                            borderColor: '#ff9800', borderDash: [5, 5] }
+                    ], { labels: allDates, unit: 'ml' });
+
+                    renderSec(formula, 'formula', v => `${conv(v)}${unit}`);
+                    const fDay = groupByDay(filterByDate(formula));
+                    const { dates: fD, movingAvg: fMA } = movingAvg(fDay);
+                    drawChart('chart-formula', [
+                        { label: 'Daily Total', data: fD.map(d => fDay[d]), borderColor: '#6a9c7d',
+                            tension: 0.3 },
+                        { label: '7-Day Avg', data: fMA, borderColor: '#ff9800', borderDash: [5, 5] }
+                    ], { labels: fD, unit: 'ml' });
+
+                    const weeLogs = filterByDate(nappy).filter(l => l.detail === 'Wee' || l.detail === 'Both');
+                    const pooLogs = filterByDate(nappy).filter(l => l.detail === 'Poo' || l.detail === 'Both');
+                    const weeDay = groupByDay(weeLogs),
+                        pooDay = groupByDay(pooLogs);
+                    const nappyDates = [...new Set([...Object.keys(weeDay), ...Object.keys(pooDay)])].sort((a,
+                        b) => new Date(a) - new Date(b));
+                    const { movingAvg: weeMA } = movingAvg(weeDay),
+                        { movingAvg: pooMA } = movingAvg(pooDay);
+                    document.getElementById('stats-nappy').innerHTML =
+                        `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
+                    drawChart('chart-nappy', [
+                        { label: 'Wee', data: nappyDates.map(d => weeDay[d] || 0),
+                        borderColor: '#4a90e2', tension: 0.3 },
+                        { label: 'Poo', data: nappyDates.map(d => pooDay[d] || 0),
+                        borderColor: '#8B4513', tension: 0.3 },
+                        { label: '7‑Day Avg Wee', data: nappyDates.map((_, i) => weeMA[i] || null),
+                            borderColor: '#ff9800', borderDash: [5, 5] },
+                        { label: '7‑Day Avg Poo', data: nappyDates.map((_, i) => pooMA[i] || null),
+                            borderColor: '#ff9800', borderDash: [2, 2] }
+                    ], { labels: nappyDates, unit: 'count' });
+
+                    const skinDay = groupByDay(filterByDate(skin)),
+                        tummyDay = groupByDay(filterByDate(tummy));
+                    const stDates = [...new Set([...Object.keys(skinDay), ...Object.keys(tummyDay)])].sort((a,
+                        b) => new Date(a) - new Date(b));
+                    const { movingAvg: skinMA } = movingAvg(skinDay),
+                        { movingAvg: tummyMA } = movingAvg(tummyDay);
+                    const fmtTime = m => m >= 60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
+                    document.getElementById('stats-skin').innerHTML =
+                        `<div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(skin).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Skin</div></div><div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(tummy).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Tummy</div></div>`;
+                    drawChart('chart-skin', [
+                        { label: 'Skin‑to‑Skin', data: stDates.map(d => skinDay[d] || 0),
+                            borderColor: '#b30000', tension: 0.3 },
+                        { label: 'Tummy Time', data: stDates.map(d => tummyDay[d] || 0),
+                            borderColor: '#00bcd4', tension: 0.3 },
+                        { label: '7‑Day Avg Skin', data: stDates.map((_, i) => skinMA[i] || null),
+                            borderColor: '#ff9800', borderDash: [5, 5] },
+                        { label: '7‑Day Avg Tummy', data: stDates.map((_, i) => tummyMA[i] || null),
+                            borderColor: '#ff9800', borderDash: [2, 2] }
+                    ], { labels: stDates, unit: 'min' });
+
+                    if (state.tab === 'stats') {
+                        document.getElementById('stats-overview').innerHTML = `
+                            <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
+                            <div class="stat-box"><div class="stat-val">${filterByDate(nappy).length}</div><div class="stat-lbl">Nappies</div></div>
+                            <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(skin).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Skin</div></div>
+                            <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(tummy).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Tummy</div></div>
+                        `;
+                        const feedDayStats = groupByDay(filterByDate(allFeed));
+                        const fd2 = Object.keys(feedDayStats).sort((a, b) => new Date(a) - new Date(b));
+                        drawChart('chart-stats-feeding', [{ label: 'Feeding', data: fd2.map(d => feedDayStats[
+                                d
+                            ]), borderColor: '#4a90e2', tension: 0.3 }], { labels: fd2,
+                            unit: 'ml' });
+                        const nd2 = [...new Set([...Object.keys(weeDay), ...Object.keys(pooDay)])].sort((a, b) =>
+                            new Date(a) - new Date(b));
+                        drawChart('chart-stats-nappy', [
+                            { label: 'Wee', data: nd2.map(d => weeDay[d] || 0), borderColor: '#4a90e2',
+                                tension: 0.3 },
+                            { label: 'Poo', data: nd2.map(d => pooDay[d] || 0), borderColor: '#8B4513',
+                                tension: 0.3 }
+                        ], { labels: nd2, unit: 'count' });
+                        drawChart('chart-stats-skin', [
+                            { label: 'Skin', data: stDates.map(d => skinDay[d] || 0),
+                            borderColor: '#b30000', tension: 0.3 },
+                            { label: 'Tummy', data: stDates.map(d => tummyDay[d] || 0),
+                                borderColor: '#00bcd4', tension: 0.3 }
+                        ], { labels: stDates, unit: 'min' });
+                        drawChart('chart-stats-sleep', [
+                            { label: 'Sleep', data: Object.values(groupByDay(filterByDate(child.filter(l =>
+                                    l.category === 'Sleep')))), borderColor: '#9b59b6', tension: 0.3 }
+                        ], { labels: Object.keys(groupByDay(filterByDate(child.filter(l => l.category ===
+                                'Sleep')))), unit: 'min' });
+
+                        // Growth stats
+                        const dob = state.childDOB || localStorage.getItem(`dob_${state.currentChild}`);
+                        if (dob) {
+                            const growthLogs = child.filter(l => l.category === 'Growth');
+                            if (growthLogs.length > 0) {
+                                renderGrowthChart('chart-stats-growth-weight', 'weight');
+                                renderGrowthChart('chart-stats-growth-height', 'height');
+                            } else {
+                                ['chart-stats-growth-weight', 'chart-stats-growth-height'].forEach(id => {
+                                    const ctx = document.getElementById(id).getContext('2d');
+                                    if (charts[id]) charts[id].destroy();
+                                    charts[id] = new Chart(ctx, { type: 'line', data: { labels: [
+                                            'No data' ], datasets: [] },
+                                        options: { plugins: { title: { display: true,
+                                                text: 'Add measurements on Growth page' } } }
+                                        });
+                                });
+                            }
+                        } else {
+                            document.getElementById('weight-percentile-stats').textContent =
+                                'Save DOB on Growth page first';
+                            document.getElementById('height-percentile-stats').textContent = '';
+                        }
+                    }
+
+                    renderMedicationTimers();
+                    // history lists
+                    const medHist = document.getElementById('history-meds');
+                    if (medHist) {
+                        const sorted = filterByDate(child.filter(l => l.category === 'Medication')).sort((a, b) =>
+                            new Date(b.timestamp) - new Date(a.timestamp));
+                        medHist.innerHTML = sorted.slice(0, 5).map(l => {
+                            const [n, d] = l.detail.split('|');
+                            return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${n} ${d?'('+d+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                        }).join('');
+                    }
+                    const hospHist = document.getElementById('history-hospital');
+                    if (hospHist) {
+                        const sorted = filterByDate(child.filter(l => l.category === 'HospitalNote')).sort((a, b) =>
+                            new Date(b.timestamp) - new Date(a.timestamp));
+                        hospHist.innerHTML = sorted.slice(0, 10).map(l => {
+                            const [h, n] = l.detail.split('|');
+                            return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${h}</div><div class="hospital-note-text">${n.replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`;
+                        }).join('');
+                    }
+                    const milestones = filterByDate(child.filter(l => l.category === 'Milestone')).sort((a, b) => new Date(
+                        b.timestamp) - new Date(a.timestamp));
+                    document.getElementById('milestones-list').innerHTML = milestones.map(l => {
+                        const [title, notes] = l.detail.split('|');
+                        return `<div class="history-item"><strong>${title}</strong><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                    }).join('') || '<div>No milestones</div>';
+                    const appointments = filterByDate(child.filter(l => l.category === 'Appointment')).sort((a, b) =>
+                        new Date(a.timestamp) - new Date(b.timestamp));
+                    document.getElementById('appointments-list').innerHTML = appointments.map(l => {
+                        const [title, location, notes] = l.detail.split('|');
+                        return `<div class="history-item"><div><strong>${title}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${title}','${l.timestamp}','${location||''}','${notes||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                    }).join('') || '<div>No appointments</div>';
+                    window.addToCalendar = (title, startTime, location, notes) => {
+                        const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
+                        const end = new Date(new Date(startTime).getTime() + 60 * 60 * 1000).toISOString().replace(
+                            /-|:|\.\d+/g, '');
+                        const url =
+                            `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(notes||'')}&location=${encodeURIComponent(location||'')}`;
+                        window.open(url, '_blank');
+                    };
+                    const growthLogs = filterByDate(child.filter(l => l.category === 'Growth'));
+                    document.getElementById('history-growth').innerHTML = growthLogs.sort((a, b) => new Date(b.timestamp) -
+                            new Date(a.timestamp)).slice(0, 5).map(l =>
+                            `<div class="history-item"><span>${new Date(l.timestamp).toLocaleDateString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`
+                        ).join('') || '<div>No measurements</div>';
+                    const sleepLogs = filterByDate(child.filter(l => l.category === 'Sleep'));
+                    document.getElementById('history-sleep').innerHTML = sleepLogs.sort((a, b) => new Date(b.timestamp) -
+                            new Date(a.timestamp)).slice(0, 5).map(l =>
+                            `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${Math.round(l.value/60)}h ${l.value%60}m</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`
+                        ).join('') || '<div>No sleep logs</div>';
+
+                    if (timerInterval) clearInterval(timerInterval);
+                    timerInterval = setInterval(renderMedicationTimers, 60000);
+                } catch (e) { console.error(e);
+                    showError('Display error: ' + e.message); }
+            };
+
+            // ==================== EXPORT ====================
+            window.exportData = () => {
+                if (!state.trialStatus.isPro) return showPaywall();
+                const childLogs = state.logs.filter(l => l.child === state.currentChild);
+                const csv = [
+                    ['Timestamp', 'Category', 'Value', 'Detail', 'Child'].join(',')
+                ];
+                childLogs.forEach(l => csv.push([l.timestamp, l.category, l.value, (l.detail || '').replace(/,/g, ';'),
+                    l.child
+                ].join(',')));
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download =
+                    `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+            };
+            window.exportMedicalReport = () => {
+                if (!state.trialStatus.isPro) return showPaywall();
+                const twoDays = new Date(Date.now() - 48 * 60 * 60 * 1000);
+                const childLogs = state.logs.filter(l => l.child === state.currentChild && new Date(l.timestamp) >=
+                    twoDays);
+                const csv = [
+                    ['Timestamp', 'Category', 'Value', 'Detail'].join(',')
+                ];
+                childLogs.forEach(l => csv.push([l.timestamp, l.category, l.value, (l.detail || '').replace(/,/g, ';')]
+                    .join(',')));
+                const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download =
+                    `medical_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`;
+                a.click();
+            };
+
+            // ==================== STASH / DEALS / EMERGENCY ====================
+            window.adjustStash = async (change) => {
+                await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify({ action: 'updateStash', user: window
+                        .auth.currentUser.email, child: state.currentChild, change }) });
+                fetchStashBalance();
+            };
+            async function fetchStashBalance() {
+                try {
+                    const resp = await fetch(
+                        `${GOOGLE_URL}?type=stash&email=${window.auth.currentUser.email}&child=${state.currentChild}`
+                        );
+                    const data = await resp.json();
+                    state.stashBalance = data.balance || 0;
+                    document.getElementById('stash-balance').textContent = state.stashBalance;
+                } catch (e) {}
+            }
+            async function loadProducts() {
+                try {
+                    const resp = await fetch(GOOGLE_URL + '?type=products');
+                    state.allProducts = await resp.json();
+                    setupCategoryChips();
+                    updateBrandFilter();
+                    updateSizeFilter();
+                    renderProductList();
+                } catch (e) {
+                    document.getElementById('product-list').innerHTML =
+                        '<p style="text-align:center;">Error loading products.</p>';
+                }
+            }
+
+            function setupCategoryChips() {
+                const chips = document.querySelectorAll('.category-chip');
+                chips.forEach(chip => {
+                    chip.addEventListener('click', () => {
+                        chips.forEach(c => c.classList.remove('active'));
+                        chip.classList.add('active');
+                        currentCategory = chip.dataset.category;
+                        updateBrandFilter();
+                        updateSizeFilter();
+                        renderProductList();
+                    });
+                });
+            }
+
+            function updateBrandFilter() {
+                const brandSelect = document.getElementById('brand-filter');
+                const brands = [...new Set(state.allProducts.filter(p => !currentCategory || p.category ===
+                    currentCategory).map(p => p.brand))];
+                brandSelect.innerHTML = '<option value="">All Brands</option>';
+                brands.sort().forEach(b => { const opt = document.createElement('option');
+                    opt.value = b;
+                    opt.textContent = b;
+                    brandSelect.appendChild(opt); });
+                brandSelect.removeEventListener('change', handleBrandChange);
+                brandSelect.addEventListener('change', handleBrandChange);
+            }
+
+            function handleBrandChange() { updateSizeFilter();
+                renderProductList(); }
+
+            function updateSizeFilter() {
+                const brand = document.getElementById('brand-filter').value;
+                const sizeSelect = document.getElementById('size-filter');
+                const sizes = [...new Set(state.allProducts.filter(p => (!currentCategory || p.category ===
+                    currentCategory) && (!brand || p.brand === brand)).map(p => p.size))];
+                sizeSelect.innerHTML = '<option value="">All Sizes</option>';
+                sizes.sort().forEach(s => { const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = s;
+                    sizeSelect.appendChild(opt); });
+                sizeSelect.removeEventListener('change', handleSizeChange);
+                sizeSelect.addEventListener('change', handleSizeChange);
+            }
+
+            function handleSizeChange() { renderProductList(); }
+
+            function renderProductList() {
+                const brand = document.getElementById('brand-filter').value;
+                const size = document.getElementById('size-filter').value;
+                let filtered = state.allProducts.filter(p => (!currentCategory || p.category === currentCategory) && (
+                    !brand || p.brand === brand) && (!size || p.size === size));
+                filtered = filtered.map(p => { p.pricePerUnit = p.price / p.quantity; return p; }).sort((a, b) => a
+                    .pricePerUnit - b.pricePerUnit);
+                const container = document.getElementById('product-list');
+                if (filtered.length === 0) { container.innerHTML =
+                        '<p style="text-align:center;">No products match filters.</p>'; return; }
+                container.innerHTML = filtered.map((p, index) => {
+                    const unitDisplay = p.unit === 'nappy' ? 'per nappy' : p.unit === 'wipe' ? 'per wipe' :
+                        `per ${p.unit}`;
+                    const isBestValue = index === 0;
+                    return `<div class="product-card" style="${isBestValue ? 'border: 2px solid var(--accent);' : ''}">
+                        ${isBestValue ? '<div style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 8px;">🏆 Best Value</div>' : ''}
+                        <div style="display:flex; justify-content:space-between;"><div><h4>${p.brand} ${p.name}</h4><div>${p.size} • ${p.quantity} ${p.unit}s</div><div><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span></div></div>
+                        <a href="${p.affiliatelink}" target="_blank" rel="nofollow" style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none;">Buy</a></div>
+                    </div>`;
+                }).join('');
+            }
+
+            window.findNearby = (query) => {
+                const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                const fallbackDiv = document.getElementById('emergency-fallback');
+                const openMap = (lat, lon) => {
+                    let url;
+                    if (isApple) url =
+                        `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`;
+                    else url =
+                        `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`;
+                    const w = window.open(url, '_blank');
+                    if (!w) fallbackDiv.innerHTML =
+                        `<div class="card"><a href="${url}" target="_blank">Open ${query} in Maps manually</a></div>`;
+                    else fallbackDiv.innerHTML = '';
+                };
+                if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => openMap(p.coords.latitude, p
+                    .coords.longitude), () => openMap());
+                else openMap();
+            };
+
+            // ==================== ACCOUNT ====================
+            async function loadAccountDetails() {
+                try {
+                    const resp = await fetch(
+                        `${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
+                    const data = await resp.json();
+                    document.getElementById('account-email').textContent = window.auth.currentUser.email;
+                    document.getElementById('account-family-name').textContent = data.familyName || '—';
+                    document.getElementById('account-family-id').textContent = data.familyId || '—';
+                    document.getElementById('account-invite-code').textContent = data.inviteCode || '—';
+                    document.getElementById('account-members').innerHTML = data.members ? data.members.split(',')
+                        .map(m => `<div class="history-item">${m.trim()}</div>`).join('') : 'No members';
+                } catch (e) {}
+            }
+            window.copyInviteCode = () => {
+                const code = document.getElementById('account-invite-code').textContent;
+                if (code && code !== '—') navigator.clipboard?.writeText(code).then(() => alert('Copied!'))
+                    .catch(() => prompt('Copy manually:', code));
+            };
+            window.deleteAccount = async () => {
+                if (!confirm('Permanently delete all your data? This cannot be undone.')) return;
+                try {
+                    await fetch(GOOGLE_URL, { method: 'POST', body: JSON.stringify({ action: 'deleteAccount',
+                            user: window.auth.currentUser.email }) });
+                    alert('Account deleted.');
+                    window.logout();
+                } catch (e) { showError('Could not delete account'); }
+            };
+
+            // ==================== INSTALL / SHARE ====================
+            window.installApp = () => {
+                if (deferredPrompt) {
+                    deferredPrompt.prompt();
+                } else {
+                    const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+                    alert(isIOS ? 'To install: tap the Share button then "Add to Home Screen".' :
+                        'App can be installed from browser menu.');
+                }
+            };
+            window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault();
+                deferredPrompt = e; });
+
+            // ==================== INIT ====================
+            window.finishWelcome = () => { localStorage.setItem('welcomeSeen', 'true');
+                document.getElementById('page-welcome').style.display = 'none';
+                window.initApp(); };
+            window.initApp = async () => {
+                if (!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style
+                        .display = 'block'; return; }
+                const familyComplete = localStorage.getItem('familySetupComplete');
+                if (!familyComplete) {
+                    try {
+                        const resp = await fetch(
+                            `${GOOGLE_URL}?type=family&email=${window.auth.currentUser.email}`);
+                        const data = await resp.json();
+                        if (!data.familyId) {
+                            document.getElementById('page-family-setup').style.display = 'block';
+                            document.getElementById('main-app').style.display = 'none';
+                            return;
+                        } else localStorage.setItem('familySetupComplete', 'true');
+                    } catch (e) {}
+                }
+                await checkTrialStatus();
+                document.getElementById('page-family-setup').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                buildChildSelector();
+                window.resetTimeInputs();
+                document.querySelectorAll('.pro-only').forEach(el => el.style.display = state.trialStatus
+                    .isPro ? 'flex' : 'none');
+                await window.refreshData();
+                if (state.tab === 'deals') loadProducts();
+                if (state.tab === 'stash') fetchStashBalance();
+                if (state.tab === 'account') loadAccountDetails();
+                if (state.tab === 'growth') {
+                    renderGrowthChart('chart-growth-weight', 'weight');
+                    renderGrowthChart('chart-growth-height', 'height');
+                }
+                if (state.tab === 'sleep') {
+                    // render sleep chart
+                    const sleepLogs = state.logs.filter(l => l.child === state.currentChild && l
+                        .category === 'Sleep');
+                    const daily = groupByDay(sleepLogs);
+                    const dates = Object.keys(daily).sort((a, b) => new Date(a) - new Date(b));
+                    drawChart('chart-sleep', [
+                        { label: 'Sleep', data: dates.map(d => daily[d]),
+                        borderColor: '#4a90e2', tension: 0.3 },
+                        { label: '7‑Day Avg', data: movingAvg(daily).movingAvg,
+                            borderColor: '#ff9800', borderDash: [5, 5], tension: 0.3 },
+                        { label: 'NHS Guideline', data: Array(dates.length).fill(
+                                14 * 60), borderColor: '#2ecc71', borderDash: [2, 2] }
+                    ], { labels: dates, unit: 'min' });
+                    document.getElementById('nap-suggestions').innerHTML =
+                        '<span class="nap-suggestion">💤 Suggested nap: 9:30 AM</span> <span class="nap-suggestion">💤 Suggested nap: 1:30 PM</span>';
+                }
+                renderUI();
+            };
+            window.resetTimeInputs = () => {
+                const now = new Date();
+                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+                const t = now.toISOString().slice(0, 16);
+                ['milkTime', 'formulaTime', 'nappyTime', 'skinStart', 'skinEnd', 'tummyStart', 'tummyEnd',
+                    'medTime', 'hospitalTime', 'apptDateTime', 'sleepStart', 'sleepEnd'
+                ].forEach(id => { const el = document.getElementById(id); if (el) el.value = t; });
+                if (document.getElementById('measure-date')) document.getElementById('measure-date').value = now
+                    .toISOString().slice(0, 10);
+            };
+            window.toggleUnits = () => {
+                state.units = state.units === 'UK' ? 'US' : 'UK';
+                document.getElementById('flag-emoji').innerText = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
+                document.getElementById('unit-label').innerText = state.units === 'UK' ? 'UK Units' :
+                'US Units';
+                renderUI();
+            };
+            window.switchTab = (tabId) => {
+                state.tab = tabId;
+                document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
+                document.getElementById(`page-${tabId}`)?.classList.add('active');
+                document.getElementById(`tab-${tabId}`)?.classList.add('active');
+                if (tabId === 'deals') loadProducts();
+                if (tabId === 'stash') fetchStashBalance();
+                if (tabId === 'account') loadAccountDetails();
+                if (tabId === 'growth') {
+                    renderGrowthChart('chart-growth-weight', 'weight');
+                    renderGrowthChart('chart-growth-height', 'height');
+                }
+                if (tabId === 'sleep') {
+                    const sleepLogs = state.logs.filter(l => l.child === state.currentChild && l
+                        .category === 'Sleep');
+                    const daily = groupByDay(sleepLogs);
+                    const dates = Object.keys(daily).sort((a, b) => new Date(a) - new Date(b));
+                    drawChart('chart-sleep', [
+                        { label: 'Sleep', data: dates.map(d => daily[d]),
+                        borderColor: '#4a90e2', tension: 0.3 },
+                        { label: '7‑Day Avg', data: movingAvg(daily).movingAvg,
+                            borderColor: '#ff9800', borderDash: [5, 5], tension: 0.3 },
+                        { label: 'NHS Guideline', data: Array(dates.length).fill(
+                                14 * 60), borderColor: '#2ecc71', borderDash: [2, 2] }
+                    ], { labels: dates, unit: 'min' });
+                    document.getElementById('nap-suggestions').innerHTML =
+                        '<span class="nap-suggestion">💤 Suggested nap: 9:30 AM</span> <span class="nap-suggestion">💤 Suggested nap: 1:30 PM</span>';
+                }
+                renderUI();
+            };
+            window.setParam = (param, value) => {
+                state[param] = value;
+                const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
+                const parent = document.getElementById(`${prefix}-${value.toLowerCase()}`)
+            .parentElement;
+                parent.querySelectorAll('.toggle-btn').forEach(btn => btn.classList.remove('active'));
+                document.getElementById(`${prefix}-${value.toLowerCase()}`).classList.add('active');
+            };
+            if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
+        })();
+    </script>
 </body>
 </html>
