@@ -66,7 +66,6 @@
             margin: 0 auto; 
             padding: 15px; 
         }
-        /* ---- NEW HEADER ---- */
         .app-header {
             display: flex;
             align-items: center;
@@ -105,7 +104,6 @@
             border-radius: 6px;
             font-size: 14px;
         }
-        /* ---- TRIAL BANNER ---- */
         #trial-banner {
             display: none;
             padding: 8px 12px;
@@ -119,7 +117,6 @@
         .trial-green { background: #c8e6c9; color: #2e7d32; }
         .trial-amber { background: #fff3cd; color: #856404; }
         .trial-red { background: #ffcdd2; color: #b71c1c; }
-
         .sync-banner { 
             position: fixed; top: 0; left: 0; right: 0; padding: 8px; 
             text-align: center; font-size: 14px; font-weight: bold; z-index: 200; transition: 0.3s; 
@@ -190,6 +187,7 @@
         .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
         .calendar-btn { background: none; border: 1px solid var(--accent); color: var(--accent-dark); padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 10px; }
         .paywall-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .nap-suggestion { background: var(--accent); color: white; padding: 8px 12px; border-radius: 20px; margin: 5px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -232,7 +230,7 @@
         </div>
     </div>
 
-    <!-- Info Page (Your Guide) -->
+    <!-- Info Page (Your Guide) with original text -->
     <div id="page-info" class="page">
         <div class="card"><h2>📘 Your Guide</h2><p><strong>This site has a number of features to make your life easier and cheaper. You will notice that there are no images, mostly text and emojis. The reason for this is because there are times when we are updating information using hospital WiFi or at 3am. This is where Night mode helps those tired eyes! The aim is to make life easier for you and for those helping you with your child care. Families are made up in so many ways and go through so many situations. This can help when attending a GP, Hospital or with family/friends who help with childcarr.</strong></p><p>Quick logging for busy moments. All data stays in your own Google Sheet.</p></div>
         <div class="card"><h3>🎯 Mission</h3><p>Empower parents and caregivers with a simple, reliable tool.</p></div>
@@ -956,7 +954,6 @@
         window.saveNappy = () => {
             const time = new Date(document.getElementById('nappyTime').value).toISOString();
             if (state.nappyType === 'Both') {
-                // Save two entries: one Wee, one Poo
                 saveWithOfflineSupport({
                     action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Wee',
                     user: window.auth.currentUser.email, child: state.currentChild
@@ -1162,7 +1159,24 @@
                 const pct = ref ? Math.round((latest.weight - ref.p3) / (ref.p97 - ref.p3) * 100) : 0;
                 document.getElementById('weight-percentile').textContent = `Approx. percentile: ${pct}% (vs UK-WHO)`;
             }
-            // Height chart (similar simplified)
+            // Height chart (similar)
+            const heightData = growthLogs.filter(l => l.detail.split('|')[1] !== '').map(l => ({ age: (new Date(l.timestamp) - new Date(dob)) / (1000*60*60*24*30.4375), height: parseFloat(l.detail.split('|')[1]) }));
+            if (heightData.length > 0) {
+                const ctx = document.getElementById('chart-growth-height').getContext('2d');
+                if (charts['chart-growth-height']) charts['chart-growth-height'].destroy();
+                charts['chart-growth-height'] = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [
+                            { label: 'P3', data: percentiles.height.male.map(p => ({ x: p.age, y: p.p3 })), borderColor: '#ccc', showLine: true, pointRadius: 0 },
+                            { label: 'P50', data: percentiles.height.male.map(p => ({ x: p.age, y: p.p50 })), borderColor: '#888', showLine: true, pointRadius: 0 },
+                            { label: 'P97', data: percentiles.height.male.map(p => ({ x: p.age, y: p.p97 })), borderColor: '#ccc', showLine: true, pointRadius: 0 },
+                            { label: 'Your Child', data: heightData, backgroundColor: '#ff6384', pointRadius: 5 }
+                        ]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Age (months)' } }, y: { title: { display: true, text: 'Height (cm)' } } } }
+                });
+            }
         }
 
         window.saveSleep = () => {
@@ -1213,14 +1227,68 @@
             } catch(e) {}
         }
 
-        // Deals
-        async function loadProducts() { /* ... same as before ... */ }
-        function setupCategoryChips() { /* ... */ }
-        function updateBrandFilter() { /* ... */ }
+        // Deals page (fully implemented)
+        async function loadProducts() {
+            try {
+                const resp = await fetch(GOOGLE_URL + '?type=products');
+                state.allProducts = await resp.json();
+                setupCategoryChips();
+                updateBrandFilter();
+                updateSizeFilter();
+                renderProductList();
+            } catch (e) {
+                document.getElementById('product-list').innerHTML = '<p style="text-align:center;">Error loading products.</p>';
+            }
+        }
+        function setupCategoryChips() {
+            const chips = document.querySelectorAll('.category-chip');
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentCategory = chip.dataset.category;
+                    updateBrandFilter();
+                    updateSizeFilter();
+                    renderProductList();
+                });
+            });
+        }
+        function updateBrandFilter() {
+            const brandSelect = document.getElementById('brand-filter');
+            const brands = [...new Set(state.allProducts.filter(p => !currentCategory || p.category === currentCategory).map(p => p.brand))];
+            brandSelect.innerHTML = '<option value="">All Brands</option>';
+            brands.sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+            brandSelect.removeEventListener('change', handleBrandChange);
+            brandSelect.addEventListener('change', handleBrandChange);
+        }
         function handleBrandChange() { updateSizeFilter(); renderProductList(); }
-        function updateSizeFilter() { /* ... */ }
+        function updateSizeFilter() {
+            const brand = document.getElementById('brand-filter').value;
+            const sizeSelect = document.getElementById('size-filter');
+            const sizes = [...new Set(state.allProducts.filter(p => (!currentCategory || p.category === currentCategory) && (!brand || p.brand === brand)).map(p => p.size))];
+            sizeSelect.innerHTML = '<option value="">All Sizes</option>';
+            sizes.sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sizeSelect.appendChild(opt); });
+            sizeSelect.removeEventListener('change', handleSizeChange);
+            sizeSelect.addEventListener('change', handleSizeChange);
+        }
         function handleSizeChange() { renderProductList(); }
-        function renderProductList() { /* ... */ }
+        function renderProductList() {
+            const brand = document.getElementById('brand-filter').value;
+            const size = document.getElementById('size-filter').value;
+            let filtered = state.allProducts.filter(p => (!currentCategory || p.category === currentCategory) && (!brand || p.brand === brand) && (!size || p.size === size));
+            filtered = filtered.map(p => { p.pricePerUnit = p.price / p.quantity; return p; }).sort((a,b) => a.pricePerUnit - b.pricePerUnit);
+            const container = document.getElementById('product-list');
+            if (filtered.length === 0) { container.innerHTML = '<p style="text-align:center;">No products match filters.</p>'; return; }
+            container.innerHTML = filtered.map((p, index) => {
+                const unitDisplay = p.unit === 'nappy' ? 'per nappy' : p.unit === 'wipe' ? 'per wipe' : `per ${p.unit}`;
+                const isBestValue = index === 0;
+                return `<div class="product-card" style="${isBestValue ? 'border: 2px solid var(--accent);' : ''}">
+                    ${isBestValue ? '<div style="background: var(--accent); color: white; padding: 2px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-bottom: 8px;">🏆 Best Value</div>' : ''}
+                    <div style="display:flex; justify-content:space-between;"><div><h4>${p.brand} ${p.name}</h4><div>${p.size} • ${p.quantity} ${p.unit}s</div><div><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span></div></div>
+                    <a href="${p.affiliatelink}" target="_blank" rel="nofollow" style="background:var(--accent-dark); color:white; padding:10px 15px; border-radius:8px; text-decoration:none;">Buy</a></div>
+                </div>`;
+            }).join('');
+        }
 
         // Emergency
         window.findNearby = (query) => {
@@ -1230,11 +1298,11 @@
                 let url;
                 if (isApple) url = `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`;
                 else url = `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`;
-                const newWindow = window.open(url, '_blank');
-                if (!newWindow || newWindow.closed) fallbackDiv.innerHTML = `<div class="card"><a href="${url}" target="_blank">Open ${query} in Maps manually</a></div>`;
+                const w = window.open(url, '_blank');
+                if (!w) fallbackDiv.innerHTML = `<div class="card"><a href="${url}" target="_blank">Open ${query} in Maps manually</a></div>`;
                 else fallbackDiv.innerHTML = '';
             };
-            if (navigator.geolocation) navigator.geolocation.getCurrentPosition(pos => openMap(pos.coords.latitude, pos.coords.longitude), () => openMap());
+            if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => openMap(p.coords.latitude, p.coords.longitude), () => openMap());
             else openMap();
         };
 
@@ -1327,7 +1395,6 @@
                 document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
                 document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
 
-                // Update weight inputs visibility
                 if (isUS) {
                     document.getElementById('weight-inputs').style.display = 'none';
                     document.getElementById('us-weight-inputs').style.display = 'flex';
@@ -1348,7 +1415,6 @@
                 const cutoff = state.trialStatus.isPro ? null : new Date(Date.now() - 30*24*60*60*1000);
                 const filterByDate = (logs) => cutoff ? logs.filter(l => new Date(l.timestamp) >= cutoff) : logs;
 
-                // Supply status
                 const sc = document.getElementById('supply-status-content');
                 if(sc) {
                     const st = supplyStatus(pump, allFeed);
@@ -1383,7 +1449,6 @@
                     {label:'7-Day Avg', data:fMA, borderColor:'#ff9800', borderDash:[5,5]}
                 ], {labels:fD, unit:'ml'});
 
-                // Nappy (Wee/Poo only)
                 const weeLogs = filterByDate(nappy).filter(l => l.detail === 'Wee' || l.detail === 'Both');
                 const pooLogs = filterByDate(nappy).filter(l => l.detail === 'Poo' || l.detail === 'Both');
                 const weeDay = groupByDay(weeLogs), pooDay = groupByDay(pooLogs);
@@ -1397,7 +1462,6 @@
                     {label:'7‑Day Avg Poo', data:nappyDates.map((_,i)=>pooMA[i]||null), borderColor:'#ff9800', borderDash:[2,2]}
                 ], {labels:nappyDates, unit:'count'});
 
-                // Skin & Tummy
                 const skinDay = groupByDay(filterByDate(skin)), tummyDay = groupByDay(filterByDate(tummy));
                 const stDates = [...new Set([...Object.keys(skinDay),...Object.keys(tummyDay)])].sort((a,b)=>new Date(a)-new Date(b));
                 const {movingAvg: skinMA} = movingAvg(skinDay), {movingAvg: tummyMA} = movingAvg(tummyDay);
@@ -1410,22 +1474,16 @@
                     {label:'7‑Day Avg Tummy', data:stDates.map((_,i)=>tummyMA[i]||null), borderColor:'#ff9800', borderDash:[2,2]}
                 ], {labels:stDates, unit:'min'});
 
-                // Stats page
                 if (state.tab === 'stats') {
-                    const all = child;
                     document.getElementById('stats-overview').innerHTML = `
-                        <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length + filterByDate(formula).length}</div><div class="stat-lbl">Total Feeds</div></div>
+                        <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
                         <div class="stat-box"><div class="stat-val">${filterByDate(nappy).length}</div><div class="stat-lbl">Nappies</div></div>
                         <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(skin).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Skin</div></div>
                         <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(tummy).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Tummy</div></div>
-                        <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='Sleep')).length}</div><div class="stat-lbl">Sleep logs</div></div>
-                        <div class="stat-box"><div class="stat-val">${(filterByDate(child.filter(l=>l.category==='Sleep')).reduce((s,l)=>s+ +l.value,0) / 60).toFixed(1)}h</div><div class="stat-lbl">Avg Sleep</div></div>
                     `;
                     const feedDayStats = groupByDay(filterByDate(allFeed));
                     const fd2 = Object.keys(feedDayStats).sort((a,b)=>new Date(a)-new Date(b));
-                    drawChart('chart-stats-feeding', [
-                        {label:'Feeding', data:fd2.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}
-                    ], {labels:fd2, unit:'ml'});
+                    drawChart('chart-stats-feeding', [{label:'Feeding', data:fd2.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:fd2, unit:'ml'});
                     const nd2 = [...new Set([...Object.keys(weeDay),...Object.keys(pooDay)])].sort((a,b)=>new Date(a)-new Date(b));
                     drawChart('chart-stats-nappy', [
                         {label:'Wee', data:nd2.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
@@ -1441,7 +1499,26 @@
                 }
 
                 renderMedicationTimers();
-                // Other history lists (meds, hospital, milestones, appointments, sleep, growth) rendered here...
+                // Additional history lists for meds, hospital, milestones, appointments, growth, sleep
+                const medHist = document.getElementById('history-meds');
+                if(medHist) {
+                    const sorted = filterByDate(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    medHist.innerHTML = sorted.slice(0,5).map(l=>{ const [n,d]=l.detail.split('|'); return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${n} ${d?'('+d+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`; }).join('');
+                }
+                const hospHist = document.getElementById('history-hospital');
+                if(hospHist) {
+                    const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                    hospHist.innerHTML = sorted.slice(0,10).map(l=>{ const [h,n]=l.detail.split('|'); return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${h}</div><div class="hospital-note-text">${n.replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`; }).join('');
+                }
+                const milestones = filterByDate(child.filter(l=>l.category==='Milestone')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                document.getElementById('milestones-list').innerHTML = milestones.map(l=>{ const [title, notes]=l.detail.split('|'); return `<div class="history-item"><strong>${title}</strong><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`; }).join('') || '<div>No milestones</div>';
+                const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+                document.getElementById('appointments-list').innerHTML = appointments.map(l=>{ const [title,location,notes]=l.detail.split('|'); return `<div class="history-item"><div><strong>${title}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`; }).join('') || '<div>No appointments</div>';
+                const growthLogs = filterByDate(child.filter(l=>l.category==='Growth'));
+                document.getElementById('history-growth').innerHTML = growthLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleDateString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No measurements</div>';
+                const sleepLogs = filterByDate(child.filter(l=>l.category==='Sleep'));
+                document.getElementById('history-sleep').innerHTML = sleepLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${Math.round(l.value/60)}h ${l.value%60}m</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No sleep logs</div>';
+
                 if(timerInterval) clearInterval(timerInterval);
                 timerInterval = setInterval(renderMedicationTimers, 60000);
             } catch(e) { console.error(e); showError('Display error: '+e.message); }
