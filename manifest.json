@@ -1,0 +1,12 @@
+{
+  "name": "Eco Family Flow",
+  "short_name": "EcoFlow",
+  "start_url": "/Eco-Family-Flow/",
+  "display": "standalone",
+  "background_color": "#f2f7f4",
+  "theme_color": "#8fbca0",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
