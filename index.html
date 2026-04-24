@@ -66,6 +66,7 @@
             margin: 0 auto; 
             padding: 15px; 
         }
+        /* ---- NEW HEADER ---- */
         .app-header {
             display: flex;
             align-items: center;
@@ -104,6 +105,7 @@
             border-radius: 6px;
             font-size: 14px;
         }
+        /* ---- TRIAL BANNER ---- */
         #trial-banner {
             display: none;
             padding: 8px 12px;
@@ -117,6 +119,7 @@
         .trial-green { background: #c8e6c9; color: #2e7d32; }
         .trial-amber { background: #fff3cd; color: #856404; }
         .trial-red { background: #ffcdd2; color: #b71c1c; }
+
         .sync-banner { 
             position: fixed; top: 0; left: 0; right: 0; padding: 8px; 
             text-align: center; font-size: 14px; font-weight: bold; z-index: 200; transition: 0.3s; 
@@ -228,7 +231,7 @@
         </div>
     </div>
 
-    <!-- Info Page (Your Guide) with original text restored -->
+    <!-- Info Page (Your Guide) -->
     <div id="page-info" class="page">
         <div class="card"><h2>📘 Your Guide</h2><p><strong>This site has a number of features to make your life easier and cheaper. You will notice that there are no images, mostly text and emojis. The reason for this is because there are times when we are updating information using hospital WiFi or at 3am. This is where Night mode helps those tired eyes! The aim is to make life easier for you and for those helping you with your child care. Families are made up in so many ways and go through so many situations. This can help when attending a GP, Hospital or with family/friends who help with childcarr.</strong></p><p>Quick logging for busy moments. All data stays in your own Google Sheet.</p></div>
         <div class="card"><h3>🎯 Mission</h3><p>Empower parents and caregivers with a simple, reliable tool.</p></div>
@@ -257,7 +260,7 @@
 
     <!-- Main App -->
     <div id="main-app" style="display: none;">
-        <!-- NEW HEADER with Install, Share, Language -->
+        <!-- NEW HEADER -->
         <div class="app-header">
             <div class="header-left">
                 <div class="header-icon-text" onclick="window.installApp()">
@@ -287,7 +290,7 @@
 
         <div id="error-banner" class="error-banner"></div>
 
-        <!-- Navigation Grid -->
+        <!-- Navigation Grid (only one guide button) -->
         <section id="nav-grid">
             <div id="tab-info" class="nav-tile wide" onclick="window.switchTab('info')"><span class="nav-emoji">🖋️</span><span class="nav-label">Your Guide</span></div>
             
@@ -830,7 +833,7 @@
         setInterval(() => {
             if (state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--;
             updateTrialBanner();
-        }, 1000 * 60 * 60 * 24); // daily
+        }, 1000 * 60 * 60 * 24);
         async function checkTrialStatus() {
             try {
                 const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
@@ -952,7 +955,6 @@
         window.saveNappy = () => {
             const time = new Date(document.getElementById('nappyTime').value).toISOString();
             if (state.nappyType === 'Both') {
-                // Save two entries: one Wee, one Poo
                 saveWithOfflineSupport({
                     action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Wee',
                     user: window.auth.currentUser.email, child: state.currentChild
@@ -1106,7 +1108,7 @@
                 const oz = parseFloat(document.getElementById('weight-oz').value);
                 if (!isNaN(lbs) || !isNaN(oz)) {
                     const totalOz = (isNaN(lbs)?0:lbs) * 16 + (isNaN(oz)?0:oz);
-                    weight = totalOz * 0.0283495; // kg
+                    weight = totalOz * 0.0283495;
                 }
             } else {
                 weight = parseFloat(document.getElementById('weight-kg').value);
@@ -1158,7 +1160,7 @@
                 const pct = ref ? Math.round((latest.weight - ref.p3) / (ref.p97 - ref.p3) * 100) : 0;
                 document.getElementById('weight-percentile').textContent = `Approx. percentile: ${pct}% (vs UK-WHO)`;
             }
-            // Height chart (similar)
+            // Height chart
             const heightData = growthLogs.filter(l => l.detail.split('|')[1] !== '').map(l => ({ age: (new Date(l.timestamp) - new Date(dob)) / (1000*60*60*24*30.4375), height: parseFloat(l.detail.split('|')[1]) }));
             if (heightData.length > 0) {
                 const ctx = document.getElementById('chart-growth-height').getContext('2d');
