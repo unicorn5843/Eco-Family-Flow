@@ -998,7 +998,7 @@
                 <!-- SAVINGS -->
                 <div id="page-savings" class="page">
                     <div class="card"><h3>💰 Save Money</h3></div>
-                    <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://tgtg.onelink.me/OGjG?af_referrer_customer_id=51980438&c=C2C+referral+Always-on+person+A+incentivised&af_referrer_uid=1699367036831-3405058466364012304&pid=c2c_referral&af_siteid=com.app.tgtg&deep_link_value=https%3A%2F%2Fshare.toogoodtogo.com%2Fc2c%2Freferral-code%2Falways-on-person-a-incentivized%2FRVUxLTUxOTgwNDM4%3Fdeviceid%3Daa2c2f87fb3bd85a" target="_blank" class="save-btn" style="background:#00a896;">Get the App</a></div>
+                    <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://tgtg.onelink.me/OGjG?..." target="_blank" class="save-btn" style="background:#00a896;">Get the App</a></div>
                 </div>
 
                 <!-- GROWTH PAGE -->
@@ -1030,7 +1030,7 @@
                     <div class="card"><div class="stat-lbl">Family ID</div><div id="account-family-id"></div></div>
                     <div class="card"><div class="stat-lbl">Invite Code</div><div id="account-invite-code" style="font-size:24px;"></div><button class="save-btn" onclick="window.copyInviteCode()">📋 Copy Code</button></div>
                     <div class="card"><div class="stat-lbl">Members</div><div id="account-members"></div></div>
-                    <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in your own Google Sheet. We do not share or sell your information. You can delete your account and all associated data at any time.</p></div>
+                    <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in your own Google Sheet. We do not share or sell your information.</p></div>
                     <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.deleteAccount()">🗑️ Delete Account & Data</button></div>
                     <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.logout()">🚪 Sign Out</button></div>
                 </div>
@@ -2300,7 +2300,6 @@
                     renderGrowthChart('chart-growth-height', 'height');
                 }
                 if (state.tab === 'sleep') {
-                    // render sleep chart
                     const sleepLogs = state.logs.filter(l => l.child === state.currentChild && l
                         .category === 'Sleep');
                     const daily = groupByDay(sleepLogs);
