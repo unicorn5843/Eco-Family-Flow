@@ -1493,10 +1493,19 @@
         renderUI();
     };
     window.resetTimeInputs = () => {
-        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset()); const t = now.toISOString().slice(0,16);
-        ['milkTime','formulaTime','nappyTime','skinStart','skinEnd','tummyStart','tummyEnd','medTime','hospitalTime','apptDateTime','sleepStart','sleepEnd'].forEach(id => { const el = document.getElementById(id); if(el) el.value = t; });
-        if (document.getElementById('measure-date')) document.getElementById('measure-date').value = now.toISOString().slice(0,10);
-    };
+    const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const startTime = now.toISOString().slice(0,16);
+    const endTime = new Date(now.getTime() + 60*60*1000).toISOString().slice(0,16); // 1 hour later
+    const singleFields = ['milkTime','formulaTime','nappyTime','medTime','hospitalTime','apptDateTime'];
+    const startFields = ['skinStart','tummyStart','sleepStart'];
+    const endFields = ['skinEnd','tummyEnd','sleepEnd'];
+
+    singleFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = startTime; });
+    startFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = startTime; });
+    endFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = endTime; });
+
+    if (document.getElementById('measure-date')) document.getElementById('measure-date').value = now.toISOString().slice(0,10);
+};    
     window.toggleUnits = () => { state.units = state.units === 'UK' ? 'US' : 'UK'; document.getElementById('flag-emoji').innerText = state.units==='UK'?'🇬🇧':'🇺🇸'; document.getElementById('unit-label').innerText = state.units==='UK'?'UK Units':'US Units'; renderUI(); };
     window.switchTab = (tabId) => {
         state.tab = tabId;
