@@ -109,6 +109,10 @@
         .paywall-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
         .appt-location { font-size: 12px; opacity: 0.7; margin-top: 2px; }
         .appt-notes { font-size: 12px; opacity: 0.6; margin-top: 2px; font-style: italic; }
+        .private-note-card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
+        .private-note-title { font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
+        .private-note-content { margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
+        .private-note-time { font-size: 11px; opacity: 0.5; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -119,7 +123,6 @@
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display: none;"></div>
 
-    <!-- Welcome Page - Your text preserved -->
     <div id="page-welcome" class="page active">
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
@@ -130,7 +133,6 @@
         </div>
     </div>
 
-    <!-- Family Setup Page -->
     <div id="page-family-setup" class="page">
         <div class="card" style="text-align:center;">
             <h2>👨‍👩‍👧 Set Up Your Family</h2>
@@ -150,7 +152,6 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
-    <!-- Guide Page - Your text preserved -->
     <div id="page-info" class="page">
         <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Fridge note for a static reminder. Child A, B, C... So that no personal information is stored. Tap any tile to jump to its tracker.<br><br>
             👩‍🍼 The milk tracker logs how much is pumped and how much is given.<br><br>
@@ -338,11 +339,18 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- Notes Page -->
+        <!-- Notes Page - Improved Layout -->
         <div id="page-notes" class="page">
             <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
-            <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
-            <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
+            <div class="card">
+                <div class="input-group"><input type="text" id="note-title" placeholder="Title (e.g., GP phone number)"></div>
+                <div class="input-group"><textarea id="note-content" placeholder="Notes..."></textarea></div>
+                <button class="save-btn" onclick="window.savePrivateNote()">Save Note</button>
+            </div>
+            <div class="card">
+                <div class="stat-lbl">Your Notes</div>
+                <div id="private-notes-list"></div>
+            </div>
         </div>
 
         <!-- Emergency Page -->
@@ -360,7 +368,11 @@
 
         <!-- Appointments Page -->
         <div id="page-appointments" class="page">
-            <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
+            <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div>
+            <div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div>
+            <div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div>
+            <div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div>
+            <button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
             <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
         </div>
 
@@ -662,7 +674,6 @@
         } catch (error) { showError('Could not load data.'); }
         finally { document.getElementById('loading-indicator').style.display = 'none'; }
     };
-
     window.deleteEntry = async (timestamp) => {
         if(!confirm('Delete this entry?')) return;
         const payload = { action: 'delete', timestamp, user: window.auth.currentUser.email };
@@ -738,10 +749,11 @@
         window.resetTimeInputs();
     };
 
+    // Private Notes - Fixed to show content
     window.savePrivateNote = () => {
         const title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
-        if (!title) return alert('Please enter a title');
+        if (!title && !content) return alert('Please enter at least a title or a note.');
         privateNotes.push({ id: Date.now(), title, content, updated: new Date().toISOString() });
         localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
         document.getElementById('note-title').value = '';
@@ -762,7 +774,16 @@
             return;
         }
         const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
-        container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
+        container.innerHTML = sorted.map(note => `
+            <div class="private-note-card">
+                <div class="private-note-title">
+                    <strong>${note.title || 'Untitled'}</strong>
+                    <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})" style="cursor:pointer;">🗑️</span>
+                </div>
+                <div class="private-note-content">${note.content}</div>
+                <div class="private-note-time">${new Date(note.updated).toLocaleString()}</div>
+            </div>
+        `).join('');
     }
 
     const groupByDay = (logs, key='value') => {
@@ -933,8 +954,6 @@
                 const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                 hospHist.innerHTML = sorted.slice(0,10).map(l=>`<div class="hospital-note-item"><div class="hospital-name">🏥 ${l.detail.split('|')[0]}</div><div class="hospital-note-text">${l.detail.split('|')[1]?l.detail.split('|')[1].replace(/\n/g,'<br>'):''}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`).join('');
             }
-
-            // ✅ FIXED: Appointments now show location and notes
             const apptEl = document.getElementById('appointments-list');
             if(apptEl) {
                 const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
@@ -962,7 +981,6 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, nearby (unchanged)
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
