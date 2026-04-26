@@ -817,6 +817,7 @@
     };
 
     window.saveSkin = () => {
+    alert("Skin save triggered"); 
         const start = new Date(document.getElementById('skinStart').value);
         const end = new Date(document.getElementById('skinEnd').value);
         const mins = Math.round((end - start) / 60000);
