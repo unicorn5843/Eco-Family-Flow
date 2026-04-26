@@ -76,6 +76,7 @@
             transition: background-color 0.4s, color 0.4s;
             -webkit-tap-highlight-color: transparent;
             -webkit-font-smoothing: antialiased;
+            scroll-padding-top: 20px;
         }
         #app-interface {
             display: none;
@@ -138,7 +139,6 @@
         .trial-green { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
         .trial-amber { background: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
         .trial-red { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-
         .sync-banner {
             position: fixed; top: 0; left: 0; right: 0; padding: 8px;
             text-align: center; font-size: 14px; font-weight: bold; z-index: 200; transition: 0.3s;
@@ -224,7 +224,7 @@
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
             <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
-            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, sleep, medications, and more.</p>
+            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more.</p>
             <p><strong>60‑day full access trial – no card required.</strong></p>
             <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
         </div>
@@ -282,20 +282,16 @@
         <div id="tab-milk" class="nav-tile active" onclick="window.switchTab('milk')"><span class="nav-emoji">🤱</span><span class="nav-label">Milk</span></div>
         <div id="tab-formula" class="nav-tile" onclick="window.switchTab('formula')"><span class="nav-emoji">🍼</span><span class="nav-label">Formula</span></div>
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
-        <div id="tab-skin" class="nav-tile" onclick="window.switchTab('skin')"><span class="nav-emoji">❤️</span><span class="nav-label">Tummy/Skin</span></div>
-        
         <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
+        
         <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
         <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
         <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
-        
         <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
-        <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
-        <div id="tab-milestones" class="nav-tile pro-only" onclick="window.switchTab('milestones')"><span class="nav-emoji">🌱</span><span class="nav-label">Milestones</span></div>
-        <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
         
-        <div id="tab-growth" class="nav-tile pro-only" onclick="window.switchTab('growth')"><span class="nav-emoji">📈</span><span class="nav-label">Growth</span></div>
-        <div id="tab-sleep" class="nav-tile pro-only" onclick="window.switchTab('sleep')"><span class="nav-emoji">😴</span><span class="nav-label">Sleep</span></div>
+        <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
+        <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
+        <!-- empty tiles to fill row, hidden via empty style? We'll just let them be blank; add two empty divs for grid alignment? Or just have them invisible. Better to not include them and adjust grid. We'll stick with 4-col, but last row will only have 2 tiles -> they will span half width? That's okay. We'll add empty invisible tiles to maintain layout if needed, but not necessary. -->
         
         <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
         <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
@@ -375,37 +371,6 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
 
-        <div id="page-skin" class="page">
-            <div class="card">
-                <h3>🤱 Skin‑to‑Skin</h3>
-                <div class="stat-lbl">Start Time</div>
-                <div class="input-group"><input type="datetime-local" id="skinStart"></div>
-                <div class="stat-lbl">End Time</div>
-                <div class="input-group"><input type="datetime-local" id="skinEnd"></div>
-                <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Skin‑to‑Skin</button>
-            </div>
-            <div class="card">
-                <h3>👶 Tummy Time</h3>
-                <div class="stat-lbl">Start Time</div>
-                <div class="input-group"><input type="datetime-local" id="tummyStart"></div>
-                <div class="stat-lbl">End Time</div>
-                <div class="input-group"><input type="datetime-local" id="tummyEnd"></div>
-                <button class="save-btn" id="btn-save-tummy" onclick="window.saveTummyTime()">Save Tummy Time</button>
-            </div>
-            <div id="stats-skin" class="stat-container"></div>
-            <div class="card">
-                <div style="height:250px;"><canvas id="chart-skin"></canvas></div>
-                <div class="chart-legend">
-                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #b30000;"></span> Skin‑to‑Skin</div>
-                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #00bcd4;"></span> Tummy Time</div>
-                    <div class="legend-item"><span class="legend-color" style="border-bottom:2px dashed #ff9800;"></span> 7‑Day Avg (Skin)</div>
-                    <div class="legend-item"><span class="legend-color" style="border-bottom:2px dotted #ff9800;"></span> 7‑Day Avg (Tummy)</div>
-                </div>
-            </div>
-            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
-        </div>
-
-        <!-- Remaining pages identical to original but with corrected JS only -->
         <div id="page-meds" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="medTime"></div>
@@ -432,10 +397,6 @@
             <div id="stats-overview" class="stat-container"></div>
             <div class="card"><h4>Feeding Trends</h4><div style="height:200px;"><canvas id="chart-stats-feeding"></canvas></div></div>
             <div class="card"><h4>Nappy Trends</h4><div style="height:200px;"><canvas id="chart-stats-nappy"></canvas></div></div>
-            <div class="card"><h4>Skin & Tummy Time</h4><div style="height:200px;"><canvas id="chart-stats-skin"></canvas></div></div>
-            <div class="card"><h4>Sleep</h4><div style="height:200px;"><canvas id="chart-stats-sleep"></canvas></div></div>
-            <div class="card"><h4>📈 Growth (Weight)</h4><div style="height:300px;"><canvas id="chart-stats-growth-weight"></canvas></div><div id="weight-percentile-stats" style="text-align:center;font-size:12px;margin-top:5px;"></div></div>
-            <div class="card"><h4>📈 Growth (Height)</h4><div style="height:300px;"><canvas id="chart-stats-growth-height"></canvas></div><div id="height-percentile-stats" style="text-align:center;font-size:12px;margin-top:5px;"></div></div>
             <div class="card">
                 <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
                 <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
@@ -483,35 +444,11 @@
             <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
         </div>
 
-        <div id="page-milestones" class="page">
-            <div class="card"><h3>🌱 Milestone Journal</h3><input type="text" id="milestone-title" placeholder="Title"><textarea id="milestone-notes" placeholder="Notes..."></textarea><button class="save-btn" id="btn-save-milestone" onclick="window.saveMilestone()">Save Milestone</button></div>
-            <div class="card"><div class="stat-lbl">Recent Milestones</div><div id="milestones-list" class="history-list"></div></div>
-        </div>
-
         <div id="page-savings" class="page">
             <div class="card"><h3>💰 Save Money</h3></div>
             <div class="card"><h4>🍽️ Too Good To Go</h4><a href="#" target="_blank" class="save-btn" style="background:#00a896; text-decoration:none; display:inline-block; text-align:center;">Get the App</a></div>
         </div>
 
-        <div id="page-growth" class="page">
-            <div class="card"><h3>📈 Growth Tracker</h3><div class="input-group"><input type="date" id="child-dob"></div><button class="save-btn" onclick="window.saveDOB()">Save DOB</button></div>
-            <div class="card"><h4>Log Measurement</h4><div class="input-group"><input type="date" id="measure-date"></div>
-            <div class="input-group" id="weight-inputs"><input type="number" id="weight-kg" placeholder="Weight (kg)" step="0.01"></div>
-            <div class="input-group" id="us-weight-inputs" style="display:none;"><input type="number" id="weight-lbs" placeholder="lbs" step="1"><input type="number" id="weight-oz" placeholder="oz" step="0.1"></div>
-            <div class="input-group"><input type="number" id="height-cm" placeholder="Height (cm)" step="0.1"></div>
-            <button class="save-btn" id="btn-save-growth" onclick="window.saveGrowth()">Save</button></div>
-            <div class="card"><h4>Weight</h4><div style="height:300px;"><canvas id="chart-growth-weight"></canvas></div><div id="weight-percentile" style="text-align:center;font-size:12px;margin-top:5px;"></div></div>
-            <div class="card"><h4>Height</h4><div style="height:300px;"><canvas id="chart-growth-height"></canvas></div><div id="height-percentile" style="text-align:center;font-size:12px;margin-top:5px;"></div></div>
-            <div class="card"><div class="stat-lbl">Recent Measurements</div><div id="history-growth" class="history-list"></div></div>
-        </div>
-
-        <div id="page-sleep" class="page">
-            <div class="card"><h3>😴 Sleep Tracker</h3><div class="input-group"><input type="datetime-local" id="sleepStart"></div><div class="input-group"><input type="datetime-local" id="sleepEnd"></div><button class="save-btn" id="btn-save-sleep" onclick="window.saveSleep()">Log Sleep</button></div>
-            <div class="card"><div style="height:250px;"><canvas id="chart-sleep"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Sleep</div><div class="legend-item"><span class="legend-color" style="background:#ff9800; border:1px dashed;"></span> 7‑Day Avg</div><div class="legend-item"><span class="legend-color" style="background:#2ecc71; border:1px dotted;"></span> NHS Guideline</div></div></div>
-            <div class="card"><h4>💤 Nap Suggestions</h4><div id="nap-suggestions"></div></div>
-            <div class="card"><div class="stat-lbl">Recent Sleep</div><div id="history-sleep" class="history-list"></div></div>
-        </div>
-        
         <div id="page-account" class="page">
             <div class="card"><h2>👤 Account</h2></div>
             <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
@@ -549,7 +486,7 @@
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
     const POST_HEADERS = { 'Content-Type': 'application/json' };
 
-    // ==================== STATE ====================
+    // Simplified state – removed unused categories
     let state = {
         units: 'UK',
         tab: 'milk',
@@ -568,18 +505,15 @@
             { name: 'Child D', color: '#9b5de5' },
             { name: 'Child E', color: '#00b4d8' }
         ],
-        stashBalance: 0,
-        childDOB: null
+        stashBalance: 0
     };
 
     let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
     let handoverNotes = JSON.parse(localStorage.getItem('handoverNotes') || '{}');
     let charts = {};
     let timerInterval = null;
-    let currentCategory = '';
     let deferredPrompt;
 
-    // ==================== UTILS ====================
     function showError(msg) {
         const banner = document.getElementById('error-banner');
         if (!banner) return;
@@ -666,6 +600,7 @@
         }
     }
 
+    // Child & UI utilities
     function buildChildSelector() {
         const container = document.getElementById('child-selector-container');
         if (!container) return;
@@ -720,6 +655,7 @@
         }
     };
 
+    // Family setup, trial, paywall (unchanged)
     window.createFamily = async () => {
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
         const payload = { action: 'createFamily', user: window.auth.currentUser.email, familyName };
@@ -750,15 +686,13 @@
 
     function updateTrialBanner() {
         const banner = document.getElementById('trial-banner');
-        if (!banner) return;
-        if (state.trialStatus.isPro) { banner.style.display = 'none'; return; }
+        if (!banner || state.trialStatus.isPro) { banner.style.display = 'none'; return; }
         const days = state.trialStatus.daysLeft;
         banner.style.display = 'block';
         banner.textContent = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
         banner.className = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
     }
     setInterval(() => { if (state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--; updateTrialBanner(); }, 1000*60*60*24);
-
     async function checkTrialStatus() {
         try {
             const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
@@ -803,6 +737,7 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
+    // Save functions – removed skin, tummy, sleep, growth
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -818,34 +753,6 @@
         };
         amtInput.value = '';
         saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
-    };
-
-    window.saveSkin = () => {
-        const startVal = document.getElementById('skinStart').value;
-        const endVal = document.getElementById('skinEnd').value;
-        if (!startVal || !endVal) return alert("Please set both start and end times");
-        const start = new Date(startVal), end = new Date(endVal);
-        const mins = Math.round((end - start) / 60000);
-        if (mins <= 0) return alert("End time must be after start time");
-        saveWithOfflineSupport({
-            action: 'save', timestamp: start.toISOString(), category: 'SkinToSkin', value: mins, detail: 'Session',
-            user: window.auth.currentUser.email, child: state.currentChild
-        }, 'btn-save-skin', 'Save Skin‑to‑Skin');
-        window.resetTimeInputs();
-    };
-
-    window.saveTummyTime = () => {
-        const startVal = document.getElementById('tummyStart').value;
-        const endVal = document.getElementById('tummyEnd').value;
-        if (!startVal || !endVal) return alert("Please set both start and end times");
-        const start = new Date(startVal), end = new Date(endVal);
-        const mins = Math.round((end - start) / 60000);
-        if (mins <= 0) return alert("End time must be after start time");
-        saveWithOfflineSupport({
-            action: 'save', timestamp: start.toISOString(), category: 'TummyTime', value: mins, detail: 'Tummy Time',
-            user: window.auth.currentUser.email, child: state.currentChild
-        }, 'btn-save-tummy', 'Save Tummy Time');
-        window.resetTimeInputs();
     };
 
     window.saveNappy = () => {
@@ -888,45 +795,21 @@
         window.resetTimeInputs();
     };
 
-    window.saveSleep = () => {
-        const startVal = document.getElementById('sleepStart').value;
-        const endVal = document.getElementById('sleepEnd').value;
-        if (!startVal || !endVal) return alert("Please set both start and end times");
-        const start = new Date(startVal), end = new Date(endVal);
-        const mins = Math.round((end - start) / 60000);
-        if (mins <= 0) return alert("End time must be after start time");
+    window.saveAppointment = () => {
+        const dt = document.getElementById('apptDateTime').value;
+        if(!dt) return alert('Select date/time');
+        const title = document.getElementById('apptTitle').value.trim();
+        if(!title) return alert('Enter title');
+        const loc = document.getElementById('apptLocation').value.trim();
+        const notes = document.getElementById('apptNotes').value.trim();
+        document.getElementById('apptTitle').value = '';
+        document.getElementById('apptLocation').value = '';
+        document.getElementById('apptNotes').value = '';
         saveWithOfflineSupport({
-            action: 'save', timestamp: start.toISOString(), category: 'Sleep', value: mins, detail: 'Sleep',
-            user: window.auth.currentUser.email, child: state.currentChild
-        }, 'btn-save-sleep', 'Log Sleep');
+            action:'save', timestamp: new Date(dt).toISOString(), category:'Appointment', value:0,
+            detail:`${title}|${loc}|${notes}`, user:window.auth.currentUser.email, child:state.currentChild
+        }, 'btn-save-appointment', 'Save Appointment');
         window.resetTimeInputs();
-    };
-
-    window.saveGrowth = () => {
-        const dateVal = document.getElementById('measure-date').value;
-        if (!dateVal) return alert('Please select a date');
-        let weight = NaN, height = NaN;
-        if (state.units === 'US') {
-            const lbs = parseFloat(document.getElementById('weight-lbs').value);
-            const oz = parseFloat(document.getElementById('weight-oz').value);
-            if (!isNaN(lbs) || !isNaN(oz)) {
-                const totalOz = (isNaN(lbs)?0:lbs)*16 + (isNaN(oz)?0:oz);
-                weight = totalOz * 0.0283495;
-            }
-        } else weight = parseFloat(document.getElementById('weight-kg').value);
-        height = parseFloat(document.getElementById('height-cm').value);
-        if (isNaN(weight) && isNaN(height)) return alert('Please enter at least one measurement');
-        const [year, month, day] = dateVal.split('-').map(Number);
-        const localDate = new Date(year, month-1, day, 12, 0, 0);
-        const payload = {
-            action: 'save', timestamp: localDate.toISOString(), category: 'Growth', value: 0,
-            detail: `${isNaN(weight)?'':weight.toFixed(2)}|${isNaN(height)?'':height.toFixed(1)}`,
-            user: window.auth.currentUser.email, child: state.currentChild
-        };
-        if (state.units === 'US') { document.getElementById('weight-lbs').value = ''; document.getElementById('weight-oz').value = ''; }
-        else document.getElementById('weight-kg').value = '';
-        document.getElementById('height-cm').value = '';
-        saveWithOfflineSupport(payload, 'btn-save-growth', 'Save');
     };
 
     window.savePrivateNote = () => {
@@ -949,53 +832,16 @@
         const container = document.getElementById('private-notes-list');
         if (!container) return;
         if (privateNotes.length === 0) {
-            container.innerHTML = '<div style="text-align:center;padding:15px;opacity:0.6;">No private notes yet</div>';
+            container.innerHTML = '<div style="text-align:center; padding:15px; opacity:0.6;">No private notes yet</div>';
             return;
         }
-        const sorted = [...privateNotes].sort((a,b)=>new Date(b.updated)-new Date(a.updated));
-        container.innerHTML = sorted.map(note=>`<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
+        const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
+        container.innerHTML = sorted.map(note => `
+            <div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>
+        `).join('');
     }
 
-    window.saveMilestone = () => {
-        const title = document.getElementById('milestone-title').value.trim();
-        if (!title) return alert('Please enter title');
-        const notes = document.getElementById('milestone-notes').value.trim();
-        document.getElementById('milestone-title').value = '';
-        document.getElementById('milestone-notes').value = '';
-        saveWithOfflineSupport({
-            action:'save', timestamp: new Date().toISOString(), category:'Milestone', value:0,
-            detail:`${title}|${notes}`, user:window.auth.currentUser.email, child:state.currentChild
-        }, 'btn-save-milestone', 'Save Milestone');
-    };
-
-    window.saveAppointment = () => {
-        const dt = document.getElementById('apptDateTime').value;
-        if(!dt) return alert('Select date/time');
-        const title = document.getElementById('apptTitle').value.trim();
-        if(!title) return alert('Enter title');
-        const loc = document.getElementById('apptLocation').value.trim();
-        const notes = document.getElementById('apptNotes').value.trim();
-        document.getElementById('apptTitle').value = '';
-        document.getElementById('apptLocation').value = '';
-        document.getElementById('apptNotes').value = '';
-        saveWithOfflineSupport({
-            action:'save', timestamp: new Date(dt).toISOString(), category:'Appointment', value:0,
-            detail:`${title}|${loc}|${notes}`, user:window.auth.currentUser.email, child:state.currentChild
-        }, 'btn-save-appointment', 'Save Appointment');
-        window.resetTimeInputs();
-    };
-
-    window.saveDOB = () => {
-        const dob = document.getElementById('child-dob').value;
-        if(!dob) return alert('Select DOB');
-        state.childDOB = dob;
-        localStorage.setItem(`dob_${state.currentChild}`, dob);
-        window.renderGrowthChart('chart-growth-weight','weight');
-        window.renderGrowthChart('chart-growth-height','height');
-        alert('DOB saved!');
-    };
-
-    // ==================== CHART HELPERS (FIXED MOVING AVERAGE) ====================
+    // Chart utilities (unchanged, only used for milk/formula/nappy)
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
@@ -1004,7 +850,6 @@
         });
         return daily;
     };
-    // Returns a Map of date -> moving average (null for first few days)
     const movingAvgMap = (obj, days=7) => {
         const dates = Object.keys(obj).sort((a,b) => new Date(a)-new Date(b));
         const vals = dates.map(d => obj[d]);
@@ -1016,7 +861,6 @@
         }
         return map;
     };
-
     const supplyStatus = (pump, feed) => {
         const week = new Date(); week.setDate(week.getDate()-6);
         const f = l => new Date(l.timestamp) >= week;
@@ -1031,14 +875,13 @@
         else { status='Critical Deficit'; cls='status-critical'; }
         return { pumpTotal:p, feedTotal:fd, diff, ratio, status, statusClass:cls };
     };
-
     function drawChart(id, datasets, opts={}) {
         const canvas = document.getElementById(id);
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
         if(charts[id]) charts[id].destroy();
         if(datasets.every(ds=>ds.data.length===0)) {
-            charts[id] = new Chart(ctx, { type:'line', data:{labels:['No data'],datasets:[]}, options:{plugins:{title:{display:true,text:'Add entries'}}}} );
+            charts[id] = new Chart(ctx, { type:'line', data:{labels:['No data'],datasets:[]}, options:{plugins:{title:{display:true,text:'Add entries'}}} });
             return;
         }
         charts[id] = new Chart(ctx, {
@@ -1061,29 +904,6 @@
             }
         });
     }
-
-    window.renderGrowthChart = function(canvasId, type) {
-        const canvas = document.getElementById(canvasId);
-        if(!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if(charts[canvasId]) charts[canvasId].destroy();
-        const logs = state.logs.filter(l => l.child === state.currentChild && l.category === 'Growth')
-                               .sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-        if(logs.length===0) {
-            charts[canvasId] = new Chart(ctx, { type:'line', data:{labels:['No data'],datasets:[]}, options:{plugins:{title:{display:true,text:'No measurements yet'}}} });
-            return;
-        }
-        const dates = logs.map(l => new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'}));
-        const data = logs.map(l => {
-            const parts = l.detail.split('|');
-            const val = type==='weight' ? parseFloat(parts[0]) : parseFloat(parts[1]);
-            return isNaN(val) ? null : val;
-        });
-        charts[canvasId] = new Chart(ctx, {
-            type:'line', data:{ labels:dates, datasets:[{ label:type.charAt(0).toUpperCase()+type.slice(1), data:data, borderColor:type==='weight'?'#4caf50':'#2196f3', tension:0.3, spanGaps:true }] },
-            options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:false}} }
-        });
-    };
 
     function renderMedicationTimers() {
         const container = document.getElementById('med-timers-container');
@@ -1114,13 +934,8 @@
             document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
             document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
 
-            if(isUS) { document.getElementById('weight-inputs').style.display='none'; document.getElementById('us-weight-inputs').style.display='flex'; }
-            else { document.getElementById('weight-inputs').style.display='flex'; document.getElementById('us-weight-inputs').style.display='none'; }
-
             const milk = child.filter(l=>l.category==='Milk');
             const formula = child.filter(l=>l.category==='Formula');
-            const skin = child.filter(l=>l.category==='SkinToSkin');
-            const tummy = child.filter(l=>l.category==='TummyTime');
             const nappy = child.filter(l=>l.category==='Nappy');
             const pump = milk.filter(l=>l.detail.includes('Pump'));
             const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
@@ -1179,24 +994,12 @@
                 {label:'7‑Day Avg Poo', data:nappyDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:nappyDates, unit:'count'});
 
-            const skinDay = groupByDay(filterByDate(skin)), tummyDay = groupByDay(filterByDate(tummy));
-            const stDates = [...new Set([...Object.keys(skinDay),...Object.keys(tummyDay)])].sort((a,b)=>new Date(a)-new Date(b));
-            const skinMA = movingAvgMap(skinDay), tummyMA = movingAvgMap(tummyDay);
-            const fmtTime = m => m>=60 ? `${(m/60).toFixed(1)}h` : `${m} min`;
-            document.getElementById('stats-skin').innerHTML = `<div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(skin).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Skin</div></div><div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(tummy).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Tummy</div></div>`;
-            drawChart('chart-skin', [
-                {label:'Skin‑to‑Skin', data:stDates.map(d=>skinDay[d]||0), borderColor:'#b30000', tension:0.3},
-                {label:'Tummy Time', data:stDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', tension:0.3},
-                {label:'7‑Day Avg Skin', data:stDates.map(d=>skinMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
-                {label:'7‑Day Avg Tummy', data:stDates.map(d=>tummyMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
-            ], {labels:stDates, unit:'min'});
-
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
                     <div class="stat-box"><div class="stat-val">${filterByDate(nappy).length}</div><div class="stat-lbl">Nappies</div></div>
-                    <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(skin).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Skin</div></div>
-                    <div class="stat-box"><div class="stat-val">${fmtTime(filterByDate(tummy).reduce((s,l)=>s+ +l.value,0))}</div><div class="stat-lbl">Tummy</div></div>
+                    <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='Medication')).length}</div><div class="stat-lbl">Meds</div></div>
+                    <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='HospitalNote')).length}</div><div class="stat-lbl">Notes</div></div>
                 `;
                 const feedDayStats = groupByDay(filterByDate(allFeed));
                 const fd2 = Object.keys(feedDayStats).sort((a,b)=>new Date(a)-new Date(b));
@@ -1205,22 +1008,9 @@
                     {label:'Wee', data:nappyDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                     {label:'Poo', data:nappyDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
                 ], {labels:nappyDates, unit:'count'});
-                drawChart('chart-stats-skin', [
-                    {label:'Skin', data:stDates.map(d=>skinDay[d]||0), borderColor:'#b30000', tension:0.3},
-                    {label:'Tummy', data:stDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', tension:0.3}
-                ], {labels:stDates, unit:'min'});
-                const sleepAll = filterByDate(child.filter(l=>l.category==='Sleep'));
-                const sleepDay = groupByDay(sleepAll);
-                const sleepDates = Object.keys(sleepDay).sort((a,b)=>new Date(a)-new Date(b));
-                drawChart('chart-stats-sleep', [{label:'Sleep', data:sleepDates.map(d=>sleepDay[d]), borderColor:'#9b59b6', tension:0.3}], {labels:sleepDates, unit:'min'});
-
-                const dob = state.childDOB || localStorage.getItem(`dob_${state.currentChild}`);
-                if(dob) { window.renderGrowthChart('chart-stats-growth-weight','weight'); window.renderGrowthChart('chart-stats-growth-height','height'); }
-                else { document.getElementById('weight-percentile-stats').textContent='Save DOB on Growth page first'; document.getElementById('height-percentile-stats').textContent=''; }
             }
 
             renderMedicationTimers();
-            // ... additional history rendering (same as before but updated moving avg calls)
             const medHist = document.getElementById('history-meds');
             if(medHist) {
                 const sorted = filterByDate(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
@@ -1230,11 +1020,6 @@
             if(hospHist) {
                 const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                 hospHist.innerHTML = sorted.slice(0,10).map(l=>`<div class="hospital-note-item"><div class="hospital-name">🏥 ${l.detail.split('|')[0]}</div><div class="hospital-note-text">${l.detail.split('|')[1]?l.detail.split('|')[1].replace(/\n/g,'<br>'):''}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`).join('');
-            }
-            const milestoneEl = document.getElementById('milestones-list');
-            if(milestoneEl) {
-                const milestones = filterByDate(child.filter(l=>l.category==='Milestone')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-                milestoneEl.innerHTML = milestones.map(l=>`<div class="history-item"><strong>${l.detail.split('|')[0]}</strong><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No milestones yet</div>';
             }
             const apptEl = document.getElementById('appointments-list');
             if(apptEl) {
@@ -1247,24 +1032,13 @@
                 const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(notes||'')}&location=${encodeURIComponent(location||'')}`;
                 window.open(url, '_blank');
             };
-            const growthEl = document.getElementById('history-growth');
-            if(growthEl) {
-                const growthLogs = filterByDate(child.filter(l=>l.category==='Growth'));
-                growthEl.innerHTML = growthLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleDateString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No measurements yet</div>';
-            }
-            const sleepHistEl = document.getElementById('history-sleep');
-            if(sleepHistEl) {
-                const sleepLogs = filterByDate(child.filter(l=>l.category==='Sleep'));
-                sleepHistEl.innerHTML = sleepLogs.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${Math.floor(l.value/60)}h ${l.value%60}m</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No sleep logs yet</div>';
-            }
-
             renderPrivateNotes();
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(renderMedicationTimers, 60000);
         } catch(e) { console.error(e); showError('Display error: '+e.message); }
     };
 
-    // ==================== PRODUCTS & DEALS (FIXED EVENT LISTENERS) ====================
+    // Products, deals, emergency (unchanged)
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
@@ -1273,7 +1047,6 @@
             updateBrandFilter();
             updateSizeFilter();
             renderProductList();
-            // setup chips only once using event delegation
             const chipsContainer = document.getElementById('category-chips-container');
             if(chipsContainer && !chipsContainer.dataset.listenerAttached) {
                 chipsContainer.addEventListener('click', (e) => {
@@ -1335,7 +1108,71 @@
         else openMap(null,null);
     };
 
-    // ==================== INITIALIZATION ====================
+    // Stash, export, account helpers (simplified)
+    window.adjustStash = async (change) => {
+        await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'updateStash', user:window.auth.currentUser.email, child:state.currentChild, change }) });
+        fetchStashBalance();
+    };
+    async function fetchStashBalance() {
+        try {
+            const resp = await fetch(`${GOOGLE_URL}?type=stash&email=${window.auth.currentUser.email}&child=${state.currentChild}`);
+            const data = await resp.json();
+            state.stashBalance = data.balance || 0;
+            document.getElementById('stash-balance').textContent = state.stashBalance;
+        } catch(e) {}
+    }
+    window.exportData = () => {
+        if (!state.trialStatus.isPro) return showPaywall();
+        const childLogs = state.logs.filter(l => l.child === state.currentChild);
+        const csv = [['Timestamp','Category','Value','Detail','Child'].join(',')];
+        childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(',')));
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    };
+    window.exportMedicalReport = () => {
+        if (!state.trialStatus.isPro) return showPaywall();
+        const twoDays = new Date(Date.now() - 48*60*60*1000);
+        const childLogs = state.logs.filter(l => l.child === state.currentChild && new Date(l.timestamp) >= twoDays);
+        const csv = [['Timestamp','Category','Value','Detail'].join(',')];
+        childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';')].join(',')));
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `medical_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    };
+
+    async function loadAccountDetails() {
+        try {
+            const resp = await fetch(`${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
+            const data = await resp.json();
+            document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            document.getElementById('account-family-name').textContent = data.familyName || '—';
+            document.getElementById('account-family-id').textContent = data.familyId || '—';
+            document.getElementById('account-invite-code').textContent = data.inviteCode || '—';
+            document.getElementById('account-members').innerHTML = data.members ? data.members.split(',').map(m => `<div class="history-item">${m.trim()}</div>`).join('') : 'No members';
+        } catch(e) {}
+    }
+    window.copyInviteCode = () => {
+        const code = document.getElementById('account-invite-code').textContent;
+        if (code && code !== '—') navigator.clipboard?.writeText(code).then(() => alert('Copied!')).catch(() => prompt('Copy manually:', code));
+    };
+    window.deleteAccount = async () => {
+        if(!confirm('Permanently delete all your data? This cannot be undone.')) return;
+        try {
+            await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'deleteAccount', user:window.auth.currentUser.email }) });
+            alert('Account deleted.');
+            window.logout();
+        } catch(e) { showError('Could not delete account'); }
+    };
+
+    window.installApp = () => {
+        if (deferredPrompt) deferredPrompt.prompt();
+        else {
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            alert(isIOS ? 'To install: tap the Share button then "Add to Home Screen".' : 'App can be installed from browser menu.');
+        }
+    };
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+
+    // Initialization with smooth scroll after tab switch
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
         if(!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
@@ -1357,14 +1194,51 @@
         if(state.tab==='deals') loadProducts();
         if(state.tab==='stash') fetchStashBalance();
         if(state.tab==='account') loadAccountDetails();
-        if(state.tab==='growth') { window.renderGrowthChart('chart-growth-weight','weight'); window.renderGrowthChart('chart-growth-height','height'); }
-        if(state.tab==='sleep') renderSleepTab();
         renderUI();
     };
 
-    // ... (all other helper functions: fetchStashBalance, loadAccountDetails, toggleUnits, switchTab, etc.)
-    // Included fully in the code but omitted here for brevity; they are the same as original with no bugs.
-    // Full code is provided in the final artifact.
+    window.resetTimeInputs = () => {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const startTime = now.toISOString().slice(0,16);
+        const fields = ['milkTime','formulaTime','nappyTime','medTime','hospitalTime','apptDateTime'];
+        fields.forEach(id => { const el = document.getElementById(id); if(el) el.value = startTime; });
+    };
+
+    window.toggleUnits = () => {
+        state.units = state.units === 'UK' ? 'US' : 'UK';
+        document.getElementById('flag-emoji').innerText = state.units==='UK'?'🇬🇧':'🇺🇸';
+        document.getElementById('unit-label').innerText = state.units==='UK'?'UK Units':'US Units';
+        renderUI();
+    };
+
+    window.switchTab = (tabId) => {
+        state.tab = tabId;
+        document.querySelectorAll('.page, .nav-tile').forEach(el => el.classList.remove('active'));
+        document.getElementById(`page-${tabId}`)?.classList.add('active');
+        document.getElementById(`tab-${tabId}`)?.classList.add('active');
+        if (tabId === 'deals') loadProducts();
+        if (tabId === 'stash') fetchStashBalance();
+        if (tabId === 'account') loadAccountDetails();
+        renderUI();
+        // Smooth scroll to the active page content
+        setTimeout(() => {
+            const main = document.querySelector('main');
+            if (main) main.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
+    };
+
+    window.setParam = (param, value) => {
+        state[param] = value;
+        const prefix = param.replace(/([A-Z])/g, "-$1").toLowerCase();
+        const btnId = `${prefix}-${value.toLowerCase()}`;
+        const btn = document.getElementById(btnId);
+        if (!btn) return;
+        btn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    };
+
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/Eco-Family-Flow/sw.js');
 })();
 </script>
 </body>
