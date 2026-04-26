@@ -120,9 +120,9 @@
     <div id="page-welcome" class="page active">
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
-            <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
-            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more.</p>
-            <p><strong>60‑day full access trial – no card required.</strong></p>
+            <p style="font-size:16px; margin-bottom:20px;"><em>"It often takes a village to raise a child, and all families find their own flow."</em></p>
+            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more. The goal is to save you time so that each care giver doesn't miss a thing.</p>
+            <p><strong>60‑day full access trial – no card required. Then only £1 a month for pro features.</strong></p>
             <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
         </div>
     </div>
@@ -147,7 +147,18 @@
     </div>
 
     <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Tap any tile to jump to its tracker.</p></div>
+        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Fridge note for a statinc reminder. Child A, B, C... So that no personql information is stored. Tap any tile to jump to its tracker.
+            👩‍🍼The milk tracker logs how much is pumped and how much is given.
+            🍼The Formula tracker helps log given feeds.
+            🧻 Helps track nappy movements over time so that you can notice changes in your child and help nappy planning.
+            💊The medication tracker is useful for when you have given your last dose and how much.
+            🏥The hospital tracker helps take notes at the various places you may have to take your child.
+            📊The Stats tab combines milk and formula for overall feed. 
+            🛒 Various places and items where you may find some savings. 
+            ❄️ Frozen milk ammountm
+            💰 Price per unit on the most common repeat items.
+            📋 These notes will not sync, useful for GP details or other notes for children. 
+             </p></div>
     </div>
 
     <div id="main-app" style="display: none;">
@@ -272,7 +283,7 @@
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="medTime"></div>
                 <div class="input-group"><input type="text" id="medName" placeholder="Medication name"></div>
-                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage"></div>
+                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage (e.g., 5ml)"></div>
                 <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
             </div>
             <div class="card"><div class="stat-lbl">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
@@ -395,10 +406,8 @@
 
 <script>
 (function() {
-    // ==================== REPLACE THIS URL WITH YOUR DEPLOYMENT URL ====================
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-    // =================================================================================
-    const POST_HEADERS = {};
+    const POST_HEADERS = {};  // ✅ No Content-Type header – prevents preflight errors
 
     let state = {
         units: 'UK',
@@ -466,7 +475,6 @@
     window.addEventListener('online', processOfflineQueue);
     setInterval(processOfflineQueue, 30000);
 
-    // ✅ FIXED save function – shows exact server error
     function saveWithOfflineSupport(payload, btnId, defaultText) {
         const btn = btnId ? document.getElementById(btnId) : null;
         if (btn) btn.innerText = "Saving...";
@@ -754,7 +762,7 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // Charts (same as before)
+    // Chart helpers (unchanged)
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
@@ -803,6 +811,7 @@
         });
     }
 
+    // ✅ UPDATED: Medication timers now show dosage
     function renderMedicationTimers() {
         const container = document.getElementById('med-timers-container');
         if(!container) return;
@@ -812,7 +821,13 @@
             const name = l.detail.split('|')[0].toLowerCase();
             if(!latest[name] || new Date(l.timestamp) > new Date(latest[name].timestamp)) latest[name]=l;
         });
-        container.innerHTML = Object.values(latest).map(l=>`<div class="med-timer-card"><div class="med-name">${l.detail.split('|')[0]}</div><div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`).join('')||'<div>No medications logged</div>';
+        container.innerHTML = Object.values(latest).map(l=>{
+            const parts = l.detail.split('|');
+            const name = parts[0];
+            const dosage = parts[1] || '';
+            const displayName = dosage ? `${name} (${dosage})` : name;
+            return `<div class="med-timer-card"><div class="med-name">${displayName}</div><div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`;
+        }).join('')||'<div>No medications logged</div>';
     }
     function formatTimeAgo(ts) {
         const diff = (new Date() - new Date(ts))/1000;
@@ -907,14 +922,34 @@
             }
 
             renderMedicationTimers();
-            // … (history rendering unchanged, same as before)
+            const medHist = document.getElementById('history-meds');
+            if(medHist) {
+                const sorted = filterByDate(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                medHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail.split('|')[0]} ${l.detail.split('|')[1]?'('+l.detail.split('|')[1]+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
+            }
+            const hospHist = document.getElementById('history-hospital');
+            if(hospHist) {
+                const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
+                hospHist.innerHTML = sorted.slice(0,10).map(l=>`<div class="hospital-note-item"><div class="hospital-name">🏥 ${l.detail.split('|')[0]}</div><div class="hospital-note-text">${l.detail.split('|')[1]?l.detail.split('|')[1].replace(/\n/g,'<br>'):''}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`).join('');
+            }
+            const apptEl = document.getElementById('appointments-list');
+            if(apptEl) {
+                const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
+                apptEl.innerHTML = appointments.map(l=>`<div class="history-item"><div><strong>${l.detail.split('|')[0]}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${l.detail.split('|')[0]}','${l.timestamp}','${l.detail.split('|')[1]||''}','${l.detail.split('|')[2]||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No appointments</div>';
+            }
+            window.addToCalendar = (title, startTime, location, notes) => {
+                const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
+                const end = new Date(new Date(startTime).getTime() + 60*60*1000).toISOString().replace(/-|:|\.\d+/g, '');
+                const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${start}/${end}&details=${encodeURIComponent(notes||'')}&location=${encodeURIComponent(location||'')}`;
+                window.open(url, '_blank');
+            };
+            renderPrivateNotes();
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(renderMedicationTimers, 60000);
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, stash, account – all unchanged, already included in full code above
-    // … (all remaining functions are exactly as in previous full version)
+    
 
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
