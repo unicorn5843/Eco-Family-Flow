@@ -6,8 +6,7 @@
     <title>Eco Family Flow</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -300,12 +299,168 @@
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- All pages identical to previous, except Account page gets a "Join Family" section if not in a family -->
-        <!-- (I'll include the full Account page code below) -->
+        <!-- Milk Page -->
+        <div id="page-milk" class="page active">
+            <div id="supply-status-card" class="supply-card">
+                <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
+                <div id="supply-status-content">Loading...</div>
+            </div>
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="milkTime"></div>
+                <div class="btn-row">
+                    <button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button>
+                    <button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button>
+                </div>
+                <div class="btn-row">
+                    <button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button>
+                    <button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button>
+                    <button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button>
+                </div>
+                <div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button>
+            </div>
+            <div id="stats-milk" class="stat-container"></div>
+            <div class="card">
+                <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div>
+                </div>
+            </div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
+        </div>
 
-        <!-- ... Milk, Formula, Nappy, Meds, Hospital, Stats, Deals, Notes, Emergency, Stash, Appointments, Savings pages remain exactly as in the last good version ... -->
+        <!-- Formula Page -->
+        <div id="page-formula" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
+                <div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div>
+                <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button>
+            </div>
+            <div id="stats-formula" class="stat-container"></div>
+            <div class="card">
+                <div style="height:250px;"><canvas id="chart-formula"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Daily Total</div>
+                    <div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> 7-Day Avg</div>
+                </div>
+            </div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
+        </div>
 
-        <!-- Account Page with Join Family -->
+        <!-- Nappy Page -->
+        <div id="page-nappy" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
+                <div class="btn-row">
+                    <button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button>
+                    <button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button>
+                    <button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button>
+                </div>
+                <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button>
+            </div>
+            <div id="stats-nappy" class="stat-container"></div>
+            <div class="card">
+                <div style="height:250px;"><canvas id="chart-nappy"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #4a90e2;"></span> Wee</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #8B4513;"></span> Poo</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:2px dashed #ff9800;"></span> 7‑Day Avg Wee</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:2px dotted #ff9800;"></span> 7‑Day Avg Poo</div>
+                </div>
+            </div>
+            <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
+        </div>
+
+        <!-- Meds Page -->
+        <div id="page-meds" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="medTime"></div>
+                <div class="input-group"><input type="text" id="medName" placeholder="Medication name"></div>
+                <div class="input-group"><input type="text" id="medDosage" placeholder="Dosage"></div>
+                <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button>
+            </div>
+            <div class="card"><div class="stat-lbl">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
+            <div class="card"><div class="stat-lbl">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
+        </div>
+
+        <!-- Hospital Page -->
+        <div id="page-hospital" class="page">
+            <div class="card">
+                <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
+                <div class="input-group"><input type="text" id="hospitalName" placeholder="Hospital name"></div>
+                <div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div>
+                <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button>
+            </div>
+            <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
+        </div>
+
+        <!-- Stats Page -->
+        <div id="page-stats" class="page">
+            <div class="card"><h3>📊 Your Summary</h3></div>
+            <div id="stats-overview" class="stat-container"></div>
+            <div class="card"><h4>Feeding Trends</h4><div style="height:200px;"><canvas id="chart-stats-feeding"></canvas></div></div>
+            <div class="card"><h4>Nappy Trends</h4><div style="height:200px;"><canvas id="chart-stats-nappy"></canvas></div></div>
+            <div class="card">
+                <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
+                <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
+            </div>
+        </div>
+
+        <!-- Deals Page -->
+        <div id="page-deals" class="page">
+            <div class="card"><h3>🛒 Find Best Value</h3></div>
+            <div class="card" id="category-chips-container">
+                <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+                    <button class="category-chip active" data-category="">All</button>
+                    <button class="category-chip" data-category="Nappies">🧻 Nappies</button>
+                    <button class="category-chip" data-category="Wipes">🧼 Wipes</button>
+                    <button class="category-chip" data-category="Formula">🍼 Formula</button>
+                    <button class="category-chip" data-category="Dummies">👶 Dummies</button>
+                    <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
+                </div>
+            </div>
+            <div class="card">
+                <div class="input-group"><label>Brand</label><select id="brand-filter"><option value="">All Brands</option></select></div>
+                <div class="input-group"><label>Size</label><select id="size-filter"><option value="">All Sizes</option></select></div>
+            </div>
+            <div id="product-list">Loading products...</div>
+        </div>
+
+        <!-- Notes Page -->
+        <div id="page-notes" class="page">
+            <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
+            <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
+            <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
+        </div>
+
+        <!-- Emergency Page -->
+        <div id="page-emergency" class="page">
+            <div class="card"><h3>🚨 Quick Access</h3></div>
+            <div class="card" style="background:#fef9c3;"><p>⚠️ Allow popups.</p></div>
+            <div><button class="save-btn" style="background:#4a90e2;" onclick="window.findNearby('pharmacy')">💊 Pharmacies</button><button class="save-btn" style="background:#e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 A&E</button><button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP</button></div>
+            <div id="emergency-fallback"></div>
+        </div>
+
+        <!-- Stash Page -->
+        <div id="page-stash" class="page">
+            <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;">Manual updates only</p></div>
+        </div>
+
+        <!-- Appointments Page -->
+        <div id="page-appointments" class="page">
+            <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
+            <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
+        </div>
+
+        <!-- Savings Page -->
+        <div id="page-savings" class="page">
+            <div class="card"><h3>💰 Save Money</h3></div>
+            <div class="card"><h4>🍽️ Too Good To Go</h4><a href="#" target="_blank" class="save-btn" style="background:#00a896; text-decoration:none; display:inline-block; text-align:center;">Get the App</a></div>
+        </div>
+
+        <!-- Account Page -->
         <div id="page-account" class="page">
             <div class="card"><h2>👤 Account</h2></div>
             <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
@@ -347,7 +502,9 @@
 
 <script>
 (function() {
+
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
+    // =========================================================
     const POST_HEADERS = { 'Content-Type': 'application/json' };
 
     let state = {
@@ -394,7 +551,6 @@
         if (type === 'synced') setTimeout(() => { banner.style.display = 'none'; }, 3000);
     }
 
-    // Offline queue
     async function processOfflineQueue() {
         if (!navigator.onLine || state.offlineQueue.length === 0) return;
         showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
@@ -453,7 +609,6 @@
         }
     }
 
-    // Family setup
     window.skipFamilySetup = () => {
         localStorage.setItem('familySetupComplete', 'true');
         window.initApp();
@@ -492,7 +647,6 @@
         } catch(e) { showError('Network error during join.'); }
     };
 
-    // Join from Account page
     window.joinFamilyFromAccount = async () => {
         const code = document.getElementById('join-invite-code').value.trim().toUpperCase();
         if (!code) return alert('Enter the invite code.');
@@ -502,7 +656,7 @@
             const result = await resp.json();
             if (result.success) {
                 alert('Successfully joined the family!');
-                loadAccountDetails(); // refresh account info
+                loadAccountDetails();
                 renderUI();
             } else {
                 alert('Invalid invite code.');
@@ -510,7 +664,6 @@
         } catch(e) { showError('Network error'); }
     };
 
-    // Child selectors, theming, handover (unchanged)
     function buildChildSelector() {
         const container = document.getElementById('child-selector-container');
         if (!container) return;
@@ -565,7 +718,6 @@
         }
     };
 
-    // Trial and paywall (unchanged)
     function updateTrialBanner() {
         const banner = document.getElementById('trial-banner');
         if (!banner || state.trialStatus.isPro) { banner.style.display = 'none'; return; }
@@ -595,7 +747,6 @@
     window.continueFree = () => { state.trialStatus.isPro = false; document.getElementById('paywall-overlay').style.display = 'none'; updateProUI(); updateTrialBanner(); renderUI(); };
     window.toggleNight = () => { if (!state.trialStatus.isPro) return showPaywall(); document.body.classList.toggle('night'); };
 
-    // Data refresh
     window.refreshData = async () => {
         if(!window.auth?.currentUser) return;
         document.getElementById('loading-indicator').style.display = 'block';
@@ -617,7 +768,6 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
-    // Save functions (only milk, formula, nappy, meds, hospital, appointments, notes)
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -634,6 +784,7 @@
         amtInput.value = '';
         saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
+
     window.saveNappy = () => {
         const time = new Date(document.getElementById('nappyTime').value).toISOString();
         if (state.nappyType === 'Both') {
@@ -645,6 +796,7 @@
             saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: state.nappyType, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-nappy', 'Log Nappy');
         }
     };
+
     window.saveMedication = () => {
         const name = document.getElementById('medName').value.trim();
         if (!name) return alert("Please enter medication name");
@@ -655,6 +807,7 @@
         saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Medication', value: 0, detail: `${name}|${dosage}`, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-med', 'Log Medication');
         window.resetTimeInputs();
     };
+
     window.saveHospitalNote = () => {
         const hospital = document.getElementById('hospitalName').value.trim();
         if (!hospital) return alert("Please enter hospital name");
@@ -665,6 +818,7 @@
         saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'HospitalNote', value: 0, detail: `${hospital}|${notes}`, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-hospital', 'Save Note');
         window.resetTimeInputs();
     };
+
     window.saveAppointment = () => {
         const dt = document.getElementById('apptDateTime').value;
         if(!dt) return alert('Select date/time');
@@ -678,6 +832,7 @@
         saveWithOfflineSupport({ action:'save', timestamp: new Date(dt).toISOString(), category:'Appointment', value:0, detail:`${title}|${loc}|${notes}`, user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-appointment', 'Save Appointment');
         window.resetTimeInputs();
     };
+
     window.savePrivateNote = () => {
         const title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
@@ -705,7 +860,6 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // Charts (unchanged)
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
@@ -753,6 +907,7 @@
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
     }
+
     function renderMedicationTimers() {
         const container = document.getElementById('med-timers-container');
         if(!container) return;
@@ -773,15 +928,16 @@
         return '>2d';
     }
 
-    // Render UI (unchanged, just uses the existing tabs)
     const renderUI = () => {
         try {
             const child = state.logs.filter(l => l.child === state.currentChild);
             const isUS = state.units==='US';
             const conv = v => isUS ? (v/29.5735).toFixed(1) : Math.round(v);
             const unit = isUS ? 'oz' : 'ml';
-            document.getElementById('milkAmt').placeholder = `Amount (${unit})`;
-            document.getElementById('formulaAmt').placeholder = `Amount (${unit})`;
+            const milkAmtEl = document.getElementById('milkAmt');
+            const formulaAmtEl = document.getElementById('formulaAmt');
+            if (milkAmtEl) milkAmtEl.placeholder = `Amount (${unit})`;
+            if (formulaAmtEl) formulaAmtEl.placeholder = `Amount (${unit})`;
 
             const milk = child.filter(l=>l.category==='Milk');
             const formula = child.filter(l=>l.category==='Formula');
@@ -883,8 +1039,6 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, nearby, stash, export, account (including join from account)
-    // (Leave all these functions exactly as in the last working version – they are not modified)
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
@@ -988,7 +1142,6 @@
             const resp = await fetch(`${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
             const data = await resp.json();
             document.getElementById('account-email').textContent = window.auth.currentUser.email;
-            // Check if family exists
             if (data.familyId) {
                 document.getElementById('account-family-name').textContent = data.familyName || '—';
                 document.getElementById('account-family-id').textContent = data.familyId || '—';
@@ -997,7 +1150,6 @@
                 document.getElementById('family-invite-card').style.display = 'block';
                 document.getElementById('join-family-card').style.display = 'none';
             } else {
-                // No family – show join card
                 document.getElementById('account-family-name').textContent = '—';
                 document.getElementById('account-family-id').textContent = '—';
                 document.getElementById('account-invite-code').textContent = '—';
@@ -1006,7 +1158,6 @@
                 document.getElementById('join-family-card').style.display = 'block';
             }
         } catch(e) {
-            // Fallback – show join card
             document.getElementById('join-family-card').style.display = 'block';
         }
     }
@@ -1032,7 +1183,6 @@
     };
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
-    // App initialization
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
         if(!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
