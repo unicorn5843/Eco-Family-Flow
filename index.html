@@ -204,7 +204,6 @@
         <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
         <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
         <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
-        <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
@@ -339,7 +338,7 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- Notes Page - Improved Layout -->
+        <!-- Notes Page -->
         <div id="page-notes" class="page">
             <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
             <div class="card">
@@ -351,14 +350,6 @@
                 <div class="stat-lbl">Your Notes</div>
                 <div id="private-notes-list"></div>
             </div>
-        </div>
-
-        <!-- Emergency Page -->
-        <div id="page-emergency" class="page">
-            <div class="card"><h3>🚨 Quick Access</h3></div>
-            <div class="card" style="background:#fef9c3;"><p>⚠️ Allow popups.</p></div>
-            <div><button class="save-btn" style="background:#4a90e2;" onclick="window.findNearby('pharmacy')">💊 Pharmacies</button><button class="save-btn" style="background:#e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 A&E</button><button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP</button></div>
-            <div id="emergency-fallback"></div>
         </div>
 
         <!-- Stash Page -->
@@ -749,7 +740,6 @@
         window.resetTimeInputs();
     };
 
-    // Private Notes - Fixed to show content
     window.savePrivateNote = () => {
         const title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
@@ -1037,17 +1027,6 @@
             </div>`;
         }).join('');
     }
-    window.findNearby = (query) => {
-        const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
-        const fallbackDiv = document.getElementById('emergency-fallback');
-        const openMap = (lat, lon) => {
-            let url = lat&&lon ? (isApple?`maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`:`https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`) : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
-            const w = window.open(url, '_blank');
-            if(!w) fallbackDiv.innerHTML = `<div class="card"><a href="${url}" target="_blank">Open manually</a></div>`;
-        };
-        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>openMap(p.coords.latitude,p.coords.longitude), ()=>openMap(null,null));
-        else openMap(null,null);
-    };
 
     window.adjustStash = async (change) => {
         await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'updateStash', user:window.auth.currentUser.email, child:state.currentChild, change }) });
