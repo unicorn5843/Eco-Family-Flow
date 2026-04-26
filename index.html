@@ -107,6 +107,8 @@
         .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
         .calendar-btn { background: none; border: 1px solid var(--accent); color: var(--accent-dark); padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 10px; }
         .paywall-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
+        .appt-location { font-size: 12px; opacity: 0.7; margin-top: 2px; }
+        .appt-notes { font-size: 12px; opacity: 0.6; margin-top: 2px; font-style: italic; }
     </style>
 </head>
 <body>
@@ -117,6 +119,7 @@
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display: none;"></div>
 
+    <!-- Welcome Page - Your text preserved -->
     <div id="page-welcome" class="page active">
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
@@ -127,6 +130,7 @@
         </div>
     </div>
 
+    <!-- Family Setup Page -->
     <div id="page-family-setup" class="page">
         <div class="card" style="text-align:center;">
             <h2>👨‍👩‍👧 Set Up Your Family</h2>
@@ -146,19 +150,20 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
+    <!-- Guide Page - Your text preserved -->
     <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Fridge note for a statinc reminder. Child A, B, C... So that no personql information is stored. Tap any tile to jump to its tracker.
-            👩‍🍼The milk tracker logs how much is pumped and how much is given.
-            🍼The Formula tracker helps log given feeds.
-            🧻 Helps track nappy movements over time so that you can notice changes in your child and help nappy planning.
-            💊The medication tracker is useful for when you have given your last dose and how much.
-            🏥The hospital tracker helps take notes at the various places you may have to take your child.
-            📊The Stats tab combines milk and formula for overall feed. 
-            🛒 Various places and items where you may find some savings. 
-            ❄️ Frozen milk ammountm
-            💰 Price per unit on the most common repeat items.
-            📋 These notes will not sync, useful for GP details or other notes for children. 
-             </p></div>
+        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Fridge note for a static reminder. Child A, B, C... So that no personal information is stored. Tap any tile to jump to its tracker.<br><br>
+            👩‍🍼 The milk tracker logs how much is pumped and how much is given.<br><br>
+            🍼 The Formula tracker helps log given feeds.<br><br>
+            🧻 Helps track nappy movements over time so that you can notice changes in your child and help nappy planning.<br><br>
+            💊 The medication tracker is useful for when you have given your last dose and how much.<br><br>
+            🏥 The hospital tracker helps take notes at the various places you may have to take your child.<br><br>
+            📊 The Stats tab combines milk and formula for overall feed.<br><br>
+            🛒 Various places and items where you may find some savings.<br><br>
+            ❄️ Frozen milk amount.<br><br>
+            💰 Price per unit on the most common repeat items.<br><br>
+            📋 These notes will not sync, useful for GP details or other notes for children.
+        </p></div>
     </div>
 
     <div id="main-app" style="display: none;">
@@ -392,7 +397,7 @@
         <p>Your 60‑day trial has ended.</p>
         <p>Upgrade to continue using:</p>
         <ul style="text-align:left;"><li>Night Mode</li><li>Export Graphs</li><li>History >30 days</li><li>All Pro tabs</li></ul>
-        <p style="font-size:24px;">£2.99 <span style="font-size:14px;">/ month</span></p>
+        <p style="font-size:24px;">£1 <span style="font-size:14px;">/ month</span></p>
         <button class="save-btn" onclick="window.upgradeToPro()">Upgrade Now</button>
         <button style="background:none;border:none;color:var(--text);margin-top:10px;" onclick="window.continueFree()">Continue with Free Plan</button>
     </div>
@@ -407,7 +412,7 @@
 <script>
 (function() {
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-    const POST_HEADERS = {};  // ✅ No Content-Type header – prevents preflight errors
+    const POST_HEADERS = {};
 
     let state = {
         units: 'UK',
@@ -435,6 +440,7 @@
     let charts = {};
     let timerInterval = null;
     let deferredPrompt;
+    let currentCategory = '';
 
     function showError(msg) {
         const banner = document.getElementById('error-banner');
@@ -516,7 +522,6 @@
         }
     }
 
-    // Family setup (unchanged)
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete', 'true'); window.initApp(); };
     window.createFamily = async () => {
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
@@ -640,7 +645,6 @@
     window.continueFree = () => { state.trialStatus.isPro = false; document.getElementById('paywall-overlay').style.display = 'none'; updateProUI(); updateTrialBanner(); renderUI(); };
     window.toggleNight = () => { if (!state.trialStatus.isPro) return showPaywall(); document.body.classList.toggle('night'); };
 
-    // ✅ FIXED data refresh – handles new response format
     window.refreshData = async () => {
         if(!window.auth?.currentUser) return;
         document.getElementById('loading-indicator').style.display = 'block';
@@ -650,7 +654,7 @@
             if (result.success && Array.isArray(result.data)) {
                 state.logs = result.data;
             } else if (Array.isArray(result)) {
-                state.logs = result; // fallback for old format
+                state.logs = result;
             } else {
                 state.logs = [];
             }
@@ -669,7 +673,6 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
-    // Save functions (unchanged)
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -762,7 +765,6 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // Chart helpers (unchanged)
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
@@ -811,7 +813,6 @@
         });
     }
 
-    // ✅ UPDATED: Medication timers now show dosage
     function renderMedicationTimers() {
         const container = document.getElementById('med-timers-container');
         if(!container) return;
@@ -932,10 +933,22 @@
                 const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                 hospHist.innerHTML = sorted.slice(0,10).map(l=>`<div class="hospital-note-item"><div class="hospital-name">🏥 ${l.detail.split('|')[0]}</div><div class="hospital-note-text">${l.detail.split('|')[1]?l.detail.split('|')[1].replace(/\n/g,'<br>'):''}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`).join('');
             }
+
+            // ✅ FIXED: Appointments now show location and notes
             const apptEl = document.getElementById('appointments-list');
             if(apptEl) {
                 const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-                apptEl.innerHTML = appointments.map(l=>`<div class="history-item"><div><strong>${l.detail.split('|')[0]}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${l.detail.split('|')[0]}','${l.timestamp}','${l.detail.split('|')[1]||''}','${l.detail.split('|')[2]||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No appointments</div>';
+                apptEl.innerHTML = appointments.map(l=>{
+                    const parts = l.detail.split('|');
+                    const title = parts[0] || '';
+                    const location = parts[1] || '';
+                    const notes = parts[2] || '';
+                    let info = `<strong>${title}</strong>`;
+                    info += `<div>${new Date(l.timestamp).toLocaleString()}</div>`;
+                    if (location) info += `<div class="appt-location">📍 ${location}</div>`;
+                    if (notes) info += `<div class="appt-notes">📝 ${notes}</div>`;
+                    return `<div class="history-item"><div>${info}</div><button class="calendar-btn" onclick="window.addToCalendar('${title.replace(/'/g,"\\'")}','${l.timestamp}','${location.replace(/'/g,"\\'")}','${notes.replace(/'/g,"\\'")}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
+                }).join('') || '<div>No appointments</div>';
             }
             window.addToCalendar = (title, startTime, location, notes) => {
                 const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
@@ -949,7 +962,151 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    
+    // Products, deals, nearby (unchanged)
+    async function loadProducts() {
+        try {
+            const resp = await fetch(GOOGLE_URL + '?type=products');
+            state.allProducts = await resp.json();
+            if(!Array.isArray(state.allProducts)) state.allProducts = [];
+            updateBrandFilter();
+            updateSizeFilter();
+            renderProductList();
+            const chipsContainer = document.getElementById('category-chips-container');
+            if(chipsContainer && !chipsContainer.dataset.listenerAttached) {
+                chipsContainer.addEventListener('click', (e) => {
+                    const chip = e.target.closest('.category-chip');
+                    if(!chip) return;
+                    chipsContainer.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
+                    chip.classList.add('active');
+                    currentCategory = chip.dataset.category;
+                    updateBrandFilter();
+                    updateSizeFilter();
+                    renderProductList();
+                });
+                chipsContainer.dataset.listenerAttached = 'true';
+            }
+        } catch (e) { document.getElementById('product-list').innerHTML = '<p style="text-align:center;">Error loading products.</p>'; }
+    }
+    function updateBrandFilter() {
+        const brandSelect = document.getElementById('brand-filter');
+        const brands = [...new Set(state.allProducts.filter(p => !currentCategory || p.category === currentCategory).map(p => p.brand))];
+        brandSelect.innerHTML = '<option value="">All Brands</option>';
+        brands.sort().forEach(b => { const opt = document.createElement('option'); opt.value = b; opt.textContent = b; brandSelect.appendChild(opt); });
+        brandSelect.onchange = () => { updateSizeFilter(); renderProductList(); };
+    }
+    function updateSizeFilter() {
+        const brand = document.getElementById('brand-filter').value;
+        const sizeSelect = document.getElementById('size-filter');
+        const sizes = [...new Set(state.allProducts.filter(p => (!currentCategory || p.category === currentCategory) && (!brand || p.brand === brand)).map(p => p.size))];
+        sizeSelect.innerHTML = '<option value="">All Sizes</option>';
+        sizes.sort().forEach(s => { const opt = document.createElement('option'); opt.value = s; opt.textContent = s; sizeSelect.appendChild(opt); });
+        sizeSelect.onchange = renderProductList;
+    }
+    function renderProductList() {
+        const brand = document.getElementById('brand-filter').value;
+        const size = document.getElementById('size-filter').value;
+        let filtered = state.allProducts.filter(p => (!currentCategory || p.category === currentCategory) && (!brand || p.brand === brand) && (!size || p.size === size));
+        filtered = filtered.map(p => { p.pricePerUnit = p.price / p.quantity; return p; }).sort((a,b) => a.pricePerUnit - b.pricePerUnit);
+        const container = document.getElementById('product-list');
+        if(!filtered.length) { container.innerHTML = '<p style="text-align:center;">No products match filters.</p>'; return; }
+        container.innerHTML = filtered.map((p,idx)=>{
+            const unitDisplay = p.unit==='nappy'?'per nappy':p.unit==='wipe'?'per wipe':`per ${p.unit}`;
+            const best = idx===0;
+            return `<div class="product-card" style="${best?'border:2px solid var(--accent);':''}">
+                ${best?'<div style="background:var(--accent);color:white;padding:2px 8px;border-radius:20px;font-size:12px;display:inline-block;margin-bottom:8px;">🏆 Best Value</div>':''}
+                <div style="display:flex;justify-content:space-between;"><div><h4>${p.brand} ${p.name}</h4><div>${p.size} • ${p.quantity} ${p.unit}s</div><div><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.pricePerUnit.toFixed(3)} ${unitDisplay}</span></div></div>
+                <a href="${p.affiliatelink}" target="_blank" rel="nofollow" style="background:var(--accent-dark);color:white;padding:10px 15px;border-radius:8px;text-decoration:none;">Buy</a></div>
+            </div>`;
+        }).join('');
+    }
+    window.findNearby = (query) => {
+        const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+        const fallbackDiv = document.getElementById('emergency-fallback');
+        const openMap = (lat, lon) => {
+            let url = lat&&lon ? (isApple?`maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`:`https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`) : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+            const w = window.open(url, '_blank');
+            if(!w) fallbackDiv.innerHTML = `<div class="card"><a href="${url}" target="_blank">Open manually</a></div>`;
+        };
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>openMap(p.coords.latitude,p.coords.longitude), ()=>openMap(null,null));
+        else openMap(null,null);
+    };
+
+    window.adjustStash = async (change) => {
+        await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'updateStash', user:window.auth.currentUser.email, child:state.currentChild, change }) });
+        fetchStashBalance();
+    };
+    async function fetchStashBalance() {
+        try {
+            const resp = await fetch(`${GOOGLE_URL}?type=stash&email=${window.auth.currentUser.email}&child=${state.currentChild}`);
+            const data = await resp.json();
+            state.stashBalance = data.balance || 0;
+            const el = document.getElementById('stash-balance');
+            if (el) el.textContent = state.stashBalance;
+        } catch(e) {}
+    }
+    window.exportData = () => {
+        if (!state.trialStatus.isPro) return showPaywall();
+        const childLogs = state.logs.filter(l => l.child === state.currentChild);
+        const csv = [['Timestamp','Category','Value','Detail','Child'].join(',')];
+        childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(',')));
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    };
+    window.exportMedicalReport = () => {
+        if (!state.trialStatus.isPro) return showPaywall();
+        const twoDays = new Date(Date.now() - 48*60*60*1000);
+        const childLogs = state.logs.filter(l => l.child === state.currentChild && new Date(l.timestamp) >= twoDays);
+        const csv = [['Timestamp','Category','Value','Detail'].join(',')];
+        childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';')].join(',')));
+        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `medical_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+    };
+
+    async function loadAccountDetails() {
+        try {
+            const resp = await fetch(`${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
+            const data = await resp.json();
+            document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            if (data.familyId) {
+                document.getElementById('account-family-name').textContent = data.familyName || '—';
+                document.getElementById('account-family-id').textContent = data.familyId || '—';
+                document.getElementById('account-invite-code').textContent = data.inviteCode || '—';
+                document.getElementById('account-members').innerHTML = data.members ? data.members.split(',').map(m => `<div class="history-item">${m.trim()}</div>`).join('') : 'No members';
+                document.getElementById('family-invite-card').style.display = 'block';
+                document.getElementById('join-family-card').style.display = 'none';
+            } else {
+                document.getElementById('account-family-name').textContent = '—';
+                document.getElementById('account-family-id').textContent = '—';
+                document.getElementById('account-invite-code').textContent = '—';
+                document.getElementById('account-members').innerHTML = 'No members';
+                document.getElementById('family-invite-card').style.display = 'none';
+                document.getElementById('join-family-card').style.display = 'block';
+            }
+        } catch(e) {
+            document.getElementById('join-family-card').style.display = 'block';
+        }
+    }
+    window.copyInviteCode = () => {
+        const code = document.getElementById('account-invite-code').textContent;
+        if (code && code !== '—') navigator.clipboard?.writeText(code).then(() => alert('Copied!')).catch(() => prompt('Copy manually:', code));
+    };
+    window.deleteAccount = async () => {
+        if(!confirm('Permanently delete all your data? This cannot be undone.')) return;
+        try {
+            await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'deleteAccount', user:window.auth.currentUser.email }) });
+            alert('Account deleted.');
+            window.logout();
+        } catch(e) { showError('Could not delete account'); }
+    };
+
+    window.installApp = () => {
+        if (deferredPrompt) deferredPrompt.prompt();
+        else {
+            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+            alert(isIOS ? 'To install: tap the Share button then "Add to Home Screen".' : 'App can be installed from browser menu.');
+        }
+    };
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
