@@ -236,6 +236,7 @@
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px dotted #ff9800;"></span> 7‑Day Avg Feed</div>
                 </div>
             </div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
@@ -887,14 +888,23 @@
             };
 
             renderSec(milk, 'milk', v=>`${conv(v)}${unit}`);
+
+            // Milk chart: last 14 days and both averages
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
             const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
+            // Filter to last 14 days
+            const cutoff14 = new Date();
+            cutoff14.setDate(cutoff14.getDate() - 14);
+            cutoff14.setHours(0,0,0,0);
+            const displayDates = allDates.filter(d => new Date(d) >= cutoff14);
             const pumpMA = movingAvgMap(pumpDay);
+            const feedMA = movingAvgMap(feedDay);
             drawChart('chart-milk', [
-                {label:'Total Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
-                {label:'Feed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
-                {label:'7‑Day Avg Pump', data:allDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]}
-            ], {labels:allDates, unit:'ml'});
+                {label:'Total Pumped', data:displayDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
+                {label:'Feed', data:displayDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
+                {label:'7‑Day Avg Pump', data:displayDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
+            ], {labels:displayDates, unit:'ml'});
 
             renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
             const fDay = groupByDay(filterByDate(formula)), fDates = Object.keys(fDay).sort((a,b)=>new Date(a)-new Date(b));
@@ -917,6 +927,7 @@
                 {label:'7‑Day Avg Poo', data:nappyDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:nappyDates, unit:'count'});
 
+            // ... rest of renderUI unchanged ...
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
