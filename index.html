@@ -576,8 +576,6 @@
         if (type === 'synced') setTimeout(() => { banner.style.display = 'none'; }, 3000);
     }
 
-    // FIX: Added 'Content-Type': 'application/json' header to all POST fetch calls
-    // so Google Apps Script correctly parses the JSON body.
     const POST_HEADERS = { 'Content-Type': 'application/json' };
 
     async function processOfflineQueue() {
@@ -841,7 +839,6 @@
         saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
 
-    // FIX: Removed debug alert. Now reads times, validates, builds payload, and saves cleanly.
     window.saveSkin = () => {
         const startVal = document.getElementById('skinStart').value;
         const endVal   = document.getElementById('skinEnd').value;
@@ -860,10 +857,9 @@
             child: state.currentChild
         };
         saveWithOfflineSupport(payload, 'btn-save-skin', 'Save Skin‑to‑Skin');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['skinStart','skinEnd']);
     };
 
-    // FIX: Added input validation and consistent header via saveWithOfflineSupport.
     window.saveTummyTime = () => {
         const startVal = document.getElementById('tummyStart').value;
         const endVal   = document.getElementById('tummyEnd').value;
@@ -882,7 +878,7 @@
             child: state.currentChild
         };
         saveWithOfflineSupport(payload, 'btn-save-tummy', 'Save Tummy Time');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['tummyStart','tummyEnd']);
     };
 
     window.saveNappy = () => {
@@ -918,7 +914,7 @@
         document.getElementById('medName').value = '';
         document.getElementById('medDosage').value = '';
         saveWithOfflineSupport(payload, 'btn-save-med', 'Log Medication');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['medTime']);
     };
 
     window.saveHospitalNote = () => {
@@ -933,10 +929,9 @@
         document.getElementById('hospitalName').value = '';
         document.getElementById('hospitalNotes').value = '';
         saveWithOfflineSupport(payload, 'btn-save-hospital', 'Save Note');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['hospitalTime']);
     };
 
-    // FIX: Added input validation and consistent header via saveWithOfflineSupport.
     window.saveSleep = () => {
         const startVal = document.getElementById('sleepStart').value;
         const endVal   = document.getElementById('sleepEnd').value;
@@ -955,10 +950,9 @@
             child: state.currentChild
         };
         saveWithOfflineSupport(payload, 'btn-save-sleep', 'Log Sleep');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['sleepStart','sleepEnd']);
     };
 
-    // FIX: Used local-time-safe timestamp for date-only input to avoid UTC midnight shifting the date.
     window.saveGrowth = () => {
         const dateVal = document.getElementById('measure-date').value;
         if (!dateVal) return alert('Please select a date');
@@ -980,7 +974,6 @@
 
         if (isNaN(weight) && isNaN(height)) return alert('Please enter at least one measurement (weight or height)');
 
-        // Build a local-time ISO string to avoid date shifting for UK/US users
         const [year, month, day] = dateVal.split('-').map(Number);
         const localDate = new Date(year, month - 1, day, 12, 0, 0); // noon local time
 
@@ -997,7 +990,6 @@
             child: state.currentChild
         };
 
-        // Clear inputs
         if (state.units === 'US') {
             document.getElementById('weight-lbs').value = '';
             document.getElementById('weight-oz').value = '';
@@ -1077,7 +1069,7 @@
         document.getElementById('apptLocation').value = '';
         document.getElementById('apptNotes').value = '';
         saveWithOfflineSupport(payload, 'btn-save-appointment', 'Save Appointment');
-        window.resetTimeInputs();
+        resetTimeInputsOnly(['apptDateTime']);
     };
 
     window.saveDOB = () => {
@@ -1390,6 +1382,13 @@
 
             renderPrivateNotes();
 
+            // Refresh specific tab charts that aren't handled by the general drawChart calls
+            if (state.tab === 'sleep') renderSleepTab();
+            if (state.tab === 'growth') {
+                window.renderGrowthChart('chart-growth-weight', 'weight');
+                window.renderGrowthChart('chart-growth-height', 'height');
+            }
+
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(renderMedicationTimers, 60000);
         } catch(e) { console.error(e); showError('Display error: '+e.message); }
@@ -1553,7 +1552,7 @@
     };
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
-    // ==================== INIT ====================
+    // ==================== INIT & NAVIGATION ====================
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
         if (!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
@@ -1573,7 +1572,7 @@
         document.getElementById('page-family-setup').style.display='none';
         document.getElementById('main-app').style.display='block';
         buildChildSelector();
-        window.resetTimeInputs();
+        window.switchTab('milk'); // Activate the default tab & highlight nav tile
         document.querySelectorAll('.pro-only').forEach(el => el.style.display = state.trialStatus.isPro ? 'flex' : 'none');
         await window.refreshData();
         if (state.tab === 'deals') loadProducts();
@@ -1597,18 +1596,25 @@
         if (napEl) napEl.innerHTML = '<span class="nap-suggestion">💤 Suggested nap: 9:30 AM</span> <span class="nap-suggestion">💤 Suggested nap: 1:30 PM</span>';
     }
 
-    window.resetTimeInputs = () => {
+    // Reset only specified datetime fields
+    function resetTimeInputsOnly(fieldIds) {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         const startTime = now.toISOString().slice(0,16);
         const endTime = new Date(now.getTime() + 60*60*1000).toISOString().slice(0,16);
-        const singleFields = ['milkTime','formulaTime','nappyTime','medTime','hospitalTime','apptDateTime'];
-        const startFields = ['skinStart','tummyStart','sleepStart'];
-        const endFields = ['skinEnd','tummyEnd','sleepEnd'];
-        singleFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = startTime; });
-        startFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = startTime; });
-        endFields.forEach(id => { const el = document.getElementById(id); if(el) el.value = endTime; });
-        if (document.getElementById('measure-date')) document.getElementById('measure-date').value = now.toISOString().slice(0,10);
+        fieldIds.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                if (id.includes('Start')) el.value = startTime;
+                else if (id.includes('End')) el.value = endTime;
+                else el.value = startTime; // single fields
+            }
+        });
+    }
+
+    window.resetTimeInputs = () => {
+        // Keep for backwards compatibility (called from old code), but now only resets common fields
+        resetTimeInputsOnly(['milkTime','formulaTime','nappyTime','skinStart','skinEnd','tummyStart','tummyEnd','medTime','hospitalTime','apptDateTime','sleepStart','sleepEnd']);
     };
 
     window.toggleUnits = () => {
