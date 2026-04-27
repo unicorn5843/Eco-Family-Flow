@@ -107,12 +107,6 @@
         .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
         .calendar-btn { background: none; border: 1px solid var(--accent); color: var(--accent-dark); padding: 4px 8px; border-radius: 6px; font-size: 12px; cursor: pointer; margin-left: 10px; }
         .paywall-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center; }
-        .appt-location { font-size: 12px; opacity: 0.7; margin-top: 2px; }
-        .appt-notes { font-size: 12px; opacity: 0.6; margin-top: 2px; font-style: italic; }
-        .private-note-card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .private-note-title { font-weight: bold; display: flex; justify-content: space-between; align-items: center; }
-        .private-note-content { margin-top: 8px; white-space: pre-wrap; word-break: break-word; }
-        .private-note-time { font-size: 11px; opacity: 0.5; margin-top: 6px; }
     </style>
 </head>
 <body>
@@ -126,9 +120,9 @@
     <div id="page-welcome" class="page active">
         <div class="card" style="text-align:center;">
             <h2>🌿 Eco Family Flow</h2>
-            <p style="font-size:16px; margin-bottom:20px;"><em>"It often takes a village to raise a child, and all families find their own flow."</em></p>
-            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more. The goal is to save you time so that each care giver doesn't miss a thing.</p>
-            <p><strong>60‑day full access trial – no card required. Then only £1 a month for pro features.</strong></p>
+            <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
+            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more.</p>
+            <p><strong>60‑day full access trial – no card required.</strong></p>
             <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
         </div>
     </div>
@@ -153,18 +147,7 @@
     </div>
 
     <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Fridge note for a static reminder. Child A, B, C... So that no personal information is stored. Tap any tile to jump to its tracker.<br><br>
-            👩‍🍼 The milk tracker logs how much is pumped and how much is given.<br><br>
-            🍼 The Formula tracker helps log given feeds.<br><br>
-            🧻 Helps track nappy movements over time so that you can notice changes in your child and help nappy planning.<br><br>
-            💊 The medication tracker is useful for when you have given your last dose and how much.<br><br>
-            🏥 The hospital tracker helps take notes at the various places you may have to take your child.<br><br>
-            📊 The Stats tab combines milk and formula for overall feed.<br><br>
-            🛒 Various places and items where you may find some savings.<br><br>
-            ❄️ Frozen milk amount.<br><br>
-            💰 Price per unit on the most common repeat items.<br><br>
-            📋 These notes will not sync, useful for GP details or other notes for children.
-        </p></div>
+        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Tap any tile to jump to its tracker.</p></div>
     </div>
 
     <div id="main-app" style="display: none;">
@@ -204,12 +187,13 @@
         <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
         <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
         <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
+        <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- Milk Page -->
+        <!-- MILK PAGE -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card">
                 <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
@@ -232,11 +216,12 @@
             <div id="stats-milk" class="stat-container"></div>
             <div class="card">
                 <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
+                <!-- UPDATED LEGEND: 4 items now -->
                 <div class="chart-legend">
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> 7‑Day Avg Pump</div>
-                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px dotted #ff9800;"></span> 7‑Day Avg Feed</div>
+                    <div class="legend-item"><span class="legend-color" style="border-bottom:3px dotted #ff5722;"></span> 7‑Day Avg Feed</div>
                 </div>
             </div>
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
@@ -342,15 +327,16 @@
         <!-- Notes Page -->
         <div id="page-notes" class="page">
             <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
-            <div class="card">
-                <div class="input-group"><input type="text" id="note-title" placeholder="Title (e.g., GP phone number)"></div>
-                <div class="input-group"><textarea id="note-content" placeholder="Notes..."></textarea></div>
-                <button class="save-btn" onclick="window.savePrivateNote()">Save Note</button>
-            </div>
-            <div class="card">
-                <div class="stat-lbl">Your Notes</div>
-                <div id="private-notes-list"></div>
-            </div>
+            <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
+            <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
+        </div>
+
+        <!-- Emergency Page -->
+        <div id="page-emergency" class="page">
+            <div class="card"><h3>🚨 Quick Access</h3></div>
+            <div class="card" style="background:#fef9c3;"><p>⚠️ Allow popups.</p></div>
+            <div><button class="save-btn" style="background:#4a90e2;" onclick="window.findNearby('pharmacy')">💊 Pharmacies</button><button class="save-btn" style="background:#e74c3c;" onclick="window.findNearby('hospital emergency room')">🏥 A&E</button><button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')">👨‍⚕️ GP</button></div>
+            <div id="emergency-fallback"></div>
         </div>
 
         <!-- Stash Page -->
@@ -360,11 +346,7 @@
 
         <!-- Appointments Page -->
         <div id="page-appointments" class="page">
-            <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div>
-            <div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div>
-            <div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div>
-            <div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div>
-            <button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
+            <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
             <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
         </div>
 
@@ -401,7 +383,7 @@
         <p>Your 60‑day trial has ended.</p>
         <p>Upgrade to continue using:</p>
         <ul style="text-align:left;"><li>Night Mode</li><li>Export Graphs</li><li>History >30 days</li><li>All Pro tabs</li></ul>
-        <p style="font-size:24px;">£1 <span style="font-size:14px;">/ month</span></p>
+        <p style="font-size:24px;">£2.99 <span style="font-size:14px;">/ month</span></p>
         <button class="save-btn" onclick="window.upgradeToPro()">Upgrade Now</button>
         <button style="background:none;border:none;color:var(--text);margin-top:10px;" onclick="window.continueFree()">Continue with Free Plan</button>
     </div>
@@ -416,7 +398,7 @@
 <script>
 (function() {
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-    const POST_HEADERS = {};
+    const POST_HEADERS = {};  // No Content-Type header prevents preflight errors
 
     let state = {
         units: 'UK',
@@ -444,7 +426,6 @@
     let charts = {};
     let timerInterval = null;
     let deferredPrompt;
-    let currentCategory = '';
 
     function showError(msg) {
         const banner = document.getElementById('error-banner');
@@ -526,6 +507,7 @@
         }
     }
 
+    // Family setup (unchanged)
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete', 'true'); window.initApp(); };
     window.createFamily = async () => {
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
@@ -649,6 +631,7 @@
     window.continueFree = () => { state.trialStatus.isPro = false; document.getElementById('paywall-overlay').style.display = 'none'; updateProUI(); updateTrialBanner(); renderUI(); };
     window.toggleNight = () => { if (!state.trialStatus.isPro) return showPaywall(); document.body.classList.toggle('night'); };
 
+    // Data refresh
     window.refreshData = async () => {
         if(!window.auth?.currentUser) return;
         document.getElementById('loading-indicator').style.display = 'block';
@@ -676,6 +659,7 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
+    // Save functions (unchanged)
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -744,7 +728,7 @@
     window.savePrivateNote = () => {
         const title = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
-        if (!title && !content) return alert('Please enter at least a title or a note.');
+        if (!title) return alert('Please enter a title');
         privateNotes.push({ id: Date.now(), title, content, updated: new Date().toISOString() });
         localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
         document.getElementById('note-title').value = '';
@@ -765,23 +749,14 @@
             return;
         }
         const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
-        container.innerHTML = sorted.map(note => `
-            <div class="private-note-card">
-                <div class="private-note-title">
-                    <strong>${note.title || 'Untitled'}</strong>
-                    <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})" style="cursor:pointer;">🗑️</span>
-                </div>
-                <div class="private-note-content">${note.content}</div>
-                <div class="private-note-time">${new Date(note.updated).toLocaleString()}</div>
-            </div>
-        `).join('');
+        container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // ----------  FIXED: groupByDay now includes year ----------
+    // Chart helpers
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
-            const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
+            const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
             daily[d] = (daily[d]||0) + Number(l[key]);
         });
         return daily;
@@ -889,24 +864,18 @@
             };
 
             renderSec(milk, 'milk', v=>`${conv(v)}${unit}`);
-
-            // Milk chart: last 14 days, both averages
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
             const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
-            const cutoff14 = new Date();
-            cutoff14.setDate(cutoff14.getDate() - 14);
-            cutoff14.setHours(0,0,0,0);
-            const displayDates = allDates.filter(d => new Date(d) >= cutoff14);
             const pumpMA = movingAvgMap(pumpDay);
-            const feedMA = movingAvgMap(feedDay);
-            drawChart('chart-milk', [
-                {label:'Total Pumped', data:displayDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
-                {label:'Feed', data:displayDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
-                {label:'7‑Day Avg Pump', data:displayDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
-                {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
-            ], {labels:displayDates, unit:'ml'});
+            const feedMA = movingAvgMap(feedDay);   // NEW: moving average for feeds
 
-            // ... rest of renderUI unchanged ...
+            drawChart('chart-milk', [
+                {label:'Total Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
+                {label:'Feed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
+                {label:'7‑Day Avg Pump', data:allDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'7‑Day Avg Feed', data:allDates.map(d=>feedMA.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
+            ], {labels:allDates, unit:'ml'});
+
             renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
             const fDay = groupByDay(filterByDate(formula)), fDates = Object.keys(fDay).sort((a,b)=>new Date(a)-new Date(b));
             const fMA = movingAvgMap(fDay);
@@ -958,17 +927,7 @@
             const apptEl = document.getElementById('appointments-list');
             if(apptEl) {
                 const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-                apptEl.innerHTML = appointments.map(l=>{
-                    const parts = l.detail.split('|');
-                    const title = parts[0] || '';
-                    const location = parts[1] || '';
-                    const notes = parts[2] || '';
-                    let info = `<strong>${title}</strong>`;
-                    info += `<div>${new Date(l.timestamp).toLocaleString()}</div>`;
-                    if (location) info += `<div class="appt-location">📍 ${location}</div>`;
-                    if (notes) info += `<div class="appt-notes">📝 ${notes}</div>`;
-                    return `<div class="history-item"><div>${info}</div><button class="calendar-btn" onclick="window.addToCalendar('${title.replace(/'/g,"\\'")}','${l.timestamp}','${location.replace(/'/g,"\\'")}','${notes.replace(/'/g,"\\'")}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;
-                }).join('') || '<div>No appointments</div>';
+                apptEl.innerHTML = appointments.map(l=>`<div class="history-item"><div><strong>${l.detail.split('|')[0]}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${l.detail.split('|')[0]}','${l.timestamp}','${l.detail.split('|')[1]||''}','${l.detail.split('|')[2]||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No appointments</div>';
             }
             window.addToCalendar = (title, startTime, location, notes) => {
                 const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
@@ -982,7 +941,7 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, stash, account, exports... (unchanged)
+    // Products, deals, stash, account
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
@@ -1039,6 +998,17 @@
             </div>`;
         }).join('');
     }
+    window.findNearby = (query) => {
+        const isApple = /iPhone|iPad|iPod/.test(navigator.userAgent);
+        const fallbackDiv = document.getElementById('emergency-fallback');
+        const openMap = (lat, lon) => {
+            let url = lat&&lon ? (isApple?`maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`:`https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`) : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
+            const w = window.open(url, '_blank');
+            if(!w) fallbackDiv.innerHTML = `<div class="card"><a href="${url}" target="_blank">Open manually</a></div>`;
+        };
+        if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>openMap(p.coords.latitude,p.coords.longitude), ()=>openMap(null,null));
+        else openMap(null,null);
+    };
 
     window.adjustStash = async (change) => {
         await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'updateStash', user:window.auth.currentUser.email, child:state.currentChild, change }) });
@@ -1049,8 +1019,7 @@
             const resp = await fetch(`${GOOGLE_URL}?type=stash&email=${window.auth.currentUser.email}&child=${state.currentChild}`);
             const data = await resp.json();
             state.stashBalance = data.balance || 0;
-            const el = document.getElementById('stash-balance');
-            if (el) el.textContent = state.stashBalance;
+            document.getElementById('stash-balance').textContent = state.stashBalance;
         } catch(e) {}
     }
     window.exportData = () => {
@@ -1091,9 +1060,7 @@
                 document.getElementById('family-invite-card').style.display = 'none';
                 document.getElementById('join-family-card').style.display = 'block';
             }
-        } catch(e) {
-            document.getElementById('join-family-card').style.display = 'block';
-        }
+        } catch(e) { document.getElementById('join-family-card').style.display = 'block'; }
     }
     window.copyInviteCode = () => {
         const code = document.getElementById('account-invite-code').textContent;
@@ -1117,6 +1084,7 @@
     };
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
+    // App initialization
     window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
     window.initApp = async () => {
         if(!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
