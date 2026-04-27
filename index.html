@@ -751,7 +751,7 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // UPDATED: groupByDay now uses YYYY-MM-DD keys (ISO date) for reliable parsing
+    // Updated groupByDay using ISO date strings
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
@@ -762,7 +762,7 @@
     };
 
     const movingAvgMap = (obj, days=7) => {
-        const dates = Object.keys(obj).sort();  // ISO dates sort correctly as strings
+        const dates = Object.keys(obj).sort();
         const vals = dates.map(d => obj[d]);
         const map = new Map();
         for (let i=0; i<vals.length; i++) {
@@ -865,12 +865,14 @@
             };
 
             renderSec(milk, 'milk', v=>`${conv(v)}${unit}`);
+            renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
+
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
             const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort();
             const pumpMA = movingAvgMap(pumpDay);
             const feedMA = movingAvgMap(feedDay);
 
-            // 14‑day rolling window – filter by ISO date string
+            // 14-day rolling for milk chart
             const cutoff14ISO = new Date(Date.now() - 14*24*60*60*1000).toISOString().slice(0,10);
             const displayDates = allDates.filter(d => d >= cutoff14ISO);
             const displayLabels = displayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
@@ -882,7 +884,6 @@
                 {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
             ], {labels:displayLabels, unit:'ml'});
 
-            renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
             const fDay = groupByDay(filterByDate(formula));
             const fAllDates = Object.keys(fDay).sort();
             const fMA = movingAvgMap(fDay);
@@ -900,13 +901,28 @@
             const weeMA = movingAvgMap(weeDay), pooMA = movingAvgMap(pooDay);
             const nappyDisplayDates = nappyAllDates.filter(d => d >= cutoff14ISO);
             const nappyDisplayLabels = nappyDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
+
+            // Nappy stats (wee/poo breakdown)
             document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
+
+            // Nappy chart
             drawChart('chart-nappy', [
                 {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                 {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
                 {label:'7‑Day Avg Wee', data:nappyDisplayDates.map(d=>weeMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
                 {label:'7‑Day Avg Poo', data:nappyDisplayDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:nappyDisplayLabels, unit:'count'});
+
+            // Nappy recent history (FIXED)
+            const nappyHist = document.getElementById('history-nappy');
+            if (nappyHist) {
+                const filteredNappy = filterByDate(nappy);
+                nappyHist.innerHTML = filteredNappy
+                    .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))
+                    .slice(0,5)
+                    .map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`)
+                    .join('') || '<div>No entries yet</div>';
+            }
 
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
