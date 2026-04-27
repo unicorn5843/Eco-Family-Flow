@@ -7,6 +7,7 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -216,7 +217,7 @@
             <div id="stats-milk" class="stat-container"></div>
             <div class="card">
                 <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
-                <!-- UPDATED LEGEND: 4 items now -->
+                <!-- UPDATED LEGEND -->
                 <div class="chart-legend">
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
@@ -227,7 +228,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
-        <!-- Formula Page -->
+        <!-- FORMULA PAGE -->
         <div id="page-formula" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
@@ -245,7 +246,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
-        <!-- Nappy Page -->
+        <!-- NAPPY PAGE -->
         <div id="page-nappy" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
@@ -269,7 +270,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
 
-        <!-- Meds Page -->
+        <!-- MEDS PAGE -->
         <div id="page-meds" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="medTime"></div>
@@ -281,7 +282,7 @@
             <div class="card"><div class="stat-lbl">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
         </div>
 
-        <!-- Hospital Page -->
+        <!-- HOSPITAL PAGE -->
         <div id="page-hospital" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
@@ -292,7 +293,7 @@
             <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
         </div>
 
-        <!-- Stats Page -->
+        <!-- STATS PAGE -->
         <div id="page-stats" class="page">
             <div class="card"><h3>📊 Your Summary</h3></div>
             <div id="stats-overview" class="stat-container"></div>
@@ -304,7 +305,7 @@
             </div>
         </div>
 
-        <!-- Deals Page -->
+        <!-- DEALS PAGE -->
         <div id="page-deals" class="page">
             <div class="card"><h3>🛒 Find Best Value</h3></div>
             <div class="card" id="category-chips-container">
@@ -324,14 +325,14 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- Notes Page -->
+        <!-- NOTES PAGE -->
         <div id="page-notes" class="page">
             <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
             <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
             <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
         </div>
 
-        <!-- Emergency Page -->
+        <!-- EMERGENCY PAGE -->
         <div id="page-emergency" class="page">
             <div class="card"><h3>🚨 Quick Access</h3></div>
             <div class="card" style="background:#fef9c3;"><p>⚠️ Allow popups.</p></div>
@@ -339,24 +340,24 @@
             <div id="emergency-fallback"></div>
         </div>
 
-        <!-- Stash Page -->
+        <!-- STASH PAGE -->
         <div id="page-stash" class="page">
             <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;">Manual updates only</p></div>
         </div>
 
-        <!-- Appointments Page -->
+        <!-- APPOINTMENTS PAGE -->
         <div id="page-appointments" class="page">
             <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
             <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
         </div>
 
-        <!-- Savings Page -->
+        <!-- SAVINGS PAGE -->
         <div id="page-savings" class="page">
             <div class="card"><h3>💰 Save Money</h3></div>
             <div class="card"><h4>🍽️ Too Good To Go</h4><a href="#" target="_blank" class="save-btn" style="background:#00a896; text-decoration:none; display:inline-block; text-align:center;">Get the App</a></div>
         </div>
 
-        <!-- Account Page -->
+        <!-- ACCOUNT PAGE -->
         <div id="page-account" class="page">
             <div class="card"><h2>👤 Account</h2></div>
             <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
@@ -398,7 +399,7 @@
 <script>
 (function() {
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-    const POST_HEADERS = {};  // No Content-Type header prevents preflight errors
+    const POST_HEADERS = {};
 
     let state = {
         units: 'UK',
@@ -867,35 +868,41 @@
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
             const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
             const pumpMA = movingAvgMap(pumpDay);
-            const feedMA = movingAvgMap(feedDay);   // NEW: moving average for feeds
+            const feedMA = movingAvgMap(feedDay);
+
+            // 14-day rolling window for chart display
+            const cutoff14 = new Date(Date.now() - 14*24*60*60*1000);
+            const displayDates = allDates.filter(d => new Date(d) >= cutoff14);
 
             drawChart('chart-milk', [
-                {label:'Total Pumped', data:allDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
-                {label:'Feed', data:allDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
-                {label:'7‑Day Avg Pump', data:allDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
-                {label:'7‑Day Avg Feed', data:allDates.map(d=>feedMA.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
-            ], {labels:allDates, unit:'ml'});
+                {label:'Total Pumped', data:displayDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
+                {label:'Feed', data:displayDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
+                {label:'7‑Day Avg Pump', data:displayDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
+            ], {labels:displayDates, unit:'ml'});
 
             renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
             const fDay = groupByDay(filterByDate(formula)), fDates = Object.keys(fDay).sort((a,b)=>new Date(a)-new Date(b));
             const fMA = movingAvgMap(fDay);
+            const fDisplayDates = fDates.filter(d => new Date(d) >= cutoff14);
             drawChart('chart-formula', [
-                {label:'Daily Total', data:fDates.map(d=>fDay[d]), borderColor:'#6a9c7d', tension:0.3},
-                {label:'7-Day Avg', data:fDates.map(d=>fMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]}
-            ], {labels:fDates, unit:'ml'});
+                {label:'Daily Total', data:fDisplayDates.map(d=>fDay[d]), borderColor:'#6a9c7d', tension:0.3},
+                {label:'7-Day Avg', data:fDisplayDates.map(d=>fMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]}
+            ], {labels:fDisplayDates, unit:'ml'});
 
             const weeLogs = filterByDate(nappy).filter(l => l.detail === 'Wee' || l.detail === 'Both');
             const pooLogs = filterByDate(nappy).filter(l => l.detail === 'Poo' || l.detail === 'Both');
             const weeDay = groupByDay(weeLogs), pooDay = groupByDay(pooLogs);
             const nappyDates = [...new Set([...Object.keys(weeDay),...Object.keys(pooDay)])].sort((a,b)=>new Date(a)-new Date(b));
             const weeMA = movingAvgMap(weeDay), pooMA = movingAvgMap(pooDay);
+            const nappyDisplayDates = nappyDates.filter(d => new Date(d) >= cutoff14);
             document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
             drawChart('chart-nappy', [
-                {label:'Wee', data:nappyDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
-                {label:'Poo', data:nappyDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
-                {label:'7‑Day Avg Wee', data:nappyDates.map(d=>weeMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
-                {label:'7‑Day Avg Poo', data:nappyDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
-            ], {labels:nappyDates, unit:'count'});
+                {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
+                {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
+                {label:'7‑Day Avg Wee', data:nappyDisplayDates.map(d=>weeMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'7‑Day Avg Poo', data:nappyDisplayDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
+            ], {labels:nappyDisplayDates, unit:'count'});
 
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
@@ -906,11 +913,12 @@
                 `;
                 const feedDayStats = groupByDay(filterByDate(allFeed));
                 const fd2 = Object.keys(feedDayStats).sort((a,b)=>new Date(a)-new Date(b));
-                drawChart('chart-stats-feeding', [{label:'Feeding', data:fd2.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:fd2, unit:'ml'});
+                const fd2Display = fd2.filter(d => new Date(d) >= cutoff14);
+                drawChart('chart-stats-feeding', [{label:'Feeding', data:fd2Display.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:fd2Display, unit:'ml'});
                 drawChart('chart-stats-nappy', [
-                    {label:'Wee', data:nappyDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
-                    {label:'Poo', data:nappyDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
-                ], {labels:nappyDates, unit:'count'});
+                    {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
+                    {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
+                ], {labels:nappyDisplayDates, unit:'count'});
             }
 
             renderMedicationTimers();
@@ -941,7 +949,7 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, stash, account
+    // Products, deals, stash, account (unchanged)
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
