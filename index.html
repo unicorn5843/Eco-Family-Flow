@@ -7,7 +7,6 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -217,7 +216,6 @@
             <div id="stats-milk" class="stat-container"></div>
             <div class="card">
                 <div style="height:280px;"><canvas id="chart-milk"></canvas></div>
-                <!-- UPDATED LEGEND -->
                 <div class="chart-legend">
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> Total Pumped</div>
                     <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> Feed</div>
@@ -753,17 +751,18 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // Chart helpers
+    // UPDATED: groupByDay now uses YYYY-MM-DD keys (ISO date) for reliable parsing
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
-            const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+            const d = l.timestamp.slice(0,10);   // "2026-04-27"
             daily[d] = (daily[d]||0) + Number(l[key]);
         });
         return daily;
     };
+
     const movingAvgMap = (obj, days=7) => {
-        const dates = Object.keys(obj).sort((a,b) => new Date(a)-new Date(b));
+        const dates = Object.keys(obj).sort();  // ISO dates sort correctly as strings
         const vals = dates.map(d => obj[d]);
         const map = new Map();
         for (let i=0; i<vals.length; i++) {
@@ -773,6 +772,7 @@
         }
         return map;
     };
+
     const supplyStatus = (pump, feed) => {
         const week = new Date(); week.setDate(week.getDate()-6);
         const f = l => new Date(l.timestamp) >= week;
@@ -866,43 +866,47 @@
 
             renderSec(milk, 'milk', v=>`${conv(v)}${unit}`);
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
-            const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
+            const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort();
             const pumpMA = movingAvgMap(pumpDay);
             const feedMA = movingAvgMap(feedDay);
 
-            // 14-day rolling window for chart display
-            const cutoff14 = new Date(Date.now() - 14*24*60*60*1000);
-            const displayDates = allDates.filter(d => new Date(d) >= cutoff14);
+            // 14‑day rolling window – filter by ISO date string
+            const cutoff14ISO = new Date(Date.now() - 14*24*60*60*1000).toISOString().slice(0,10);
+            const displayDates = allDates.filter(d => d >= cutoff14ISO);
+            const displayLabels = displayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
 
             drawChart('chart-milk', [
                 {label:'Total Pumped', data:displayDates.map(d=>pumpDay[d]||0), borderColor:'#9C27B0', tension:0.3},
                 {label:'Feed', data:displayDates.map(d=>feedDay[d]||0), borderColor:'#f44336', tension:0.3},
                 {label:'7‑Day Avg Pump', data:displayDates.map(d=>pumpMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
                 {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
-            ], {labels:displayDates, unit:'ml'});
+            ], {labels:displayLabels, unit:'ml'});
 
             renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
-            const fDay = groupByDay(filterByDate(formula)), fDates = Object.keys(fDay).sort((a,b)=>new Date(a)-new Date(b));
+            const fDay = groupByDay(filterByDate(formula));
+            const fAllDates = Object.keys(fDay).sort();
             const fMA = movingAvgMap(fDay);
-            const fDisplayDates = fDates.filter(d => new Date(d) >= cutoff14);
+            const fDisplayDates = fAllDates.filter(d => d >= cutoff14ISO);
+            const fDisplayLabels = fDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
             drawChart('chart-formula', [
                 {label:'Daily Total', data:fDisplayDates.map(d=>fDay[d]), borderColor:'#6a9c7d', tension:0.3},
                 {label:'7-Day Avg', data:fDisplayDates.map(d=>fMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]}
-            ], {labels:fDisplayDates, unit:'ml'});
+            ], {labels:fDisplayLabels, unit:'ml'});
 
             const weeLogs = filterByDate(nappy).filter(l => l.detail === 'Wee' || l.detail === 'Both');
             const pooLogs = filterByDate(nappy).filter(l => l.detail === 'Poo' || l.detail === 'Both');
             const weeDay = groupByDay(weeLogs), pooDay = groupByDay(pooLogs);
-            const nappyDates = [...new Set([...Object.keys(weeDay),...Object.keys(pooDay)])].sort((a,b)=>new Date(a)-new Date(b));
+            const nappyAllDates = [...new Set([...Object.keys(weeDay),...Object.keys(pooDay)])].sort();
             const weeMA = movingAvgMap(weeDay), pooMA = movingAvgMap(pooDay);
-            const nappyDisplayDates = nappyDates.filter(d => new Date(d) >= cutoff14);
+            const nappyDisplayDates = nappyAllDates.filter(d => d >= cutoff14ISO);
+            const nappyDisplayLabels = nappyDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
             document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
             drawChart('chart-nappy', [
                 {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                 {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
                 {label:'7‑Day Avg Wee', data:nappyDisplayDates.map(d=>weeMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
                 {label:'7‑Day Avg Poo', data:nappyDisplayDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
-            ], {labels:nappyDisplayDates, unit:'count'});
+            ], {labels:nappyDisplayLabels, unit:'count'});
 
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
@@ -912,13 +916,14 @@
                     <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='HospitalNote')).length}</div><div class="stat-lbl">Notes</div></div>
                 `;
                 const feedDayStats = groupByDay(filterByDate(allFeed));
-                const fd2 = Object.keys(feedDayStats).sort((a,b)=>new Date(a)-new Date(b));
-                const fd2Display = fd2.filter(d => new Date(d) >= cutoff14);
-                drawChart('chart-stats-feeding', [{label:'Feeding', data:fd2Display.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:fd2Display, unit:'ml'});
+                const feedAllDates = Object.keys(feedDayStats).sort();
+                const feedDisplayDates = feedAllDates.filter(d => d >= cutoff14ISO);
+                const feedDisplayLabels = feedDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
+                drawChart('chart-stats-feeding', [{label:'Feeding', data:feedDisplayDates.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:feedDisplayLabels, unit:'ml'});
                 drawChart('chart-stats-nappy', [
                     {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                     {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
-                ], {labels:nappyDisplayDates, unit:'count'});
+                ], {labels:nappyDisplayLabels, unit:'count'});
             }
 
             renderMedicationTimers();
