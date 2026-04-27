@@ -777,10 +777,11 @@
         `).join('');
     }
 
+    // ----------  FIXED: groupByDay now includes year ----------
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
-            const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric'});
+            const d = new Date(l.timestamp).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'});
             daily[d] = (daily[d]||0) + Number(l[key]);
         });
         return daily;
@@ -889,10 +890,9 @@
 
             renderSec(milk, 'milk', v=>`${conv(v)}${unit}`);
 
-            // Milk chart: last 14 days and both averages
+            // Milk chart: last 14 days, both averages
             const pumpDay = groupByDay(filterByDate(pump)), feedDay = groupByDay(filterByDate(feedMilk));
             const allDates = [...new Set([...Object.keys(pumpDay),...Object.keys(feedDay)])].sort((a,b)=>new Date(a)-new Date(b));
-            // Filter to last 14 days
             const cutoff14 = new Date();
             cutoff14.setDate(cutoff14.getDate() - 14);
             cutoff14.setHours(0,0,0,0);
@@ -906,6 +906,7 @@
                 {label:'7‑Day Avg Feed', data:displayDates.map(d=>feedMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:displayDates, unit:'ml'});
 
+            // ... rest of renderUI unchanged ...
             renderSec(formula, 'formula', v=>`${conv(v)}${unit}`);
             const fDay = groupByDay(filterByDate(formula)), fDates = Object.keys(fDay).sort((a,b)=>new Date(a)-new Date(b));
             const fMA = movingAvgMap(fDay);
@@ -927,7 +928,6 @@
                 {label:'7‑Day Avg Poo', data:nappyDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:nappyDates, unit:'count'});
 
-            // ... rest of renderUI unchanged ...
             if(state.tab === 'stats') {
                 document.getElementById('stats-overview').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
@@ -982,6 +982,7 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
+    // Products, deals, stash, account, exports... (unchanged)
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
