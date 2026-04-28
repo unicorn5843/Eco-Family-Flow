@@ -181,7 +181,7 @@
         <div id="tab-nappy" class="nav-tile" onclick="window.switchTab('nappy')"><span class="nav-emoji">🧻</span><span class="nav-label">Nappy</span></div>
         <div id="tab-meds" class="nav-tile" onclick="window.switchTab('meds')"><span class="nav-emoji">💊</span><span class="nav-label">Meds</span></div>
         <div id="tab-hospital" class="nav-tile" onclick="window.switchTab('hospital')"><span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
-        <div id="tab-stats" class="nav-tile" onclick="window.switchTab('stats')"><span class="nav-emoji">📊</span><span class="nav-label">Stats</span></div>
+        <div id="tab-trending" class="nav-tile" onclick="window.switchTab('trending')"><span class="nav-emoji">📈</span><span class="nav-label">Trending</span></div>
         <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
         <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
         <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
@@ -291,12 +291,15 @@
             <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
         </div>
 
-        <!-- STATS PAGE -->
-        <div id="page-stats" class="page">
-            <div class="card"><h3>📊 Your Summary</h3></div>
+        <!-- TRENDING PAGE (formerly Stats) -->
+        <div id="page-trending" class="page">
+            <div class="card"><h3>📈 Trending Data</h3></div>
             <div id="stats-overview" class="stat-container"></div>
-            <div class="card"><h4>Feeding Trends</h4><div style="height:200px;"><canvas id="chart-stats-feeding"></canvas></div></div>
-            <div class="card"><h4>Nappy Trends</h4><div style="height:200px;"><canvas id="chart-stats-nappy"></canvas></div></div>
+            <div class="card"><h4>Feeding Trends (14 days)</h4><div style="height:200px;"><canvas id="chart-trending-feeding"></canvas></div></div>
+            <div class="card"><h4>Nappy Trends (14 days)</h4><div style="height:200px;"><canvas id="chart-trending-nappy"></canvas></div></div>
+            <div class="card"><h4>🥛 Monthly Milk</h4><div style="height:250px;"><canvas id="chart-monthly-milk"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#9C27B0;"></span> Pumped</div><div class="legend-item"><span class="legend-color" style="background:#f44336;"></span> Fed</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #f44336; background:transparent;"></span> Forecast Fed</div></div></div>
+            <div class="card"><h4>🍼 Monthly Formula</h4><div style="height:250px;"><canvas id="chart-monthly-formula"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #6a9c7d; background:transparent;"></span> Forecast</div></div></div>
+            <div class="card"><h4>🧻 Monthly Nappies</h4><div style="height:250px;"><canvas id="chart-monthly-nappy"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="background:#8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #ff9800; background:transparent;"></span> Forecast Total</div></div></div>
             <div class="card">
                 <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
                 <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
@@ -761,6 +764,25 @@
         return daily;
     };
 
+    const groupByMonth = (logs, key='value') => {
+        const monthly = {};
+        logs.forEach(l => {
+            const m = l.timestamp.slice(0,7);    // "2026-04"
+            monthly[m] = (monthly[m]||0) + Number(l[key]);
+        });
+        return monthly;
+    };
+
+    const projectNext30Days = (logs, key='value') => {
+        const thirtyDaysAgo = new Date(Date.now() - 30*24*60*60*1000);
+        const recent = logs.filter(l => new Date(l.timestamp) >= thirtyDaysAgo);
+        if (recent.length === 0) return 0;
+        const total = recent.reduce((s,l) => s + Number(l[key]), 0);
+        const daysWithData = new Set(recent.map(l => l.timestamp.slice(0,10))).size || 1;
+        const dailyAvg = total / daysWithData;
+        return Math.round(dailyAvg * 30);
+    };
+
     const movingAvgMap = (obj, days=7) => {
         const dates = Object.keys(obj).sort();
         const vals = dates.map(d => obj[d]);
@@ -797,7 +819,8 @@
             return;
         }
         charts[id] = new Chart(ctx, {
-            type: 'line', data: { labels: opts.labels, datasets },
+            type: opts.type || 'line',
+            data: { labels: opts.labels, datasets },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
         });
     }
@@ -872,7 +895,6 @@
             const pumpMA = movingAvgMap(pumpDay);
             const feedMA = movingAvgMap(feedDay);
 
-            // 14-day rolling for milk chart
             const cutoff14ISO = new Date(Date.now() - 14*24*60*60*1000).toISOString().slice(0,10);
             const displayDates = allDates.filter(d => d >= cutoff14ISO);
             const displayLabels = displayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
@@ -902,10 +924,7 @@
             const nappyDisplayDates = nappyAllDates.filter(d => d >= cutoff14ISO);
             const nappyDisplayLabels = nappyDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
 
-            // Nappy stats (wee/poo breakdown)
             document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
-
-            // Nappy chart
             drawChart('chart-nappy', [
                 {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                 {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
@@ -913,7 +932,6 @@
                 {label:'7‑Day Avg Poo', data:nappyDisplayDates.map(d=>pooMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:nappyDisplayLabels, unit:'count'});
 
-            // Nappy recent history (FIXED)
             const nappyHist = document.getElementById('history-nappy');
             if (nappyHist) {
                 const filteredNappy = filterByDate(nappy);
@@ -924,22 +942,66 @@
                     .join('') || '<div>No entries yet</div>';
             }
 
-            if(state.tab === 'stats') {
+            // ========== TRENDING PAGE ==========
+            if (state.tab === 'trending') {
                 document.getElementById('stats-overview').innerHTML = `
                     <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
                     <div class="stat-box"><div class="stat-val">${filterByDate(nappy).length}</div><div class="stat-lbl">Nappies</div></div>
                     <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='Medication')).length}</div><div class="stat-lbl">Meds</div></div>
                     <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='HospitalNote')).length}</div><div class="stat-lbl">Notes</div></div>
                 `;
+
+                // Daily feeding trends (14 days) – reusing same data as milk page
                 const feedDayStats = groupByDay(filterByDate(allFeed));
                 const feedAllDates = Object.keys(feedDayStats).sort();
                 const feedDisplayDates = feedAllDates.filter(d => d >= cutoff14ISO);
                 const feedDisplayLabels = feedDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
-                drawChart('chart-stats-feeding', [{label:'Feeding', data:feedDisplayDates.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:feedDisplayLabels, unit:'ml'});
-                drawChart('chart-stats-nappy', [
+                drawChart('chart-trending-feeding', [{label:'Feeding', data:feedDisplayDates.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:feedDisplayLabels, unit:'ml'});
+
+                // Daily nappy trends (14 days)
+                drawChart('chart-trending-nappy', [
                     {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                     {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
                 ], {labels:nappyDisplayLabels, unit:'count'});
+
+                // Monthly Milk (pumped vs fed + forecast)
+                const pumpMonth = groupByMonth(pump);
+                const feedMonth = groupByMonth(feedMilk);
+                const milkMonths = [...new Set([...Object.keys(pumpMonth), ...Object.keys(feedMonth)])].sort();
+                const fedProjection = projectNext30Days(feedMilk);
+                const nextMonthLabel = new Date().toISOString().slice(0,7) + ' (est.)';  // simplified label
+                drawChart('chart-monthly-milk', [
+                    {label:'Pumped', data:milkMonths.map(m=>pumpMonth[m]||0), backgroundColor:'#9C27B0', type:'bar'},
+                    {label:'Fed', data:milkMonths.map(m=>feedMonth[m]||0), backgroundColor:'#f44336', type:'bar'},
+                    {label:'Forecast Fed', data:[...Array(milkMonths.length).fill(null), fedProjection], borderColor:'#f44336', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...milkMonths, nextMonthLabel], unit:'ml', type:'bar'});
+
+                // Monthly Formula
+                const formulaMonth = groupByMonth(formula);
+                const formulaMonths = Object.keys(formulaMonth).sort();
+                const formulaProjection = projectNext30Days(formula);
+                const formulaNextMonthLabel = new Date().toISOString().slice(0,7) + ' (est.)';
+                drawChart('chart-monthly-formula', [
+                    {label:'Total', data:formulaMonths.map(m=>formulaMonth[m]||0), backgroundColor:'#6a9c7d', type:'bar'},
+                    {label:'Forecast', data:[...Array(formulaMonths.length).fill(null), formulaProjection], borderColor:'#6a9c7d', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...formulaMonths, formulaNextMonthLabel], unit:'ml', type:'bar'});
+
+                // Monthly Nappies (wee + poo + total + forecast total)
+                const weeMonth = groupByMonth(weeLogs, 'value');
+                const pooMonth = groupByMonth(pooLogs, 'value');
+                const totalMonth = {};
+                [...new Set([...Object.keys(weeMonth), ...Object.keys(pooMonth)])].forEach(m => {
+                    totalMonth[m] = (weeMonth[m]||0) + (pooMonth[m]||0);
+                });
+                const nappyMonths = Object.keys(totalMonth).sort();
+                const nappyProjection = projectNext30Days(nappy, 'value');
+                const nappyNextMonthLabel = new Date().toISOString().slice(0,7) + ' (est.)';
+                drawChart('chart-monthly-nappy', [
+                    {label:'Wee', data:nappyMonths.map(m=>weeMonth[m]||0), backgroundColor:'#4a90e2', type:'bar'},
+                    {label:'Poo', data:nappyMonths.map(m=>pooMonth[m]||0), backgroundColor:'#8B4513', type:'bar'},
+                    {label:'Total', data:nappyMonths.map(m=>totalMonth[m]||0), borderColor:'#ff9800', borderWidth:2, type:'line', fill:false},
+                    {label:'Forecast Total', data:[...Array(nappyMonths.length).fill(null), nappyProjection], borderColor:'#ff9800', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...nappyMonths, nappyNextMonthLabel], unit:'count', type:'bar'});
             }
 
             renderMedicationTimers();
