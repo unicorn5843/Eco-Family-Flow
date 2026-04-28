@@ -7,6 +7,10 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <!-- PDF libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -193,7 +197,7 @@
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- MILK PAGE -->
+        <!-- Milk Page (abbreviated for space, but complete in copy) -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card">
                 <div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div>
@@ -226,7 +230,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
-        <!-- FORMULA PAGE -->
+        <!-- Formula Page -->
         <div id="page-formula" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
@@ -244,7 +248,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
-        <!-- NAPPY PAGE -->
+        <!-- Nappy Page -->
         <div id="page-nappy" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
@@ -268,7 +272,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
 
-        <!-- MEDS PAGE -->
+        <!-- Meds Page -->
         <div id="page-meds" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="medTime"></div>
@@ -280,7 +284,7 @@
             <div class="card"><div class="stat-lbl">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
         </div>
 
-        <!-- HOSPITAL PAGE -->
+        <!-- Hospital Page -->
         <div id="page-hospital" class="page">
             <div class="card">
                 <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
@@ -291,22 +295,39 @@
             <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
         </div>
 
-        <!-- TRENDING PAGE (formerly Stats) -->
+        <!-- TRENDING PAGE -->
         <div id="page-trending" class="page">
             <div class="card"><h3>📈 Trending Data</h3></div>
             <div id="stats-overview" class="stat-container"></div>
-            <div class="card"><h4>Feeding Trends (14 days)</h4><div style="height:200px;"><canvas id="chart-trending-feeding"></canvas></div></div>
-            <div class="card"><h4>Nappy Trends (14 days)</h4><div style="height:200px;"><canvas id="chart-trending-nappy"></canvas></div></div>
-            <div class="card"><h4>🥛 Monthly Milk</h4><div style="height:250px;"><canvas id="chart-monthly-milk"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#9C27B0;"></span> Pumped</div><div class="legend-item"><span class="legend-color" style="background:#f44336;"></span> Fed</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #f44336; background:transparent;"></span> Forecast Fed</div></div></div>
-            <div class="card"><h4>🍼 Monthly Formula</h4><div style="height:250px;"><canvas id="chart-monthly-formula"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #6a9c7d; background:transparent;"></span> Forecast</div></div></div>
-            <div class="card"><h4>🧻 Monthly Nappies</h4><div style="height:250px;"><canvas id="chart-monthly-nappy"></canvas></div><div class="chart-legend" style="margin-top:8px;"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="background:#8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="background:#ff9800;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #ff9800; background:transparent;"></span> Forecast Total</div></div></div>
+            <div class="card"><h4>🍽️ Combined Feeding (Last 7 Days)</h4>
+                <p style="font-size:13px; opacity:0.8;" id="trending-feeding-summary"></p>
+                <div style="height:200px;"><canvas id="chart-trending-feeding"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background:#9C27B0;"></span> Milk (fed)</div>
+                    <div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Formula</div>
+                </div>
+            </div>
+            <div class="card"><h4>🧻 Nappies (Last 7 Days)</h4>
+                <p style="font-size:13px; opacity:0.8;" id="trending-nappy-summary"></p>
+                <div style="height:200px;"><canvas id="chart-trending-nappy"></canvas></div>
+                <div class="chart-legend">
+                    <div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Wee</div>
+                    <div class="legend-item"><span class="legend-color" style="background:#8B4513;"></span> Poo</div>
+                    <div class="legend-item"><span class="legend-color" style="border:2px solid #ff9800; background:transparent; width:12px; height:12px; border-radius:0;"></span> Total</div>
+                </div>
+            </div>
+            <div class="card"><h4>📋 Recent Feed Log</h4><div id="trending-feed-log" class="history-list"></div></div>
+            <div class="card"><h4>📋 Recent Nappy Log</h4><div id="trending-nappy-log" class="history-list"></div></div>
+            <div class="card"><h4>🥛 Monthly Milk</h4><div style="height:250px;"><canvas id="chart-monthly-milk"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#9C27B0;"></span> Pumped</div><div class="legend-item"><span class="legend-color" style="background:#f44336;"></span> Fed</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #f44336;"></span> Forecast Fed</div></div></div>
+            <div class="card"><h4>🍼 Monthly Formula</h4><div style="height:250px;"><canvas id="chart-monthly-formula"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#6a9c7d;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #6a9c7d;"></span> Forecast</div></div></div>
+            <div class="card"><h4>🧻 Monthly Nappies</h4><div style="height:250px;"><canvas id="chart-monthly-nappy"></canvas></div><div class="chart-legend"><div class="legend-item"><span class="legend-color" style="background:#4a90e2;"></span> Wee</div><div class="legend-item"><span class="legend-color" style="background:#8B4513;"></span> Poo</div><div class="legend-item"><span class="legend-color" style="border:2px solid #ff9800;"></span> Total</div><div class="legend-item"><span class="legend-color" style="border:2px dashed #ff9800;"></span> Forecast Total</div></div></div>
             <div class="card">
                 <button class="save-btn" onclick="window.exportData()">📥 Download All Data (CSV)</button>
-                <button class="save-btn" onclick="window.exportMedicalReport()" style="margin-top:10px;">📋 Medical Report (48h)</button>
+                <button class="save-btn" onclick="window.downloadWeeklyReportPDF()" style="margin-top:10px;">📊 Download Weekly Report (PDF)</button>
             </div>
         </div>
 
-        <!-- DEALS PAGE -->
+        <!-- Deals Page -->
         <div id="page-deals" class="page">
             <div class="card"><h3>🛒 Find Best Value</h3></div>
             <div class="card" id="category-chips-container">
@@ -326,14 +347,14 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- NOTES PAGE -->
+        <!-- Notes Page -->
         <div id="page-notes" class="page">
             <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
             <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
             <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
         </div>
 
-        <!-- EMERGENCY PAGE -->
+        <!-- Emergency Page -->
         <div id="page-emergency" class="page">
             <div class="card"><h3>🚨 Quick Access</h3></div>
             <div class="card" style="background:#fef9c3;"><p>⚠️ Allow popups.</p></div>
@@ -341,24 +362,24 @@
             <div id="emergency-fallback"></div>
         </div>
 
-        <!-- STASH PAGE -->
+        <!-- Stash Page -->
         <div id="page-stash" class="page">
             <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;">Manual updates only</p></div>
         </div>
 
-        <!-- APPOINTMENTS PAGE -->
+        <!-- Appointments Page -->
         <div id="page-appointments" class="page">
             <div class="card"><h3>📅 New Appointment</h3><div class="input-group"><input type="datetime-local" id="apptDateTime"></div><div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div><div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div><div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div><button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button></div>
             <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
         </div>
 
-        <!-- SAVINGS PAGE -->
+        <!-- Savings Page -->
         <div id="page-savings" class="page">
             <div class="card"><h3>💰 Save Money</h3></div>
             <div class="card"><h4>🍽️ Too Good To Go</h4><a href="#" target="_blank" class="save-btn" style="background:#00a896; text-decoration:none; display:inline-block; text-align:center;">Get the App</a></div>
         </div>
 
-        <!-- ACCOUNT PAGE -->
+        <!-- Account Page -->
         <div id="page-account" class="page">
             <div class="card"><h2>👤 Account</h2></div>
             <div class="card"><div class="stat-lbl">Signed in as</div><div id="account-email"></div></div>
@@ -509,7 +530,7 @@
         }
     }
 
-    // Family setup (unchanged)
+    // Family setup
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete', 'true'); window.initApp(); };
     window.createFamily = async () => {
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
@@ -661,7 +682,7 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
-    // Save functions (unchanged)
+    // Save functions
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -754,11 +775,11 @@
         container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
     }
 
-    // Updated groupByDay using ISO date strings
+    // Chart helpers
     const groupByDay = (logs, key='value') => {
         const daily = {};
         logs.forEach(l => {
-            const d = l.timestamp.slice(0,10);   // "2026-04-27"
+            const d = l.timestamp.slice(0,10);
             daily[d] = (daily[d]||0) + Number(l[key]);
         });
         return daily;
@@ -767,7 +788,7 @@
     const groupByMonth = (logs, key='value') => {
         const monthly = {};
         logs.forEach(l => {
-            const m = l.timestamp.slice(0,7);    // "2026-04"
+            const m = l.timestamp.slice(0,7);
             monthly[m] = (monthly[m]||0) + Number(l[key]);
         });
         return monthly;
@@ -944,39 +965,72 @@
 
             // ========== TRENDING PAGE ==========
             if (state.tab === 'trending') {
+                const cutoff7 = new Date(Date.now() - 7*24*60*60*1000);
+                const last7 = (logs) => logs.filter(l => new Date(l.timestamp) >= cutoff7);
+                const milkFeeds = child.filter(l => l.category === 'Milk' && l.detail.includes('Feed'));
+                const formulaFeeds = child.filter(l => l.category === 'Formula');
+                const allFeeding = [...milkFeeds, ...formulaFeeds];
+                const nappies = child.filter(l => l.category === 'Nappy');
+                const wee = nappies.filter(l => l.detail === 'Wee' || l.detail === 'Both');
+                const poo = nappies.filter(l => l.detail === 'Poo' || l.detail === 'Both');
+
+                // Overview stats
                 document.getElementById('stats-overview').innerHTML = `
-                    <div class="stat-box"><div class="stat-val">${filterByDate(allFeed).length}</div><div class="stat-lbl">Feeds</div></div>
-                    <div class="stat-box"><div class="stat-val">${filterByDate(nappy).length}</div><div class="stat-lbl">Nappies</div></div>
-                    <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='Medication')).length}</div><div class="stat-lbl">Meds</div></div>
-                    <div class="stat-box"><div class="stat-val">${filterByDate(child.filter(l=>l.category==='HospitalNote')).length}</div><div class="stat-lbl">Notes</div></div>
+                    <div class="stat-box"><div class="stat-val">${allFeeding.length}</div><div class="stat-lbl">Total Feeds</div></div>
+                    <div class="stat-box"><div class="stat-val">${nappies.length}</div><div class="stat-lbl">Nappies</div></div>
+                    <div class="stat-box"><div class="stat-val">${last7(allFeeding).length}</div><div class="stat-lbl">Feeds (7d)</div></div>
+                    <div class="stat-box"><div class="stat-val">${last7(nappies).length}</div><div class="stat-lbl">Nappies (7d)</div></div>
                 `;
 
-                // Daily feeding trends (14 days) – reusing same data as milk page
-                const feedDayStats = groupByDay(filterByDate(allFeed));
-                const feedAllDates = Object.keys(feedDayStats).sort();
-                const feedDisplayDates = feedAllDates.filter(d => d >= cutoff14ISO);
-                const feedDisplayLabels = feedDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
-                drawChart('chart-trending-feeding', [{label:'Feeding', data:feedDisplayDates.map(d=>feedDayStats[d]), borderColor:'#4a90e2', tension:0.3}], {labels:feedDisplayLabels, unit:'ml'});
+                // Combined feeding 7-day chart
+                const milkFeedDay = groupByDay(last7(milkFeeds));
+                const formulaDay = groupByDay(last7(formulaFeeds));
+                const feedDates7 = [...new Set([...Object.keys(milkFeedDay), ...Object.keys(formulaDay)])].sort().filter(d => d >= cutoff7.toISOString().slice(0,10));
+                const feedLabels7 = feedDates7.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric'}));
+                drawChart('chart-trending-feeding', [
+                    {label:'Milk (fed)', data:feedDates7.map(d=>milkFeedDay[d]||0), backgroundColor:'#9C27B0', type:'bar'},
+                    {label:'Formula', data:feedDates7.map(d=>formulaDay[d]||0), backgroundColor:'#6a9c7d', type:'bar'}
+                ], {labels:feedLabels7, unit:'ml', type:'bar'});
+                const total7 = feedDates7.reduce((s,d) => s + (milkFeedDay[d]||0) + (formulaDay[d]||0), 0);
+                document.getElementById('trending-feeding-summary').textContent = `Over the last 7 days, your baby drank a total of ${total7}ml from both breastmilk and formula.`;
 
-                // Daily nappy trends (14 days)
+                // Nappy 7-day chart with smooth total line
+                const weeDay7 = groupByDay(last7(wee), 'value');
+                const pooDay7 = groupByDay(last7(poo), 'value');
+                const totalDay7 = {};
+                feedDates7.forEach(d => { totalDay7[d] = (weeDay7[d]||0) + (pooDay7[d]||0); });
+                const nappyDates7 = [...new Set([...Object.keys(weeDay7), ...Object.keys(pooDay7)])].sort().filter(d => d >= cutoff7.toISOString().slice(0,10));
+                const nappyLabels7 = nappyDates7.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric'}));
                 drawChart('chart-trending-nappy', [
-                    {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
-                    {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3}
-                ], {labels:nappyDisplayLabels, unit:'count'});
+                    {label:'Wee', data:nappyDates7.map(d=>weeDay7[d]||0), backgroundColor:'#4a90e2', type:'bar'},
+                    {label:'Poo', data:nappyDates7.map(d=>pooDay7[d]||0), backgroundColor:'#8B4513', type:'bar'},
+                    {label:'Total', data:nappyDates7.map(d=>totalDay7[d]||0), borderColor:'#ff9800', borderWidth:3, tension:0.3, type:'line', fill:false, pointRadius:4}
+                ], {labels:nappyLabels7, unit:'count', type:'bar'});
+                const totalNappy7 = nappyDates7.reduce((s,d) => s + (totalDay7[d]||0), 0);
+                document.getElementById('trending-nappy-summary').textContent = `In the last week, there were ${totalNappy7} nappy changes – a daily average of ${(totalNappy7/7).toFixed(1)}.`;
 
-                // Monthly Milk (pumped vs fed + forecast)
+                // Recent feed log
+                const recentFeeds = allFeeding.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0,10);
+                const feedLog = document.getElementById('trending-feed-log');
+                feedLog.innerHTML = recentFeeds.map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.category} ${l.detail.includes('Feed')?l.detail.replace('Feed',''):'Bottle'} (${l.value}ml)</span></div>`).join('') || '<div>No feeds yet</div>';
+
+                // Recent nappy log
+                const recentNappies = nappies.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp)).slice(0,10);
+                const nappyLog = document.getElementById('trending-nappy-log');
+                nappyLog.innerHTML = recentNappies.map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.detail}</span></div>`).join('') || '<div>No nappies yet</div>';
+
+                // Monthly charts with forecast
                 const pumpMonth = groupByMonth(pump);
                 const feedMonth = groupByMonth(feedMilk);
                 const milkMonths = [...new Set([...Object.keys(pumpMonth), ...Object.keys(feedMonth)])].sort();
                 const fedProjection = projectNext30Days(feedMilk);
-                const nextMonthLabel = new Date().toISOString().slice(0,7) + ' (est.)';  // simplified label
+                const nextMonthLabel = new Date().toISOString().slice(0,7) + ' (est.)';
                 drawChart('chart-monthly-milk', [
                     {label:'Pumped', data:milkMonths.map(m=>pumpMonth[m]||0), backgroundColor:'#9C27B0', type:'bar'},
                     {label:'Fed', data:milkMonths.map(m=>feedMonth[m]||0), backgroundColor:'#f44336', type:'bar'},
                     {label:'Forecast Fed', data:[...Array(milkMonths.length).fill(null), fedProjection], borderColor:'#f44336', borderDash:[5,5], type:'line', fill:false}
                 ], {labels:[...milkMonths, nextMonthLabel], unit:'ml', type:'bar'});
 
-                // Monthly Formula
                 const formulaMonth = groupByMonth(formula);
                 const formulaMonths = Object.keys(formulaMonth).sort();
                 const formulaProjection = projectNext30Days(formula);
@@ -986,7 +1040,6 @@
                     {label:'Forecast', data:[...Array(formulaMonths.length).fill(null), formulaProjection], borderColor:'#6a9c7d', borderDash:[5,5], type:'line', fill:false}
                 ], {labels:[...formulaMonths, formulaNextMonthLabel], unit:'ml', type:'bar'});
 
-                // Monthly Nappies (wee + poo + total + forecast total)
                 const weeMonth = groupByMonth(weeLogs, 'value');
                 const pooMonth = groupByMonth(pooLogs, 'value');
                 const totalMonth = {};
@@ -1121,14 +1174,25 @@
         const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     };
-    window.exportMedicalReport = () => {
-        if (!state.trialStatus.isPro) return showPaywall();
-        const twoDays = new Date(Date.now() - 48*60*60*1000);
-        const childLogs = state.logs.filter(l => l.child === state.currentChild && new Date(l.timestamp) >= twoDays);
-        const csv = [['Timestamp','Category','Value','Detail'].join(',')];
-        childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';')].join(',')));
-        const blob = new Blob([csv.join('\n')], { type: 'text/csv' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `medical_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
+
+    // PDF Weekly Report
+    window.downloadWeeklyReportPDF = async function() {
+        const { jsPDF } = window.jspdf;
+        const trendingDiv = document.getElementById('page-trending');
+        // Temporarily make the div full width for better capture
+        trendingDiv.style.width = '100%';
+        trendingDiv.style.maxWidth = '800px';
+        trendingDiv.style.margin = '0 auto';
+        const canvas = await html2canvas(trendingDiv, { scale: 2, useCORS: true, logging: false });
+        trendingDiv.style.width = '';
+        trendingDiv.style.maxWidth = '';
+        trendingDiv.style.margin = '';
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgWidth = 190;
+        const imgHeight = (canvas.height * imgWidth) / canvas.width;
+        pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
+        pdf.save(`eco-family-flow-weekly-report-${new Date().toISOString().slice(0,10)}.pdf`);
     };
 
     async function loadAccountDetails() {
