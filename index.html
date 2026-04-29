@@ -45,19 +45,7 @@
     </script>
     <style>
         :root { --bg: #f2f7f4; --card: #ffffff; --text: #2f4f2f; --accent: #8fbca0; --accent-dark: #6a9c7d; --border: #e0ebe3; --btn-text: #ffffff; --delete: #ff6b6b; --warning: #ff9800; --success: #4caf50; --safe-bottom: env(safe-area-inset-bottom, 0px); }
-        /* 🌙 Night mode – easy on the eyes for night feeds */
-        body.night {
-            --bg: #1a1a1a;                   /* deep charcoal */
-            --card: #2a2a2a;                 /* dark grey card */
-            --text: #e0d7c6;                 /* warm cream text */
-            --accent: #b33a3a;              /* deep red accent */
-            --accent-dark: #8b1a1a;         /* darker red for buttons */
-            --border: #3a3a3a;              /* subtle border */
-            --btn-text: #f0e6d3;            /* warm button text */
-            --delete: #cc0000;              /* red delete */
-            --warning: #e67e22;             /* warm orange */
-            --success: #27ae60;             /* soft green */
-        }
+        body.night { --bg: #1a1a1a; --card: #2a2a2a; --text: #e0d7c6; --accent: #b33a3a; --accent-dark: #8b1a1a; --border: #3a3a3a; --btn-text: #f0e6d3; --delete: #cc0000; --warning: #e67e22; --success: #27ae60; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: calc(90px + var(--safe-bottom)); transition: background-color 0.4s, color 0.4s; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; scroll-padding-top: 20px; }
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
         .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
@@ -117,7 +105,7 @@
         .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; } .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; } .hospital-timestamp { font-size: 12px; opacity: 0.7; }
         .product-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
         .price-per-unit { background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
-        .handover-note { background: #fef9c3; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #1f2937; }
+        .kitchen fridge-note { background: #fef9c3; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #1f2937; }
         .pro-only { display: none; }
         .category-chip { padding: 10px 16px; border-radius: 30px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
@@ -129,6 +117,12 @@
         .report-stats { display: flex; justify-content: space-around; margin: 10px 0; }
         .report-stat { text-align: center; }
         .report-stat strong { font-size: 1.2em; }
+
+        /* Guide table */
+        .guide-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .guide-table td, .guide-table th { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; }
+        .guide-table th { font-weight: 600; color: var(--accent-dark); background: rgba(143,188,160,0.1); }
+        .guide-table td:first-child { font-size: 20px; text-align: center; width: 40px; }
     </style>
 </head>
 <body>
@@ -168,9 +162,55 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
+    <!-- 🆕 UPDATED GUIDE PAGE -->
     <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p>All features are listed below. Tap any tile to jump to its tracker.</p></div>
+        <div class="card">
+            <h2>📘 Your Guide</h2>
+            <p>Here's what each tab does:</p>
+            <table class="guide-table">
+                <tr><td>🤱</td><td><strong>Milk</strong><br>Track breastfeeding or pumping sessions – amount, side, and mode (pump/feed). Shows a supply vs. demand chart.</td></tr>
+                <tr><td>🍼</td><td><strong>Formula</strong><br>Log bottle feeds (ml) and see daily totals with a 7‑day average.</td></tr>
+                <tr><td>🧻</td><td><strong>Nappy</strong><br>Record wet, dirty, or both. Graphs wee & poo trends separately.</td></tr>
+                <tr><td>💊</td><td><strong>Meds</strong><br>Log any medication – name, dosage, and time. See a live timer for each med so you always know when the last dose was given.</td></tr>
+                <tr><td>🏥</td><td><strong>Hospital</strong><br>Write down notes from any medical visit – A&E, GP, consultant appointments, or long hospital stays. Record the hospital name and what each doctor said. Perfect for keeping a timeline during extended stays.</td></tr>
+                <tr><td>📈</td><td><strong>Trending</strong><br>See combined feeding & nappy patterns over the last 7 days, monthly bar charts with 30‑day forecasts, and export a full Child Report PDF.</td></tr>
+                <tr><td>🛒</td><td><strong>Deals</strong><br>Compare prices per nappy/wipe/formula across brands to find the best value.</td></tr>
+                <tr><td>❄️</td><td><strong>Stash</strong> <em>(Pro)</em><br>Manually track your frozen breastmilk inventory.</td></tr>
+                <tr><td>📅</td><td><strong>Appts</strong> <em>(Pro)</em><br>Schedule and manage upcoming medical appointments.</td></tr>
+                <tr><td>💰</td><td><strong>Savings</strong> <em>(Pro)</em><br>Quick links to money‑saving offers like Too Good To Go.</td></tr>
+                <tr><td>📋</td><td><strong>Private Notes</strong><br>Stored only on this device (not synced). Good for personal reminders.</td></tr>
+                <tr><td>📍</td><td><strong>Emergency</strong><br>One‑tap search for nearby pharmacies, A&E, or GPs using your location.</td></tr>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3>👶 Why “Child A”, “Child B” …?</h3>
+            <p>We use generic labels to protect your family’s privacy. You can track up to five children without ever storing real names or personal details on our servers. The data belongs to you and your Google Sheet – we never ask for your child’s identity.</p>
+        </div>
+
+        <div class="card">
+            <h3>🏥 How to use the Hospital tab</h3>
+            <p>Use it as a medical diary:</p>
+            <ul>
+                <li><strong>A&E visits:</strong> Log the time, hospital name, and what the triage nurse or doctor said.</li>
+                <li><strong>Appointments:</strong> Write down advice from each specialist. Over time you’ll have a clear history.</li>
+                <li><strong>Long hospital stays:</strong> Add an entry every time something changes – medication adjustments, ward moves, new symptoms. It creates a searchable timeline that you can share with other caregivers or review later.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h3>📋 What’s in the Child Report PDF?</h3>
+            <p>The <strong>Full Child Report</strong> (found on the Trending page) generates a professional medical‑style PDF covering every month you have data. Each monthly page includes:</p>
+            <ul>
+                <li>Total milk pumped, fed, formula, wet & dirty nappies</li>
+                <li>A daily line chart of all feeds (breastmilk + formula)</li>
+                <li>A daily line chart of nappy changes (wee, poo, total)</li>
+                <li>Lists of any medications, hospital notes, and appointments</li>
+            </ul>
+            <p>You can take this report to your doctor, health visitor, or keep it for your own records.</p>
+        </div>
     </div>
+
 
     <div id="main-app" style="display: none;">
     <div class="app-header">
@@ -192,7 +232,7 @@
     <div class="child-selector" id="child-selector-container"></div>
     <div id="current-child-display" class="current-child-badge"></div>
 
-    <div id="handover-note-container" class="handover-note"></div>
+    <div id="kitchen fridge-note-container" class="kitchen fridge-note"></div>
 
     <div id="error-banner" class="error-banner"></div>
 
@@ -466,7 +506,7 @@
     };
 
     let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
-    let handoverNotes = JSON.parse(localStorage.getItem('handoverNotes') || '{}');
+    let kitchenfridge Notes = JSON.parse(localStorage.getItem('kitchenfridgeNotes') || '{}');
     let charts = {};
     let timerInterval = null;
     let deferredPrompt;
