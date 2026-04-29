@@ -150,7 +150,7 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
-    <!-- GUIDE PAGE with updated row -->
+    <!-- GUIDE PAGE -->
     <div id="page-info" class="page">
         <div class="card"><h2>📘 Your Guide</h2><p>Here's what each tab does:</p>
         <table class="guide-table">
@@ -209,7 +209,7 @@
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
-        <!-- Milk Page (unchanged) -->
+        <!-- Milk Page -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card"><div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading...</div></div>
             <div class="card"><div class="input-group"><input type="datetime-local" id="milkTime"></div><div class="btn-row"><button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode', 'Pump')">Pump</button><button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode', 'Feed')">Feed</button></div><div class="btn-row"><button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide', 'Left')">Left</button><button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide', 'Right')">Right</button><button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide', 'Both')">Both</button></div><div class="input-group"><input type="number" id="milkAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')">Save Milk Log</button></div>
@@ -218,7 +218,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-milk" class="history-list"></div></div>
         </div>
 
-        <!-- Formula Page (unchanged) -->
+        <!-- Formula Page -->
         <div id="page-formula" class="page">
             <div class="card"><div class="input-group"><input type="datetime-local" id="formulaTime"></div><div class="input-group"><input type="number" id="formulaAmt" placeholder="Amount (ml)" inputmode="decimal"></div><button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')">Save Formula Log</button></div>
             <div id="stats-formula" class="stat-container"></div>
@@ -226,7 +226,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-formula" class="history-list"></div></div>
         </div>
 
-        <!-- Nappy Page (unchanged) -->
+        <!-- Nappy Page -->
         <div id="page-nappy" class="page">
             <div class="card"><div class="input-group"><input type="datetime-local" id="nappyTime"></div><div class="btn-row"><button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType', 'Wee')">💧 Wee</button><button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType', 'Poo')">💩 Poo</button><button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType', 'Both')">♻️ Both</button></div><button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()">Log Nappy</button></div>
             <div id="stats-nappy" class="stat-container"></div>
@@ -243,20 +243,20 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-skin" class="history-list"></div></div>
         </div>
 
-        <!-- Meds Page (unchanged) -->
+        <!-- Meds Page -->
         <div id="page-meds" class="page">
             <div class="card"><div class="input-group"><input type="datetime-local" id="medTime"></div><div class="input-group"><input type="text" id="medName" placeholder="Medication name"></div><div class="input-group"><input type="text" id="medDosage" placeholder="Dosage (e.g., 5ml)"></div><button class="save-btn" id="btn-save-med" onclick="window.saveMedication()">Log Medication</button></div>
             <div class="card"><div class="stat-lbl">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
             <div class="card"><div class="stat-lbl">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
         </div>
 
-        <!-- Hospital Page (unchanged) -->
+        <!-- Hospital Page -->
         <div id="page-hospital" class="page">
             <div class="card"><div class="input-group"><input type="datetime-local" id="hospitalTime"></div><div class="input-group"><input type="text" id="hospitalName" placeholder="Hospital name"></div><div class="input-group"><textarea id="hospitalNotes" placeholder="Notes..."></textarea></div><button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()">Save Note</button></div>
             <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
         </div>
 
-        <!-- TRENDING PAGE (updated with skin/tummy section) -->
+        <!-- TRENDING PAGE (skin/tummy chart fixed) -->
         <div id="page-trending" class="page">
             <div class="card"><h3>📈 Trending Data</h3></div>
             <div id="stats-overview" class="stat-container"></div>
@@ -353,7 +353,7 @@
     const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
     const POST_HEADERS = {};
 
-    let currentCategory = '';   // ✅ declared
+    let currentCategory = '';
 
     let state = {
         units: 'UK',
@@ -614,7 +614,7 @@
         } catch(e) { showError('Network error during delete'); }
     };
 
-    // Save functions with date guards
+    // Save functions
     window.saveData = (category) => {
         const isMilk = category === 'Milk';
         const amtInput = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
@@ -640,7 +640,6 @@
         const time = new Date(timeVal).toISOString();
         if (state.nappyType === 'Both') {
             saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Wee', user: window.auth.currentUser.email, child: state.currentChild }, null, null);
-            // 1ms offset to avoid collision
             const pooTime = new Date(new Date(time).getTime() + 1).toISOString();
             setTimeout(() => saveWithOfflineSupport({ action: 'save', timestamp: pooTime, category: 'Nappy', value: 1, detail: 'Poo', user: window.auth.currentUser.email, child: state.currentChild }, null, null), 100);
             document.getElementById('btn-save-nappy').innerText = 'Saved!';
@@ -842,7 +841,6 @@
         return '>2d';
     }
 
-    // ⭐ Moved addToCalendar outside renderUI
     window.addToCalendar = (title, startTime, location, notes) => {
         const start = new Date(startTime).toISOString().replace(/-|:|\.\d+/g, '');
         const end = new Date(new Date(startTime).getTime() + 60*60*1000).toISOString().replace(/-|:|\.\d+/g, '');
@@ -941,7 +939,7 @@
                     .join('') || '<div>No entries yet</div>';
             }
 
-            // ========== SKIN/TUMMY RENDERING ==========
+            // SKIN/TUMMY PAGE RENDERING
             const skinLogs = child.filter(l => l.category === 'SkinToSkin');
             const tummyLogs = child.filter(l => l.category === 'TummyTime');
             const skinDay = groupByDay(skinLogs), tummyDay = groupByDay(tummyLogs);
@@ -959,7 +957,7 @@
             const skinHist = document.getElementById('history-skin');
             if(skinHist) skinHist.innerHTML = [...skinLogs, ...tummyLogs].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${l.value} min)</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('')||'<div>No entries</div>';
 
-            // ========== TRENDING PAGE (single block) ==========
+            // ========== TRENDING PAGE ==========
             if (state.tab === 'trending') {
                 const cutoff7 = new Date(Date.now() - 7*24*60*60*1000);
                 const last7 = (logs) => logs.filter(l => new Date(l.timestamp) >= cutoff7);
@@ -1005,47 +1003,15 @@
                 const totalNappy7 = nappyDates7.reduce((s,d) => s + (totalDay7[d]||0), 0);
                 document.getElementById('trending-nappy-summary').textContent = `In the last week, there were ${totalNappy7} nappy changes – a daily average of ${(totalNappy7/7).toFixed(1)}.`;
 
-                // Skin/Tummy trending
+                // Skin/Tummy trending (FIXED: correct canvas and date/label)
                 const trendingSkinDates = [...new Set([...Object.keys(skinDay),...Object.keys(tummyDay)])].sort().filter(d => d >= cutoff14ISO);
                 const trendingSkinLabels = trendingSkinDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric'}));
-                drawChart('chart-skin', [
-    {
-        label: 'Skin‑to‑Skin',
-        data: skinDates.map(d => skinDay[d] || 0),
-        borderColor: '#b30000',
-        backgroundColor: 'transparent',
-        tension: 0.4,
-        fill: false,
-        pointRadius: 3
-    },
-    {
-        label: 'Tummy Time',
-        data: skinDates.map(d => tummyDay[d] || 0),
-        borderColor: '#00bcd4',
-        backgroundColor: 'transparent',
-        tension: 0.4,
-        fill: false,
-        pointRadius: 3
-    },
-    {
-        label: '7‑Day Avg Skin',
-        data: skinDates.map(d => skinMA.get(d) ?? null),
-        borderColor: '#ff9800',
-        borderDash: [5, 5],
-        tension: 0.4,
-        fill: false,
-        pointRadius: 0
-    },
-    {
-        label: '7‑Day Avg Tummy',
-        data: skinDates.map(d => tummyMA.get(d) ?? null),
-        borderColor: '#ff9800',
-        borderDash: [2, 2],
-        tension: 0.4,
-        fill: false,
-        pointRadius: 0
-    }
-], { labels: skinLabels, unit: 'min' });   // ← removed type:'bar', {labels:trendingSkinLabels, unit:'min'});
+                drawChart('chart-trending-skin', [
+                    { label:'Skin‑to‑Skin', data:trendingSkinDates.map(d=>skinDay[d]||0), borderColor:'#b30000', backgroundColor:'transparent', tension:0.4, fill:false, pointRadius:3 },
+                    { label:'Tummy Time', data:trendingSkinDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', backgroundColor:'transparent', tension:0.4, fill:false, pointRadius:3 },
+                    { label:'7‑Day Avg Skin', data:trendingSkinDates.map(d=>skinMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5], tension:0.4, fill:false, pointRadius:0 },
+                    { label:'7‑Day Avg Tummy', data:trendingSkinDates.map(d=>tummyMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2], tension:0.4, fill:false, pointRadius:0 }
+                ], {labels:trendingSkinLabels, unit:'min'});
                 const totalSkin = skinLogs.reduce((s,l)=>s+Number(l.value),0);
                 const totalTummy = tummyLogs.reduce((s,l)=>s+Number(l.value),0);
                 document.getElementById('trending-skin-summary').textContent = `Over the last 14 days: ${totalSkin} min skin‑to‑skin, ${totalTummy} min tummy time.`;
@@ -1120,7 +1086,7 @@
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
     };
 
-    // Products, deals, stash, account (unchanged)
+    // Products, deals, stash, account
     async function loadProducts() {
         try {
             const resp = await fetch(GOOGLE_URL + '?type=products');
@@ -1211,7 +1177,7 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     };
 
-    // PDF report (unchanged)
+    // PDF report
     window.downloadFullChildReportPDF = async function() {
         const childLogs = state.logs.filter(l => l.child === state.currentChild);
         if (childLogs.length === 0) {
@@ -1248,7 +1214,6 @@
         `;
         container.appendChild(cover);
 
-        // Pre-create all month divs (charts will be added later)
         for (const month of months) {
             const [year, monthNum] = month.split('-');
             const monthName = new Date(year, monthNum-1).toLocaleString('default', { month:'long', year:'numeric' });
