@@ -1008,12 +1008,44 @@
                 // Skin/Tummy trending
                 const trendingSkinDates = [...new Set([...Object.keys(skinDay),...Object.keys(tummyDay)])].sort().filter(d => d >= cutoff14ISO);
                 const trendingSkinLabels = trendingSkinDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric'}));
-                drawChart('chart-trending-skin', [
-                    { label:'Skin‑to‑Skin', data:trendingSkinDates.map(d=>skinDay[d]||0), borderColor:'#b30000', tension:0.3, fill:false },
-                    { label:'Tummy Time', data:trendingSkinDates.map(d=>tummyDay[d]||0), borderColor:'#00bcd4', tension:0.3, fill:false },
-                    { label:'7‑Day Avg Skin', data:trendingSkinDates.map(d=>skinMA.get(d)??null), borderColor:'#ff9800', borderDash:[5,5], tension:0.3, fill:false },
-                    { label:'7‑Day Avg Tummy', data:trendingSkinDates.map(d=>tummyMA.get(d)??null), borderColor:'#ff9800', borderDash:[2,2], tension:0.3, fill:false }
-                ], {labels:trendingSkinLabels, unit:'min'});
+                drawChart('chart-skin', [
+    {
+        label: 'Skin‑to‑Skin',
+        data: skinDates.map(d => skinDay[d] || 0),
+        borderColor: '#b30000',
+        backgroundColor: 'transparent',
+        tension: 0.4,
+        fill: false,
+        pointRadius: 3
+    },
+    {
+        label: 'Tummy Time',
+        data: skinDates.map(d => tummyDay[d] || 0),
+        borderColor: '#00bcd4',
+        backgroundColor: 'transparent',
+        tension: 0.4,
+        fill: false,
+        pointRadius: 3
+    },
+    {
+        label: '7‑Day Avg Skin',
+        data: skinDates.map(d => skinMA.get(d) ?? null),
+        borderColor: '#ff9800',
+        borderDash: [5, 5],
+        tension: 0.4,
+        fill: false,
+        pointRadius: 0
+    },
+    {
+        label: '7‑Day Avg Tummy',
+        data: skinDates.map(d => tummyMA.get(d) ?? null),
+        borderColor: '#ff9800',
+        borderDash: [2, 2],
+        tension: 0.4,
+        fill: false,
+        pointRadius: 0
+    }
+], { labels: skinLabels, unit: 'min' });   // ← removed type:'bar', {labels:trendingSkinLabels, unit:'min'});
                 const totalSkin = skinLogs.reduce((s,l)=>s+Number(l.value),0);
                 const totalTummy = tummyLogs.reduce((s,l)=>s+Number(l.value),0);
                 document.getElementById('trending-skin-summary').textContent = `Over the last 14 days: ${totalSkin} min skin‑to‑skin, ${totalTummy} min tummy time.`;
