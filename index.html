@@ -105,7 +105,7 @@
         .hospital-name { font-weight: bold; font-size: 15px; margin-bottom: 4px; } .hospital-note-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; } .hospital-timestamp { font-size: 12px; opacity: 0.7; }
         .product-card { background: var(--card); border-radius: 12px; padding: 15px; margin-bottom: 10px; border: 1px solid var(--border); }
         .price-per-unit { background: var(--accent); color: white; padding: 3px 8px; border-radius: 20px; font-size: 12px; display: inline-block; margin-left: 10px; }
-        .kitchen fridge-note { background: #fef9c3; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #1f2937; }
+        .fridge-note { background: #fef9c3; padding: 10px; border-radius: 8px; margin-bottom: 15px; color: #1f2937; }
         .pro-only { display: none; }
         .category-chip { padding: 10px 16px; border-radius: 30px; background: var(--card); border: 1px solid var(--border); color: var(--text); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
         .category-chip.active { background: var(--accent); color: white; border-color: var(--accent); }
@@ -232,7 +232,8 @@
     <div class="child-selector" id="child-selector-container"></div>
     <div id="current-child-display" class="current-child-badge"></div>
 
-    <div id="kitchen fridge-note-container" class="kitchen fridge-note"></div>
+    <!-- 🧊 Kitchen Fridge Note -->
+    <div id="fridge-note-container" class="fridge-note"></div>
 
     <div id="error-banner" class="error-banner"></div>
 
@@ -506,7 +507,7 @@
     };
 
     let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
-    let kitchenfridge Notes = JSON.parse(localStorage.getItem('kitchenfridgeNotes') || '{}');
+    let fridgeNotes = JSON.parse(localStorage.getItem('ecoFridgeNotes') || '{}');   // ✅ renamed
     let charts = {};
     let timerInterval = null;
     let deferredPrompt;
@@ -646,7 +647,7 @@
             btn.addEventListener('click', (e) => { window.setChild(e.currentTarget.getAttribute('data-child')); });
         });
         document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
-        renderHandoverNote();
+        renderFridgeNote();   // ✅
     }
     window.setChild = (childName) => {
         state.currentChild = childName;
@@ -656,7 +657,7 @@
         });
         applyChildTheme(childName);
         document.getElementById('current-child-display').textContent = `👤 ${childName}`;
-        renderHandoverNote();
+        renderFridgeNote();   // ✅
         renderUI();
     };
     function applyChildTheme(childName) {
@@ -671,18 +672,19 @@
         R = Math.max(0, R + percent); G = Math.max(0, G + percent); B = Math.max(0, B + percent);
         return `#${((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1)}`;
     }
-    function renderHandoverNote() {
-        const container = document.getElementById('handover-note-container');
+    // ✅ updated functions for fridge notes
+    function renderFridgeNote() {
+        const container = document.getElementById('fridge-note-container');
         if (!container) return;
-        const note = handoverNotes[state.currentChild] || '';
-        container.innerHTML = `<div style="display:flex; justify-content:space-between;"><strong>📝 Handover Note</strong><span style="cursor:pointer;" onclick="window.editHandoverNote()">✏️</span></div><div style="margin-top:5px;">${note || 'No note yet. Tap ✏️ to add.'}</div>`;
+        const note = fridgeNotes[state.currentChild] || '';
+        container.innerHTML = `<div style="display:flex; justify-content:space-between;"><strong>🧊 Kitchen Fridge Note</strong><span style="cursor:pointer;" onclick="window.editFridgeNote()">✏️</span></div><div style="margin-top:5px;">${note || 'No note yet. Tap ✏️ to add.'}</div>`;
     }
-    window.editHandoverNote = () => {
-        const newNote = prompt('Enter handover note for caregivers:', handoverNotes[state.currentChild] || '');
+    window.editFridgeNote = () => {
+        const newNote = prompt('Enter kitchen fridge note for caregivers:', fridgeNotes[state.currentChild] || '');
         if (newNote !== null) {
-            handoverNotes[state.currentChild] = newNote;
-            localStorage.setItem('handoverNotes', JSON.stringify(handoverNotes));
-            renderHandoverNote();
+            fridgeNotes[state.currentChild] = newNote;
+            localStorage.setItem('ecoFridgeNotes', JSON.stringify(fridgeNotes));
+            renderFridgeNote();
         }
     };
 
