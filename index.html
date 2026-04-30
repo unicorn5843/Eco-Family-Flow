@@ -219,8 +219,7 @@
         <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
         <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
         <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
-        <div id="tab-savings" class="nav-tile pro-only" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
-        <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
+        <div id="tab-savings" class="nav-tile" onclick="window.switchTab('savings')">        <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
         <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
     </section>
 
@@ -397,7 +396,7 @@
         logs: [],
         offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
         allProducts: [],
-        trialStatus: { daysLeft: 60, isPro: true },
+        isPro: false,   // Will be set by Digital Goods check
         children: [
             { name: 'Child A', color: '#8fbca0' },
             { name: 'Child B', color: '#f4a261' },
@@ -535,23 +534,46 @@
         } catch(e) { showError('Network error'); }
     };
 
-    function buildChildSelector() {
-        const container = document.getElementById('child-selector-container');
-        if (!container) return;
-        container.innerHTML = state.children.map((child, idx) => `
-            <button class="child-btn ${idx === 0 ? 'active' : ''}" data-child="${child.name}" style="border-color: ${child.color};">
-                👶 ${child.name.charAt(child.name.length-1)}
-            </button>
-        `).join('');
-        if (!state.currentChild) state.currentChild = state.children[0].name;
-        applyChildTheme(state.currentChild);
-        document.querySelectorAll('.child-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => { window.setChild(e.currentTarget.getAttribute('data-child')); });
-        });
-        document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
-        renderFridgeNote();
+function buildChildSelector() {
+    const container = document.getElementById('child-selector-container');
+    if (!container) return;
+    
+    // Free users see only Child A; Pro users see all
+    const visibleChildren = state.isPro ? state.children : state.children.slice(0, 1);
+    
+    container.innerHTML = visibleChildren.map((child, idx) => `
+        <button class="child-btn ${child.name === state.currentChild ? 'active' : ''}" 
+                data-child="${child.name}" 
+                style="border-color: ${child.color};">
+            👶 ${child.name.charAt(child.name.length-1)}
+        </button>
+    `).join('');
+    
+    // Force current child to Child A if free and currently set to a higher child
+    if (!state.isPro && state.currentChild !== 'Child A') {
+        state.currentChild = 'Child A';
     }
-    window.setChild = (childName) => {
+    
+    applyChildTheme(state.currentChild);
+    
+    document.querySelectorAll('.child-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            window.setChild(e.currentTarget.getAttribute('data-child'));
+        });
+    });
+    
+    document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
+    renderFridgeNote();
+}    window.setChild = (childName) => {
+    // If free user tries to access a child beyond A, show paywall
+    const childIndex = state.children.findIndex(c => c.name === childName);
+    if (!state.isPro && childIndex > 0) {
+        document.getElementById('paywall-overlay').style.display = 'flex';
+        return;
+    }
+    
+    state.currentChild = childName;
+    // ... rest of the function stays the same
         state.currentChild = childName;
         document.querySelectorAll('.child-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -944,7 +966,7 @@
             const pump = milk.filter(l=>l.detail.includes('Pump'));
             const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
             const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
-            const cutoff = state.trialStatus.isPro ? null : new Date(Date.now() - 30*24*60*60*1000);
+            state. isPro.
             const filterByDate = (logs) => cutoff ? logs.filter(l => new Date(l.timestamp) >= cutoff) : logs;
 
             const sc = document.getElementById('supply-status-content');
