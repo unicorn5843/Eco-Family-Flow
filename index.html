@@ -131,6 +131,13 @@
         .guide-table td, .guide-table th { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; }
         .guide-table th { font-weight: 600; color: var(--accent-dark); background: rgba(143,188,160,0.1); }
         .guide-table td:first-child { font-size: 20px; text-align: center; width: 40px; }
+
+        /* Private Notes */
+        .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+        .note-card-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--text); }
+        .note-card-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; line-height: 1.4; }
+        .note-card-time { font-size: 12px; color: var(--accent-dark); margin-top: 5px; }
+        .note-card-footer { display: flex; justify-content: flex-end; }
     </style>
 </head>
 <body>
@@ -290,11 +297,25 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- Notes Page -->
+        <!-- Notes Page – Improved UI -->
         <div id="page-notes" class="page">
-            <div class="card" style="background:var(--accent);color:white;"><p>🔒 Local only – not synced.</p></div>
-            <div class="card"><input type="text" id="note-title" placeholder="Title"><textarea id="note-content" placeholder="Notes..."></textarea><button class="save-btn" onclick="window.savePrivateNote()">Save Note</button></div>
-            <div class="card"><div class="stat-lbl">Your Notes</div><div id="private-notes-list"></div></div>
+            <div class="card" style="background: var(--accent-dark); color: white;">
+                <p style="margin:0;">🔒 Private Notes are stored only on this device. They are never synced or uploaded.</p>
+            </div>
+            <div class="card">
+                <h3>✍️ New Note</h3>
+                <div class="input-group">
+                    <input type="text" id="note-title" placeholder="Title" style="width:100%;">
+                </div>
+                <div class="input-group">
+                    <textarea id="note-content" placeholder="Write your note here..."></textarea>
+                </div>
+                <button class="save-btn" onclick="window.savePrivateNote()">💾 Save Note</button>
+            </div>
+            <div class="card">
+                <h3 style="margin-top:0;">📋 Your Notes</h3>
+                <div id="private-notes-list"></div>
+            </div>
         </div>
 
         <!-- Emergency Page -->
@@ -748,11 +769,20 @@
         const container = document.getElementById('private-notes-list');
         if (!container) return;
         if (privateNotes.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:15px; opacity:0.6;">No private notes yet</div>';
+            container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">No private notes saved yet. Create one above ✍️</div>';
             return;
         }
         const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
-        container.innerHTML = sorted.map(note => `<div class="history-item"><strong>${note.title}</strong><span class="delete-btn" onclick="window.deletePrivateNote(${note.id})">🗑️</span></div>`).join('');
+        container.innerHTML = sorted.map(note => `
+            <div class="note-card">
+                <div class="note-card-title">${note.title}</div>
+                <div class="note-card-text">${note.content || '<span style="opacity:0.5;">(empty)</span>'}</div>
+                <div class="note-card-time">🗓 ${new Date(note.updated).toLocaleString()}</div>
+                <div class="note-card-footer">
+                    <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})" style="cursor:pointer;">🗑️</span>
+                </div>
+            </div>
+        `).join('');
     }
 
     // Chart helpers
