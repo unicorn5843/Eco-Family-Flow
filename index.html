@@ -63,6 +63,14 @@
         .child-btn { padding: 8px 12px; border-radius: 20px; background: var(--card); border: 1px solid var(--border); color: var(--text); cursor: pointer; font-size: 14px; }
         .child-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         .current-child-badge { text-align: center; font-size: 14px; margin-top: -10px; margin-bottom: 15px; opacity: 0.8; }
+
+        /* Dashboard quick stats */
+        #dashboard { background: var(--card); border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .dash-item { display: flex; flex-direction: column; padding: 8px; border-radius: 12px; background: var(--bg); }
+        .dash-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
+        .dash-value { font-size: 15px; font-weight: bold; }
+        .dash-time { font-size: 12px; opacity: 0.7; }
+
         #nav-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 20px; }
         .nav-tile { background: var(--card); border-radius: 12px; aspect-ratio: 1/1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid var(--border); cursor: pointer; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.03); padding: 4px; }
         .nav-tile.wide { grid-column: span 4; aspect-ratio: auto; height: 50px; margin-bottom: 8px; }
@@ -186,6 +194,9 @@
     <div id="current-child-display" class="current-child-badge"></div>
 
     <div id="fridge-note-container" class="fridge-note"></div>
+
+    <!-- DASHBOARD -->
+    <div id="dashboard"></div>
 
     <div id="error-banner" class="error-banner"></div>
 
@@ -815,6 +826,44 @@
         });
     }
 
+    function renderDashboard() {
+        const dash = document.getElementById('dashboard');
+        if (!dash) return;
+        const childLogs = state.logs.filter(l => l.child === state.currentChild);
+        const conv = v => state.units==='US' ? (v/29.5735).toFixed(1) + 'oz' : v + 'ml';
+        const latestMilk = childLogs.filter(l => l.category === 'Milk').sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0];
+        const latestNappy = childLogs.filter(l => l.category === 'Nappy').sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0];
+        const latestMed = childLogs.filter(l => l.category === 'Medication').sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp))[0];
+        const nextAppt = childLogs.filter(l => l.category === 'Appointment' && new Date(l.timestamp) > new Date()).sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp))[0];
+
+        const buildItem = (icon, label, value, time) => `
+            <div class="dash-item">
+                <div class="dash-label">${icon} ${label}</div>
+                <div class="dash-value">${value || '—'}</div>
+                <div class="dash-time">${time ? new Date(time).toLocaleString() : '—'}</div>
+            </div>`;
+
+        let html = '';
+        if (latestMilk) {
+            const mode = latestMilk.detail.includes('Pump') ? 'Pump' : 'Feed';
+            html += buildItem('🤱', 'Milk (' + mode + ')', conv(latestMilk.value), latestMilk.timestamp);
+        } else html += buildItem('🤱', 'Milk', '—', null);
+        if (latestNappy) {
+            const type = latestNappy.detail;
+            html += buildItem('🧻', 'Nappy', type, latestNappy.timestamp);
+        } else html += buildItem('🧻', 'Nappy', '—', null);
+        if (latestMed) {
+            const [name, dosage] = latestMed.detail.split('|');
+            html += buildItem('💊', 'Medication', `${name} ${dosage ? '('+dosage+')' : ''}`, latestMed.timestamp);
+        } else html += buildItem('💊', 'Medication', '—', null);
+        if (nextAppt) {
+            const [title, loc] = nextAppt.detail.split('|');
+            html += buildItem('📅', 'Next Appointment', title, nextAppt.timestamp);
+        } else html += buildItem('📅', 'Appointment', '—', null);
+
+        dash.innerHTML = html;
+    }
+
     function renderMedicationTimers() {
         const container = document.getElementById('med-timers-container');
         if(!container) return;
@@ -1081,6 +1130,7 @@
                 apptEl.innerHTML = appointments.map(l=>`<div class="history-item"><div><strong>${l.detail.split('|')[0]}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${l.detail.split('|')[0]}','${l.timestamp}','${l.detail.split('|')[1]||''}','${l.detail.split('|')[2]||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No appointments</div>';
             }
             renderPrivateNotes();
+            renderDashboard();
             if(timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(renderMedicationTimers, 60000);
         } catch(e) { console.error(e); showError('UI error: '+e.message); }
