@@ -165,29 +165,6 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
-    <!-- GUIDE PAGE -->
-    <div id="page-info" class="page">
-        <div class="card"><h2>📘 Your Guide</h2><p>Here's what each tab does:</p>
-        <table class="guide-table">
-            <tr><td>🤱</td><td><strong>Milk</strong><br>Track breastfeeding or pumping sessions – amount, side, and mode (pump/feed). Shows a supply vs. demand chart.</td></tr>
-            <tr><td>🍼</td><td><strong>Formula</strong><br>Log bottle feeds (ml) and see daily totals with a 7‑day average.</td></tr>
-            <tr><td>🧻</td><td><strong>Nappy</strong><br>Record wet, dirty, or both. Graphs wee & poo trends separately.</td></tr>
-            <tr><td>❤️</td><td><strong>Skin/Tummy</strong><br>Log skin‑to‑skin and tummy time sessions. See 14‑day trends with 7‑day averages.</td></tr>
-            <tr><td>💊</td><td><strong>Meds</strong><br>Log any medication – name, dosage, and time. See a live timer for each med so you always know when the last dose was given.</td></tr>
-            <tr><td>🏥</td><td><strong>Hospital</strong><br>Write down notes from any medical visit – A&E, GP, consultant appointments, or long hospital stays. Record the hospital name and what each doctor said. Perfect for keeping a timeline during extended stays.</td></tr>
-            <tr><td>📈</td><td><strong>Trending</strong><br>See combined feeding & nappy patterns over the last 7 days, monthly bar charts with 30‑day forecasts, and export a full Child Report PDF.</td></tr>
-            <tr><td>🛒</td><td><strong>Deals</strong><br>Compare prices per nappy/wipe/formula across brands to find the best value.</td></tr>
-            <tr><td>❄️</td><td><strong>Stash</strong> <em>(Pro)</em><br>Manually track your frozen breastmilk inventory.</td></tr>
-            <tr><td>📅</td><td><strong>Appts</strong> <em>(Pro)</em><br>Schedule and manage upcoming medical appointments.</td></tr>
-            <tr><td>💰</td><td><strong>Savings</strong> <em>(Pro)</em><br>Quick links to money‑saving offers like Too Good To Go.</td></tr>
-            <tr><td>📋</td><td><strong>Private Notes</strong><br>Stored only on this device (not synced). Good for personal reminders.</td></tr>
-            <tr><td>📍</td><td><strong>Emergency</strong><br>One‑tap search for nearby pharmacies, A&E, or GPs using your location.</td></tr>
-        </table></div>
-        <div class="card"><h3>👶 Why “Child A”, “Child B” …?</h3><p>We use generic labels to protect your family’s privacy. You can track up to five children without ever storing real names or personal details on our servers. The data belongs to you and your Google Sheet – we never ask for your child’s identity.</p></div>
-        <div class="card"><h3>🏥 How to use the Hospital tab</h3><p>Use it as a medical diary:</p><ul><li><strong>A&E visits:</strong> Log the time, hospital name, and what the triage nurse or doctor said.</li><li><strong>Appointments:</strong> Write down advice from each specialist. Over time you’ll have a clear history.</li><li><strong>Long hospital stays:</strong> Add an entry every time something changes – medication adjustments, ward moves, new symptoms. It creates a searchable timeline that you can share with other caregivers or review later.</li></ul></div>
-        <div class="card"><h3>📋 What’s in the Child Report PDF?</h3><p>The <strong>Full Child Report</strong> (found on the Trending page) generates a professional medical‑style PDF covering every month you have data. Each monthly page includes:</p><ul><li>Total milk pumped, fed, formula, wet & dirty nappies, skin‑to‑skin & tummy time minutes</li><li>A daily line chart of all feeds (breastmilk + formula)</li><li>A daily line chart of nappy changes (wee, poo, total)</li><li>A daily line chart of skin‑to‑skin and tummy time</li><li>Lists of any medications, hospital notes, and appointments</li></ul><p>You can take this report to your doctor, health visitor, or keep it for your own records.</p></div>
-    </div>
-
     <div id="main-app" style="display: none;">
     <div class="app-header">
         <div class="header-left"><div class="header-icon-text" onclick="window.installApp()"><span>📲</span><span>Install</span></div></div>
@@ -219,13 +196,37 @@
         <div id="tab-deals" class="nav-tile" onclick="window.switchTab('deals')"><span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
         <div id="tab-stash" class="nav-tile pro-only" onclick="window.switchTab('stash')"><span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
         <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
-        <div id="tab-savings" class="nav-tile" onclick="window.switchTab('savings')">        <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
+        <div id="tab-savings" class="nav-tile" onclick="window.switchTab('savings')"><span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
+        <div id="tab-notes" class="nav-tile wide" onclick="window.switchTab('notes')"><span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
         <div id="tab-emergency" class="nav-tile wide" onclick="window.switchTab('emergency')"><span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
     </section>
 
     <div id="loading-indicator" class="loading">Syncing Data...</div>
 
     <main>
+        <!-- GUIDE PAGE -->
+        <div id="page-info" class="page">
+            <div class="card"><h2>📘 Your Guide</h2><p>Here's what each tab does:</p>
+            <table class="guide-table">
+                <tr><td>🤱</td><td><strong>Milk</strong><br>Track breastfeeding or pumping sessions – amount, side, and mode (pump/feed). Shows a supply vs. demand chart.</td></tr>
+                <tr><td>🍼</td><td><strong>Formula</strong><br>Log bottle feeds (ml) and see daily totals with a 7‑day average.</td></tr>
+                <tr><td>🧻</td><td><strong>Nappy</strong><br>Record wet, dirty, or both. Graphs wee & poo trends separately.</td></tr>
+                <tr><td>❤️</td><td><strong>Skin/Tummy</strong><br>Log skin‑to‑skin and tummy time sessions. See 14‑day trends with 7‑day averages.</td></tr>
+                <tr><td>💊</td><td><strong>Meds</strong><br>Log any medication – name, dosage, and time. See a live timer for each med so you always know when the last dose was given.</td></tr>
+                <tr><td>🏥</td><td><strong>Hospital</strong><br>Write down notes from any medical visit – A&E, GP, consultant appointments, or long hospital stays. Record the hospital name and what each doctor said. Perfect for keeping a timeline during extended stays.</td></tr>
+                <tr><td>📈</td><td><strong>Trending</strong><br>See combined feeding & nappy patterns over the last 7 days, monthly bar charts with 30‑day forecasts, and export a full Child Report PDF.</td></tr>
+                <tr><td>🛒</td><td><strong>Deals</strong><br>Compare prices per nappy/wipe/formula across brands to find the best value.</td></tr>
+                <tr><td>❄️</td><td><strong>Stash</strong> <em>(Pro)</em><br>Manually track your frozen breastmilk inventory.</td></tr>
+                <tr><td>📅</td><td><strong>Appts</strong> <em>(Pro)</em><br>Schedule and manage upcoming medical appointments.</td></tr>
+                <tr><td>💰</td><td><strong>Savings</strong> <em>(Pro)</em><br>Quick links to money‑saving offers like Too Good To Go.</td></tr>
+                <tr><td>📋</td><td><strong>Private Notes</strong><br>Stored only on this device (not synced). Good for personal reminders.</td></tr>
+                <tr><td>📍</td><td><strong>Emergency</strong><br>One‑tap search for nearby pharmacies, A&E, or GPs using your location.</td></tr>
+            </table></div>
+            <div class="card"><h3>👶 Why “Child A”, “Child B” …?</h3><p>We use generic labels to protect your family’s privacy. You can track up to five children without ever storing real names or personal details on our servers. The data belongs to you and your Google Sheet – we never ask for your child’s identity.</p></div>
+            <div class="card"><h3>🏥 How to use the Hospital tab</h3><p>Use it as a medical diary:</p><ul><li><strong>A&E visits:</strong> Log the time, hospital name, and what the triage nurse or doctor said.</li><li><strong>Appointments:</strong> Write down advice from each specialist. Over time you’ll have a clear history.</li><li><strong>Long hospital stays:</strong> Add an entry every time something changes – medication adjustments, ward moves, new symptoms. It creates a searchable timeline that you can share with other caregivers or review later.</li></ul></div>
+            <div class="card"><h3>📋 What’s in the Child Report PDF?</h3><p>The <strong>Full Child Report</strong> (found on the Trending page) generates a professional medical‑style PDF covering every month you have data. Each monthly page includes:</p><ul><li>Total milk pumped, fed, formula, wet & dirty nappies, skin‑to‑skin & tummy time minutes</li><li>A daily line chart of all feeds (breastmilk + formula)</li><li>A daily line chart of nappy changes (wee, poo, total)</li><li>A daily line chart of skin‑to‑skin and tummy time</li><li>Lists of any medications, hospital notes, and appointments</li></ul><p>You can take this report to your doctor, health visitor, or keep it for your own records.</p></div>
+        </div>
+
         <!-- Milk Page -->
         <div id="page-milk" class="page active">
             <div id="supply-status-card" class="supply-card"><div style="font-weight: bold; margin-bottom: 10px;">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading...</div></div>
@@ -396,7 +397,7 @@
         logs: [],
         offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
         allProducts: [],
-        isPro: false,   // Will be set by Digital Goods check
+        isPro: false,
         children: [
             { name: 'Child A', color: '#8fbca0' },
             { name: 'Child B', color: '#f4a261' },
@@ -534,46 +535,43 @@
         } catch(e) { showError('Network error'); }
     };
 
-function buildChildSelector() {
-    const container = document.getElementById('child-selector-container');
-    if (!container) return;
-    
-    // Free users see only Child A; Pro users see all
-    const visibleChildren = state.isPro ? state.children : state.children.slice(0, 1);
-    
-    container.innerHTML = visibleChildren.map((child, idx) => `
-        <button class="child-btn ${child.name === state.currentChild ? 'active' : ''}" 
-                data-child="${child.name}" 
-                style="border-color: ${child.color};">
-            👶 ${child.name.charAt(child.name.length-1)}
-        </button>
-    `).join('');
-    
-    // Force current child to Child A if free and currently set to a higher child
-    if (!state.isPro && state.currentChild !== 'Child A') {
-        state.currentChild = 'Child A';
-    }
-    
-    applyChildTheme(state.currentChild);
-    
-    document.querySelectorAll('.child-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            window.setChild(e.currentTarget.getAttribute('data-child'));
+    function buildChildSelector() {
+        const container = document.getElementById('child-selector-container');
+        if (!container) return;
+        
+        const visibleChildren = state.trialStatus?.isPro ? state.children : state.children.slice(0, 1);
+        
+        container.innerHTML = visibleChildren.map((child, idx) => `
+            <button class="child-btn ${child.name === state.currentChild ? 'active' : ''}" 
+                    data-child="${child.name}" 
+                    style="border-color: ${child.color};">
+                👶 ${child.name.charAt(child.name.length-1)}
+            </button>
+        `).join('');
+        
+        if (!state.trialStatus?.isPro && state.currentChild !== 'Child A') {
+            state.currentChild = 'Child A';
+        }
+        
+        applyChildTheme(state.currentChild);
+        
+        document.querySelectorAll('.child-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                window.setChild(e.currentTarget.getAttribute('data-child'));
+            });
         });
-    });
-    
-    document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
-    renderFridgeNote();
-}    window.setChild = (childName) => {
-    // If free user tries to access a child beyond A, show paywall
-    const childIndex = state.children.findIndex(c => c.name === childName);
-    if (!state.isPro && childIndex > 0) {
-        document.getElementById('paywall-overlay').style.display = 'flex';
-        return;
+        
+        document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
+        renderFridgeNote();
     }
-    
-    state.currentChild = childName;
-    // ... rest of the function stays the same
+
+    window.setChild = (childName) => {
+        const childIndex = state.children.findIndex(c => c.name === childName);
+        if (!state.trialStatus?.isPro && childIndex > 0) {
+            document.getElementById('paywall-overlay').style.display = 'flex';
+            return;
+        }
+        
         state.currentChild = childName;
         document.querySelectorAll('.child-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -584,6 +582,7 @@ function buildChildSelector() {
         renderFridgeNote();
         renderUI();
     };
+
     function applyChildTheme(childName) {
         const child = state.children.find(c => c.name === childName);
         if (child) {
@@ -613,13 +612,13 @@ function buildChildSelector() {
 
     function updateTrialBanner() {
         const banner = document.getElementById('trial-banner');
-        if (!banner || state.trialStatus.isPro) { banner.style.display = 'none'; return; }
+        if (!banner || !state.trialStatus || state.trialStatus.isPro) { if(banner) banner.style.display = 'none'; return; }
         const days = state.trialStatus.daysLeft;
         banner.style.display = 'block';
         banner.textContent = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
         banner.className = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
     }
-    setInterval(() => { if (state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--; updateTrialBanner(); }, 1000*60*60*24);
+    setInterval(() => { if (state.trialStatus && state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--; updateTrialBanner(); }, 1000*60*60*24);
     async function checkTrialStatus() {
         try {
             const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
@@ -630,7 +629,7 @@ function buildChildSelector() {
         } catch(e) { state.trialStatus = { daysLeft: 60, isPro: true }; }
     }
     function updateProUI() {
-        const isPro = state.trialStatus.isPro;
+        const isPro = state.trialStatus && state.trialStatus.isPro;
         document.querySelectorAll('.pro-only').forEach(el => el.style.display = isPro ? 'flex' : 'none');
         const nightBtn = document.querySelector('.footer-action[onclick*="toggleNight"]');
         if (nightBtn) nightBtn.style.display = isPro ? 'flex' : 'none';
@@ -638,7 +637,7 @@ function buildChildSelector() {
     function showPaywall() { document.getElementById('paywall-overlay').style.display = 'flex'; }
     window.upgradeToPro = () => { state.trialStatus.isPro = true; document.getElementById('paywall-overlay').style.display = 'none'; updateProUI(); updateTrialBanner(); renderUI(); };
     window.continueFree = () => { state.trialStatus.isPro = false; document.getElementById('paywall-overlay').style.display = 'none'; updateProUI(); updateTrialBanner(); renderUI(); };
-    window.toggleNight = () => { if (!state.trialStatus.isPro) return showPaywall(); document.body.classList.toggle('night'); };
+    window.toggleNight = () => { if (!state.trialStatus || !state.trialStatus.isPro) return showPaywall(); document.body.classList.toggle('night'); };
 
     // Data refresh
     window.refreshData = async () => {
@@ -866,8 +865,11 @@ function buildChildSelector() {
         const canvas = document.getElementById(id);
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
-        if(charts[id]) charts[id].destroy();
-        if(datasets.every(ds=>ds.data.length===0)) {
+        if(charts[id]) {
+            charts[id].destroy();
+            delete charts[id];
+        }
+        if(!opts.labels || opts.labels.length === 0 || datasets.every(ds=>!ds.data || ds.data.length===0)) {
             charts[id] = new Chart(ctx, { type:'line', data:{labels:['No data'],datasets:[]}, options:{plugins:{title:{display:true,text:'Add entries'}}} });
             return;
         }
@@ -938,8 +940,8 @@ function buildChildSelector() {
         if(diff<60) return 'Just now';
         if(diff<3600) return `${Math.floor(diff/60)} min ago`;
         if(diff<86400) return `${Math.floor(diff/3600)}h ago`;
-        if(diff<172800) return '1d ago';
-        return '>2d';
+        const days = Math.floor(diff/86400);
+        return `${days}d ago`;
     }
 
     window.addToCalendar = (title, startTime, location, notes) => {
@@ -955,6 +957,11 @@ function buildChildSelector() {
             const isUS = state.units==='US';
             const conv = v => isUS ? (v/29.5735).toFixed(1) : Math.round(v);
             const unit = isUS ? 'oz' : 'ml';
+            
+            const cutoff14 = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+            const filterByDate = (logs) => logs.filter(l => new Date(l.timestamp) >= cutoff14);
+            const cutoff14ISO = cutoff14.toISOString().slice(0,10);
+            
             const milkAmtEl = document.getElementById('milkAmt');
             const formulaAmtEl = document.getElementById('formulaAmt');
             if (milkAmtEl) milkAmtEl.placeholder = `Amount (${unit})`;
@@ -966,8 +973,6 @@ function buildChildSelector() {
             const pump = milk.filter(l=>l.detail.includes('Pump'));
             const feedMilk = milk.filter(l=>l.detail.includes('Feed'));
             const allFeed = child.filter(l=>(l.category==='Milk'&&l.detail.includes('Feed'))||l.category==='Formula');
-            state. isPro.
-            const filterByDate = (logs) => cutoff ? logs.filter(l => new Date(l.timestamp) >= cutoff) : logs;
 
             const sc = document.getElementById('supply-status-content');
             if(sc) {
@@ -980,7 +985,7 @@ function buildChildSelector() {
                 const filtered = filterByDate(logs);
                 const tot = filtered.reduce((s,l)=>s+ +l.value,0);
                 const statsEl = document.getElementById(`stats-${pref}`);
-                if(statsEl) statsEl.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total</div></div><div class="stat-box"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Entries</div></div>`;
+                if(statsEl) statsEl.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total (14d)</div></div><div class="stat-box"><div class="stat-val">${filtered.length}</div><div class="stat-lbl">Entries</div></div>`;
                 const hist = document.getElementById(`history-${pref}`);
                 if(hist) hist.innerHTML = filtered.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
             };
@@ -993,7 +998,6 @@ function buildChildSelector() {
             const pumpMA = movingAvgMap(pumpDay);
             const feedMA = movingAvgMap(feedDay);
 
-            const cutoff14ISO = new Date(Date.now() - 14*24*60*60*1000).toISOString().slice(0,10);
             const displayDates = allDates.filter(d => d >= cutoff14ISO);
             const displayLabels = displayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
 
@@ -1022,7 +1026,7 @@ function buildChildSelector() {
             const nappyDisplayDates = nappyAllDates.filter(d => d >= cutoff14ISO);
             const nappyDisplayLabels = nappyDisplayDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {month:'short', day:'numeric'}));
 
-            document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo</div></div>`;
+            document.getElementById('stats-nappy').innerHTML = `<div class="stat-box"><div class="stat-val">${weeLogs.length}</div><div class="stat-lbl">Wee (14d)</div></div><div class="stat-box"><div class="stat-val">${pooLogs.length}</div><div class="stat-lbl">Poo (14d)</div></div>`;
             drawChart('chart-nappy', [
                 {label:'Wee', data:nappyDisplayDates.map(d=>weeDay[d]||0), borderColor:'#4a90e2', tension:0.3},
                 {label:'Poo', data:nappyDisplayDates.map(d=>pooDay[d]||0), borderColor:'#8B4513', tension:0.3},
@@ -1104,7 +1108,7 @@ function buildChildSelector() {
                 const totalNappy7 = nappyDates7.reduce((s,d) => s + (totalDay7[d]||0), 0);
                 document.getElementById('trending-nappy-summary').textContent = `In the last week, there were ${totalNappy7} nappy changes – a daily average of ${(totalNappy7/7).toFixed(1)}.`;
 
-                // Skin/Tummy trending (FIXED: correct canvas and date/label)
+                // Skin/Tummy trending
                 const trendingSkinDates = [...new Set([...Object.keys(skinDay),...Object.keys(tummyDay)])].sort().filter(d => d >= cutoff14ISO);
                 const trendingSkinLabels = trendingSkinDates.map(d => new Date(d + 'T00:00:00').toLocaleDateString(undefined, {weekday:'short', day:'numeric'}));
                 drawChart('chart-trending-skin', [
@@ -1148,8 +1152,10 @@ function buildChildSelector() {
                     {label:'Forecast', data:[...Array(formulaMonths.length).fill(null), formulaProjection], borderColor:'#6a9c7d', borderDash:[5,5], type:'line', fill:false}
                 ], {labels:[...formulaMonths, formulaNextMonthLabel], unit:'ml', type:'bar'});
 
-                const weeMonth = groupByMonth(weeLogs, 'value');
-                const pooMonth = groupByMonth(pooLogs, 'value');
+                const allWee = nappy.filter(l => l.detail === 'Wee' || l.detail === 'Both');
+                const allPoo = nappy.filter(l => l.detail === 'Poo' || l.detail === 'Both');
+                const weeMonth = groupByMonth(allWee, 'value');
+                const pooMonth = groupByMonth(allPoo, 'value');
                 const totalMonth = {};
                 [...new Set([...Object.keys(weeMonth), ...Object.keys(pooMonth)])].forEach(m => {
                     totalMonth[m] = (weeMonth[m]||0) + (pooMonth[m]||0);
@@ -1271,7 +1277,7 @@ function buildChildSelector() {
         } catch(e) {}
     }
     window.exportData = () => {
-        if (!state.trialStatus.isPro) return showPaywall();
+        if (!state.trialStatus || !state.trialStatus.isPro) return showPaywall();
         const childLogs = state.logs.filter(l => l.child === state.currentChild);
         const csv = [['Timestamp','Category','Value','Detail','Child'].join(',')];
         childLogs.forEach(l => csv.push([l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(',')));
@@ -1540,10 +1546,11 @@ function buildChildSelector() {
         }
         await checkTrialStatus();
         document.getElementById('page-family-setup').style.display='none';
+        document.getElementById('page-welcome').style.display='none';
         document.getElementById('main-app').style.display='block';
         buildChildSelector();
         window.resetTimeInputs();
-        document.querySelectorAll('.pro-only').forEach(el=>el.style.display=state.trialStatus.isPro?'flex':'none');
+        document.querySelectorAll('.pro-only').forEach(el=>el.style.display=state.trialStatus&&state.trialStatus.isPro?'flex':'none');
         await window.refreshData();
         if(state.tab==='deals') loadProducts();
         if(state.tab==='stash') fetchStashBalance();
