@@ -7,10 +7,8 @@
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
-    <!-- PDF libraries -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -51,7 +49,7 @@
         .app-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .header-left, .header-right { display: flex; align-items: center; gap: 8px; width: 70px; }
         .header-left { justify-content: flex-start; } .header-right { justify-content: flex-end; }
-        .header-title { font-size: 20px; font-weight: bold; color: var(--accent-dark); margin: 0; text-align: center; flex: 1; }
+        .header-title { font-size: 20px; font-weight: bold; color: var(--accent-dark); margin: 0; text-align: center; flex: 1; cursor: pointer; }
         .header-icon-text { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 11px; opacity: 0.9; }
         .header-icon-text span:first-child { font-size: 22px; }
         #lang-select { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px; border-radius: 6px; font-size: 12px; outline: none; }
@@ -64,7 +62,6 @@
         .child-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
         .current-child-badge { text-align: center; font-size: 14px; margin-top: -10px; margin-bottom: 15px; opacity: 0.8; }
 
-        /* Dashboard quick stats */
         #dashboard { background: var(--card); border-radius: 16px; padding: 15px; margin-bottom: 20px; border: 1px solid var(--border); box-shadow: 0 4px 10px rgba(0,0,0,0.04); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .dash-item { display: flex; flex-direction: column; padding: 8px; border-radius: 12px; background: var(--bg); }
         .dash-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; font-weight: 600; margin-bottom: 4px; }
@@ -126,18 +123,36 @@
         .report-stat { text-align: center; }
         .report-stat strong { font-size: 1.2em; }
 
-        /* Guide table */
         .guide-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         .guide-table td, .guide-table th { padding: 10px 8px; border-bottom: 1px solid var(--border); text-align: left; font-size: 14px; vertical-align: top; }
         .guide-table th { font-weight: 600; color: var(--accent-dark); background: rgba(143,188,160,0.1); }
         .guide-table td:first-child { font-size: 20px; text-align: center; width: 40px; }
 
-        /* Private Notes */
         .note-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
         .note-card-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; color: var(--text); }
         .note-card-text { font-size: 14px; margin: 8px 0; white-space: pre-wrap; line-height: 1.4; }
         .note-card-time { font-size: 12px; color: var(--accent-dark); margin-top: 5px; }
         .note-card-footer { display: flex; justify-content: flex-end; }
+
+        /* Fixed welcome CTA */
+        #welcome-fixed-cta {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg);
+            padding: 15px;
+            z-index: 110;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            display: none;
+        }
+        #welcome-fixed-cta .save-btn {
+            font-size: 18px;
+            padding: 18px;
+        }
+        #page-welcome {
+            padding-bottom: 100px; /* space for fixed button */
+        }
     </style>
 </head>
 <body>
@@ -148,17 +163,15 @@
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display: none;"></div>
 
-    <!-- INTEGRATED WELCOME PAGE -->
+    <!-- WELCOME PAGE -->
     <div id="page-welcome" class="page active">
         <div style="padding: 20px 0;">
-            <!-- Hero Section -->
             <div class="card" style="text-align:center; background: linear-gradient(135deg, rgba(143, 188, 160, 0.15) 0%, rgba(143, 188, 160, 0.05) 100%); border: none; margin-bottom: 20px;">
                 <div style="font-size: 48px; margin-bottom: 15px;">🌿</div>
                 <h1 style="margin: 0 0 10px 0; font-size: 32px; color: var(--accent-dark);">Eco Family Flow</h1>
                 <p style="margin: 0; font-size: 18px; font-weight: 500; color: var(--text); opacity: 0.9;">The parenting companion you didn't know you needed</p>
             </div>
 
-            <!-- Problem Section -->
             <div class="card" style="background: transparent; border: none; text-align: center; margin-bottom: 20px;">
                 <p style="font-size: 16px; line-height: 1.6; color: var(--text);">
                     The early years are magical—but they're also exhausting. Between feeds, nappies, medications, sleep schedules, and endless worries, it's easy to lose track. And when you're running on empty, even simple questions feel impossible to answer:
@@ -179,7 +192,6 @@
                 </div>
             </div>
 
-            <!-- Solution Section -->
             <div class="card" style="background: transparent; border: none; margin-bottom: 20px;">
                 <h3 style="color: var(--accent-dark); margin-top: 0;">Here's what Eco Family Flow does:</h3>
                 <div style="display: flex; flex-direction: column; gap: 12px;">
@@ -221,7 +233,6 @@
                 </div>
             </div>
 
-            <!-- Value Proposition -->
             <div class="card" style="background: var(--accent); color: white; border: none; text-align: center; margin-bottom: 20px;">
                 <h3 style="margin-top: 0; margin-bottom: 10px; color: white;">Peace of Mind Built In</h3>
                 <p style="margin: 0; font-size: 14px; line-height: 1.6;">
@@ -229,22 +240,6 @@
                 </p>
             </div>
 
-            <!-- CTA Section -->
-            <div class="card" style="background: transparent; border: none; text-align: center; margin-bottom: 20px;">
-                <p style="margin-bottom: 15px; font-size: 14px; font-weight: 500;">
-                    <strong>Start your 60-day free trial</strong><br>
-                    <span style="opacity: 0.8;">No credit card. Cancel anytime. Full access to all features.</span>
-                </p>
-                <button class="save-btn" onclick="window.finishWelcome()" style="font-size: 18px; padding: 18px; margin-bottom: 12px;">
-                    Get Started
-                </button>
-                <p style="font-size: 12px; opacity: 0.7; margin: 0;">
-                    By starting, you agree to set up a family account or skip for now.<br>
-                    Your data is yours. Always.
-                </p>
-            </div>
-
-            <!-- Social Proof / Testimonial Section -->
             <div class="card" style="background: var(--bg); border: 1px solid var(--border); text-align: center; font-size: 14px; padding: 12px;">
                 <p style="margin: 0; font-style: italic; color: var(--text);">
                     "After three nights of zero sleep, I couldn't remember if I'd fed them or when. This app saved me. It saved us."
@@ -252,6 +247,11 @@
                 <p style="margin: 5px 0 0 0; opacity: 0.7;">— Parent in the UK</p>
             </div>
         </div>
+    </div>
+
+    <!-- Fixed CTA for welcome -->
+    <div id="welcome-fixed-cta">
+        <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
     </div>
 
     <div id="page-family-setup" class="page">
@@ -264,7 +264,7 @@
     <div id="main-app" style="display: none;">
     <div class="app-header">
         <div class="header-left"><div class="header-icon-text" onclick="window.installApp()"><span>📲</span><span>Install</span></div></div>
-        <div class="header-title">Eco Family Flow</div>
+        <div class="header-title" onclick="window.goToWelcome()" title="Back to welcome">Eco Family Flow</div>
         <div class="header-right"><select id="lang-select"><option value="en">🇬🇧 EN</option></select></div>
     </div>
 
@@ -275,7 +275,6 @@
 
     <div id="fridge-note-container" class="fridge-note"></div>
 
-    <!-- DASHBOARD -->
     <div id="dashboard"></div>
 
     <div id="error-banner" class="error-banner"></div>
@@ -348,7 +347,7 @@
             <div class="card"><div class="stat-lbl">Recent History</div><div id="history-nappy" class="history-list"></div></div>
         </div>
 
-        <!-- NEW SKIN/TUMMY PAGE -->
+        <!-- SKIN/TUMMY PAGE -->
         <div id="page-skin" class="page">
             <div class="card"><h3>🤱 Skin‑to‑Skin</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="skinStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="skinEnd"></div><button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()">Save Skin‑to‑Skin</button></div>
             <div class="card"><h3>👶 Tummy Time</h3><div class="stat-lbl">Start Time</div><div class="input-group"><input type="datetime-local" id="tummyStart"></div><div class="stat-lbl">End Time</div><div class="input-group"><input type="datetime-local" id="tummyEnd"></div><button class="save-btn" id="btn-save-tummy" onclick="window.saveTummyTime()">Save Tummy Time</button></div>
@@ -370,7 +369,7 @@
             <div class="card"><div class="stat-lbl">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
         </div>
 
-        <!-- TRENDING PAGE (skin/tummy chart fixed) -->
+        <!-- TRENDING PAGE -->
         <div id="page-trending" class="page">
             <div class="card"><h3>📈 Trending Data</h3></div>
             <div id="stats-overview" class="stat-container"></div>
@@ -393,7 +392,7 @@
             <div id="product-list">Loading products...</div>
         </div>
 
-        <!-- Notes Page – Improved UI -->
+        <!-- Notes Page -->
         <div id="page-notes" class="page">
             <div class="card" style="background: var(--accent-dark); color: white;">
                 <p style="margin:0;">🔒 Private Notes are stored only on this device. They are never synced or uploaded.</p>
@@ -455,7 +454,7 @@
     </main>
     </div>
 </div>
-<!-- Hidden report container -->
+
 <div id="report-container"></div>
 
 <div id="paywall-overlay" class="paywall-overlay">
@@ -504,6 +503,75 @@
         stashBalance: 0
     };
 
+    let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
+    let fridgeNotes = JSON.parse(localStorage.getItem('ecoFridgeNotes') || '{}');
+    let charts = {};
+    let timerInterval = null;
+    let deferredPrompt;
+
+    // New: Go back to welcome page from main app
+    window.goToWelcome = function() {
+        localStorage.setItem('welcomeSeen', 'false');
+        document.getElementById('main-app').style.display = 'none';
+        document.getElementById('page-family-setup').style.display = 'none';
+        document.getElementById('page-welcome').style.display = 'block';
+        document.getElementById('welcome-fixed-cta').style.display = 'block';
+        // Hide the main footer when on welcome page
+        document.getElementById('fixed-bottom').style.display = 'none';
+        // Stop any timer
+        if (timerInterval) clearInterval(timerInterval);
+    };
+
+    // Show welcome CTA fixed banner when welcome page is visible
+    function showWelcomeCta(show) {
+        document.getElementById('welcome-fixed-cta').style.display = show ? 'block' : 'none';
+    }
+
+    window.finishWelcome = function() {
+        localStorage.setItem('welcomeSeen', 'true');
+        document.getElementById('page-welcome').style.display = 'none';
+        showWelcomeCta(false);
+        document.getElementById('fixed-bottom').style.display = 'flex'; // show footer
+        window.initApp();
+    };
+
+    // ... rest of the existing JavaScript unchanged (excluding the original finishWelcome definition) ...
+    // Keep all other functions (save, render, etc.) exactly as they were.
+
+    // Override initApp to handle welcome detection and fixed CTA
+    window.initApp = async function() {
+        if(!localStorage.getItem('welcomeSeen')) {
+            document.getElementById('page-welcome').style.display = 'block';
+            showWelcomeCta(true);
+            document.getElementById('fixed-bottom').style.display = 'none';
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('page-family-setup').style.display = 'none';
+            return;
+        }
+        // Hide welcome CTA
+        showWelcomeCta(false);
+        document.getElementById('fixed-bottom').style.display = 'flex';
+
+        if(!localStorage.getItem('familySetupComplete')) {
+            document.getElementById('page-family-setup').style.display = 'block';
+            document.getElementById('main-app').style.display = 'none';
+            document.getElementById('page-welcome').style.display = 'none';
+            return;
+        }
+        await checkTrialStatus();
+        document.getElementById('page-family-setup').style.display = 'none';
+        document.getElementById('page-welcome').style.display = 'none';
+        document.getElementById('main-app').style.display = 'block';
+        buildChildSelector();
+        window.resetTimeInputs();
+        document.querySelectorAll('.pro-only').forEach(el=>el.style.display=state.trialStatus&&state.trialStatus.isPro?'flex':'none');
+        await window.refreshData();
+        if(state.tab==='deals') loadProducts();
+        if(state.tab==='stash') fetchStashBalance();
+        if(state.tab==='account') loadAccountDetails();
+        renderUI();
+    };
+    
     let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
     let fridgeNotes = JSON.parse(localStorage.getItem('ecoFridgeNotes') || '{}');
     let charts = {};
