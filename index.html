@@ -148,13 +148,109 @@
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display: none;"></div>
 
+    <!-- INTEGRATED WELCOME PAGE -->
     <div id="page-welcome" class="page active">
-        <div class="card" style="text-align:center;">
-            <h2>🌿 Eco Family Flow</h2>
-            <p style="font-size:16px; margin-bottom:20px;"><em>"Simplify parenting, cherish every moment."</em></p>
-            <p>Your private, all‑in‑one assistant for tracking feeds, nappies, medications, and more.</p>
-            <p><strong>60‑day full access trial – no card required.</strong></p>
-            <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
+        <div style="padding: 20px 0;">
+            <!-- Hero Section -->
+            <div class="card" style="text-align:center; background: linear-gradient(135deg, rgba(143, 188, 160, 0.15) 0%, rgba(143, 188, 160, 0.05) 100%); border: none; margin-bottom: 20px;">
+                <div style="font-size: 48px; margin-bottom: 15px;">🌿</div>
+                <h1 style="margin: 0 0 10px 0; font-size: 32px; color: var(--accent-dark);">Eco Family Flow</h1>
+                <p style="margin: 0; font-size: 18px; font-weight: 500; color: var(--text); opacity: 0.9;">The parenting companion you didn't know you needed</p>
+            </div>
+
+            <!-- Problem Section -->
+            <div class="card" style="background: transparent; border: none; text-align: center; margin-bottom: 20px;">
+                <p style="font-size: 16px; line-height: 1.6; color: var(--text);">
+                    The early years are magical—but they're also exhausting. Between feeds, nappies, medications, sleep schedules, and endless worries, it's easy to lose track. And when you're running on empty, even simple questions feel impossible to answer:
+                </p>
+                <div style="margin-top: 15px; padding: 15px; background: var(--bg); border-radius: 12px; border-left: 4px solid var(--accent);">
+                    <p style="margin: 5px 0; font-size: 14px;">
+                        ⏰ <em>"When was the last feed? How much did they eat?"</em>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 14px;">
+                        💊 <em>"What time did I give the medication?"</em>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 14px;">
+                        🏥 <em>"What did the health visitor say at that last appointment?"</em>
+                    </p>
+                    <p style="margin: 5px 0; font-size: 14px;">
+                        😰 <em>"Is this normal? Am I keeping up?"</em>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Solution Section -->
+            <div class="card" style="background: transparent; border: none; margin-bottom: 20px;">
+                <h3 style="color: var(--accent-dark); margin-top: 0;">Here's what Eco Family Flow does:</h3>
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 24px; flex-shrink: 0;">🤱</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 2px;">Track Every Feed</strong>
+                            <span style="font-size: 14px; opacity: 0.8;">Log breastfeeding, pumping, and formula in seconds. See your supply trends and catch patterns you'd miss on no sleep.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 24px; flex-shrink: 0;">🧻</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 2px;">Monitor Health Markers</strong>
+                            <span style="font-size: 14px; opacity: 0.8;">Track nappies, medications, skin health, and tummy time. Spot changes early and know what to tell your health visitor.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 24px; flex-shrink: 0;">🏥</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 2px;">Build Your Medical Timeline</strong>
+                            <span style="font-size: 14px; opacity: 0.8;">Keep notes from hospital visits, GP appointments, and specialist consultations. Share with your partner or take to your next appointment.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 24px; flex-shrink: 0;">🛒</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 2px;">Save Money Where It Counts</strong>
+                            <span style="font-size: 14px; opacity: 0.8;">Compare nappy and formula prices to find the best value. Every penny matters when you're in survival mode.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 12px; align-items: flex-start;">
+                        <span style="font-size: 24px; flex-shrink: 0;">📋</span>
+                        <div>
+                            <strong style="display: block; margin-bottom: 2px;">Share With Your Partner</strong>
+                            <span style="font-size: 14px; opacity: 0.8;">Sync data with your partner or other caregivers in real time. Everyone's on the same page, always.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Value Proposition -->
+            <div class="card" style="background: var(--accent); color: white; border: none; text-align: center; margin-bottom: 20px;">
+                <h3 style="margin-top: 0; margin-bottom: 10px; color: white;">Peace of Mind Built In</h3>
+                <p style="margin: 0; font-size: 14px; line-height: 1.6;">
+                    Your data is private, stored securely, and never shared. No ads. No selling your information. Just a simple tool designed by people who get it—designed for you and your family.
+                </p>
+            </div>
+
+            <!-- CTA Section -->
+            <div class="card" style="background: transparent; border: none; text-align: center; margin-bottom: 20px;">
+                <p style="margin-bottom: 15px; font-size: 14px; font-weight: 500;">
+                    <strong>Start your 60-day free trial</strong><br>
+                    <span style="opacity: 0.8;">No credit card. Cancel anytime. Full access to all features.</span>
+                </p>
+                <button class="save-btn" onclick="window.finishWelcome()" style="font-size: 18px; padding: 18px; margin-bottom: 12px;">
+                    Get Started
+                </button>
+                <p style="font-size: 12px; opacity: 0.7; margin: 0;">
+                    By starting, you agree to set up a family account or skip for now.<br>
+                    Your data is yours. Always.
+                </p>
+            </div>
+
+            <!-- Social Proof / Testimonial Section -->
+            <div class="card" style="background: var(--bg); border: 1px solid var(--border); text-align: center; font-size: 14px; padding: 12px;">
+                <p style="margin: 0; font-style: italic; color: var(--text);">
+                    "After three nights of zero sleep, I couldn't remember if I'd fed them or when. This app saved me. It saved us."
+                </p>
+                <p style="margin: 5px 0 0 0; opacity: 0.7;">— Parent in the UK</p>
+            </div>
         </div>
     </div>
 
