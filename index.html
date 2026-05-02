@@ -979,24 +979,26 @@ await saveWithOfflineSupport({
         renderPrivateNotes();
     };
     function renderPrivateNotes() {
-        const container = document.getElementById('private-notes-list');
-        if (!container) return;
-        if (privateNotes.length === 0) {
-            container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">No private notes saved yet. Create one above ✍️</div>';
-            return;
-        }
-        const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
-        container.innerHTML = sorted.map(note => `
-            <div class="note-card">
-                <div class="note-card-title">${note.title}</div>
-                <div class="note-card-text">${note.content || '<span style="opacity:0.5;">(empty)</span>'}</div>
-                <div class="note-card-time">🗓 ${new Date(note.updated).toLocaleString()}</div>
-                <div class="note-card-footer">
-                    <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})" style="cursor:pointer;">🗑️</span>
-                </div>
-            </div>
-        `).join('');
+    const container = document.getElementById('private-notes-list');
+    if (!container) return;
+    if (privateNotes.length === 0) {
+        container.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">No private notes saved yet. Create one above ✍️</div>';
+        return;
     }
+    const sorted = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated));
+    container.innerHTML = sorted.map(note => {
+        const safeTitle = escapeHTML(note.title);
+        const safeContent = escapeHTML(note.content).replace(/\n/g, '<br>');
+        return `<div class="note-card">
+            <div class="note-card-title">${safeTitle}</div>
+            <div class="note-card-text">${safeContent || '<span style="opacity:0.5;">(empty)</span>'}</div>
+            <div class="note-card-time">🗓 ${new Date(note.updated).toLocaleString()}</div>
+            <div class="note-card-footer">
+                <span class="delete-btn" onclick="window.deletePrivateNote(${note.id})" style="cursor:pointer;">🗑️</span>
+            </div>
+        </div>`;
+    }).join('');
+}
 
     // Chart helpers
     const groupByDay = (logs, key='value') => {
@@ -1098,15 +1100,18 @@ await saveWithOfflineSupport({
             const type = latestNappy.detail;
             html += buildItem('🧻', 'Nappy', type, latestNappy.timestamp);
         } else html += buildItem('🧻', 'Nappy', '—', null);
-        if (latestMed) {
-            const [name, dosage] = latestMed.detail.split('|');
-            html += buildItem('💊', 'Medication', `${name} ${dosage ? '('+dosage+')' : ''}`, latestMed.timestamp);
-        } else html += buildItem('💊', 'Medication', '—', null);
-        if (nextAppt) {
-            const [title, loc] = nextAppt.detail.split('|');
-            html += buildItem('📅', 'Next Appointment', title, nextAppt.timestamp);
-        } else html += buildItem('📅', 'Appointment', '—', null);
+    if (latestMed) {
+    const d = parseDetail(latestMed.detail);
+    const name = d.name || '—';
+    const dosage = d.dosage ? ` (${escapeHTML(d.dosage)})` : '';
+    html += buildItem('💊', 'Medication', escapeHTML(name) + dosage, latestMed.timestamp);
+} else html += buildItem('💊', 'Medication', '—', null);
 
+if (nextAppt) {
+    const d = parseDetail(nextAppt.detail);
+    const title = d.title || '—';
+    html += buildItem('📅', 'Next Appointment', escapeHTML(title), nextAppt.timestamp);
+} else html += buildItem('📅', 'Appointment', '—', null);
         dash.innerHTML = html;
     }
 
@@ -1119,15 +1124,15 @@ await saveWithOfflineSupport({
             const name = l.detail.split('|')[0].toLowerCase();
             if(!latest[name] || new Date(l.timestamp) > new Date(latest[name].timestamp)) latest[name]=l;
         });
-        container.innerHTML = Object.values(latest).map(l=>{
-            const parts = l.detail.split('|');
-            const name = parts[0];
-            const dosage = parts[1] || '';
-            const displayName = dosage ? `${name} (${dosage})` : name;
-            return `<div class="med-timer-card"><div class="med-name">${displayName}</div><div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`;
-        }).join('')||'<div>No medications logged</div>';
+  container.innerHTML = Object.values(latest).map(l=>{
+    const d = parseDetail(l.detail);
+    const name = d.name;
+    const dosage = d.dosage ? ` (${escapeHTML(d.dosage)})` : '';
+    return `<div class="med-timer-card"><div class="med-name">${escapeHTML(name)}${dosage}</div><div class="med-time">⏱️ ${formatTimeAgo(l.timestamp)}</div></div>`;
+}).join('')||'<div>No medications logged</div>';
     }
-    function formatTimeAgo(ts) {
+        
+        function formatTimeAgo(ts) {
         const diff = (new Date() - new Date(ts))/1000;
         if(diff<60) return 'Just now';
         if(diff<3600) return `${Math.floor(diff/60)} min ago`;
@@ -1369,16 +1374,31 @@ await saveWithOfflineSupport({
                 const sorted = filterByDate(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
                 medHist.innerHTML = sorted.slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} - ${l.detail.split('|')[0]} ${l.detail.split('|')[1]?'('+l.detail.split('|')[1]+')':''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('');
             }
-            const hospHist = document.getElementById('history-hospital');
-            if(hospHist) {
-                const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
-                hospHist.innerHTML = sorted.slice(0,10).map(l=>`<div class="hospital-note-item"><div class="hospital-name">🏥 ${l.detail.split('|')[0]}</div><div class="hospital-note-text">${l.detail.split('|')[1]?l.detail.split('|')[1].replace(/\n/g,'<br>'):''}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`).join('');
-            }
-            const apptEl = document.getElementById('appointments-list');
-            if(apptEl) {
-                const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
-                apptEl.innerHTML = appointments.map(l=>`<div class="history-item"><div><strong>${l.detail.split('|')[0]}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${l.detail.split('|')[0]}','${l.timestamp}','${l.detail.split('|')[1]||''}','${l.detail.split('|')[2]||''}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No appointments</div>';
-            }
+          hospHist.innerHTML = sorted.slice(0,10).map(l=>{
+    const d = parseDetail(l.detail);
+    const hosp = d.hospital || d.raw || '—';
+    const notes = d.notes ? escapeHTML(d.notes).replace(/\n/g, '<br>') : '';
+    return `<div class="hospital-note-item">
+        <div class="hospital-name">🏥 ${escapeHTML(hosp)}</div>
+        <div class="hospital-note-text">${notes}</div>
+        <div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div>
+        <div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>
+    </div>`;
+}).join('');
+        }
+          
+    apptEl.innerHTML = appointments.map(l=>{
+    const d = parseDetail(l.detail);
+    const title = d.title || '—';
+    const loc = d.loc || '';
+    const notes = d.notes || '';
+    return `<div class="history-item">
+        <div><strong>${escapeHTML(title)}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div>
+        <button class="calendar-btn" onclick="window.addToCalendar('${escapeHTML(title)}','${l.timestamp}','${escapeHTML(loc)}','${escapeHTML(notes)}')">📅 Add</button>
+        <span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span>
+    </div>`;
+}).join('') || '<div>No appointments</div>';
+    }
             renderPrivateNotes();
             renderDashboard();
             if(timerInterval) clearInterval(timerInterval);
