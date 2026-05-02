@@ -476,42 +476,51 @@
 </footer>
 
 <script>
-(function() {
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
-    const POST_HEADERS = {};
+(function() {const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbzEKZGpKALJl1i8FSTogdk63w48qg7fjGHcYzAtXwHdzcIyxwgATfEE-FyW7UHPiQc6/exec';
+const POST_HEADERS = { 'Content-Type': 'application/json' };
+
+function escapeHTML(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function parseDetail(detail) {
+    try {
+        return JSON.parse(detail);
+    } catch (e) {
+        const parts = detail.split('|');
+        if (parts.length === 2) return { name: parts[0], dosage: parts[1] };
+        if (parts.length === 3) return { title: parts[0], loc: parts[1], notes: parts[2] };
+        return { raw: detail };
+    }
+}
 
     let currentCategory = '';
 
     let state = {
-        units: 'UK',
-        tab: 'milk',
-        currentChild: 'Child A',
-        milkMode: 'Pump',
-        milkSide: 'Left',
-        nappyType: 'Wee',
-        logs: [],
-        offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
-        allProducts: [],
-        isPro: false,
-        children: [
-            { name: 'Child A', color: '#8fbca0' },
-            { name: 'Child B', color: '#f4a261' },
-            { name: 'Child C', color: '#e76f51' },
-            { name: 'Child D', color: '#9b5de5' },
-            { name: 'Child E', color: '#00b4d8' }
-        ],
-        stashBalance: 0
-    };
-
-    let privateNotes = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
-    let fridgeNotes = JSON.parse(localStorage.getItem('ecoFridgeNotes') || '{}');
-    let charts = {};
-    let timerInterval = null;
-    let deferredPrompt;
+    units: 'UK',
+    tab: 'milk',
+    currentChild: 'Child A',
+    milkMode: 'Pump',
+    milkSide: 'Left',
+    nappyType: 'Wee',
+    logs: [],
+    offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
+    allProducts: [],
+    isPro: false,
+    trialStatus: { daysLeft: 60, isPro: false },
+    children: [ … ],
+    stashBalance: 0
+};
 
     // New: Go back to welcome page from main app
     window.goToWelcome = function() {
-        localStorage.setItem('welcomeSeen', 'false');
+        localStorage.removeItem('welcomeSeen');
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('page-family-setup').style.display = 'none';
         document.getElementById('page-welcome').style.display = 'block';
@@ -595,69 +604,70 @@
         if (type === 'synced') setTimeout(() => { banner.style.display = 'none'; }, 3000);
     }
 
-    async function processOfflineQueue() {
-        if (!navigator.onLine || state.offlineQueue.length === 0) return;
-        showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
-        const queue = [...state.offlineQueue];
-        for (const item of queue) {
-            try {
-                const response = await fetch(GOOGLE_URL, { method: 'POST', headers: POST_HEADERS, body: JSON.stringify(item) });
-                const result = await response.json();
-                if (result.success) {
-                    state.offlineQueue = state.offlineQueue.filter(i => i.timestamp !== item.timestamp);
-                    state.logs.push(item);
-                }
-            } catch (e) {}
-        }
-        localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-        if (state.offlineQueue.length === 0) showBanner('All data synced ✓', 'synced');
-        else showBanner(`${state.offlineQueue.length} items pending`, 'offline');
-        renderUI();
+             async function processOfflineQueue() {
+    if (!navigator.onLine || state.offlineQueue.length === 0) return;
+    showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
+    const queue = [...state.offlineQueue];
+    for (const item of queue) {
+        if (!item.id) item.id = crypto.randomUUID();
+        const { id, ...payload } = item;
+        try {
+            const response = await fetch(GOOGLE_URL, { method: 'POST', headers: POST_HEADERS, body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (result.success) {
+                state.offlineQueue = state.offlineQueue.filter(i => i.id !== id);
+                state.logs.push(payload);
+            }
+        } catch (e) {}
+    }
+    localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+    if (state.offlineQueue.length === 0) showBanner('All data synced ✓', 'synced');
+    else showBanner(`${state.offlineQueue.length} items pending`, 'offline');
+    renderUI();
+}
     }
     window.addEventListener('online', processOfflineQueue);
     setInterval(processOfflineQueue, 30000);
 
-    function saveWithOfflineSupport(payload, btnId, defaultText) {
-        const btn = btnId ? document.getElementById(btnId) : null;
-        if (btn) btn.innerText = "Saving...";
-        const attemptSave = async () => {
-            try {
-                const response = await fetch(GOOGLE_URL, { method: 'POST', headers: POST_HEADERS, body: JSON.stringify(payload) });
-                const result = await response.json();
-                if (result.success) {
-                    if (btn) btn.innerText = "Saved!";
-                    state.logs.push(payload);
-                    showBanner('Saved to cloud ✓', 'synced');
-                    setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
-                    return true;
-                } else {
-                    alert("Save failed: " + (result.message || JSON.stringify(result)));
-                    return false;
-                }
-            } catch (e) {
-                alert("Network error: " + e.message);
+async function saveWithOfflineSupport(payload, btnId, defaultText) {
+    const btn = btnId ? document.getElementById(btnId) : null;
+    if (btn) btn.innerText = 'Saving...';
+    const attemptSave = async () => {
+        try {
+            const response = await fetch(GOOGLE_URL, { method: 'POST', headers: POST_HEADERS, body: JSON.stringify(payload) });
+            const result = await response.json();
+            if (result.success) {
+                if (btn) btn.innerText = 'Saved!';
+                state.logs.push(payload);
+                showBanner('Saved to cloud ✓', 'synced');
+                setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
+                return true;
+            } else {
+                alert('Save failed: ' + (result.message || JSON.stringify(result)));
                 return false;
             }
-        };
-        if (navigator.onLine) {
-            attemptSave().then(success => {
-                if (!success) {
-                    state.offlineQueue.push(payload);
-                    localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-                    if (btn) btn.innerText = "Queued (offline)";
-                    showBanner('Saved offline – will sync later', 'offline');
-                    setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
-                }
-            });
-        } else {
-            state.offlineQueue.push(payload);
+        } catch (e) {
+            alert('Network error: ' + e.message);
+            return false;
+        }
+    };
+    if (navigator.onLine) {
+        const success = await attemptSave();
+        if (!success) {
+            state.offlineQueue.push({ id: crypto.randomUUID(), ...payload });
             localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-            if (btn) btn.innerText = "Queued (offline)";
+            if (btn) btn.innerText = 'Queued (offline)';
             showBanner('Saved offline – will sync later', 'offline');
             setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
         }
+    } else {
+        state.offlineQueue.push({ id: crypto.randomUUID(), ...payload });
+        localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+        if (btn) btn.innerText = 'Queued (offline)';
+        showBanner('Saved offline – will sync later', 'offline');
+        setTimeout(() => { if (btn) btn.innerText = defaultText; renderUI(); }, 1000);
     }
-
+}ಠ_ಠ
     // Family setup
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete', 'true'); window.initApp(); };
     window.createFamily = async () => {
@@ -782,7 +792,6 @@
         banner.textContent = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
         banner.className = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
     }
-    setInterval(() => { if (state.trialStatus && state.trialStatus.daysLeft > 0) state.trialStatus.daysLeft--; updateTrialBanner(); }, 1000*60*60*24);
     async function checkTrialStatus() {
         try {
             const resp = await fetch(`${GOOGLE_URL}?type=trial&email=${window.auth.currentUser.email}`);
@@ -851,21 +860,28 @@
         saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
 
-    window.saveNappy = () => {
-        const timeVal = document.getElementById('nappyTime').value;
-        if (!timeVal) return alert("Please select a date/time.");
-        const time = new Date(timeVal).toISOString();
-        if (state.nappyType === 'Both') {
-            saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: 'Wee', user: window.auth.currentUser.email, child: state.currentChild }, null, null);
-            const pooTime = new Date(new Date(time).getTime() + 1).toISOString();
-            setTimeout(() => saveWithOfflineSupport({ action: 'save', timestamp: pooTime, category: 'Nappy', value: 1, detail: 'Poo', user: window.auth.currentUser.email, child: state.currentChild }, null, null), 100);
-            document.getElementById('btn-save-nappy').innerText = 'Saved!';
-            setTimeout(() => { document.getElementById('btn-save-nappy').innerText = 'Log Nappy'; renderUI(); }, 1000);
-        } else {
-            saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Nappy', value: 1, detail: state.nappyType, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-nappy', 'Log Nappy');
-        }
-    };
-
+ window.saveNappy = async () => {
+    const timeVal = document.getElementById('nappyTime').value;
+    if (!timeVal) return alert("Please select a date/time.");
+    const time = new Date(timeVal).toISOString();
+    if (state.nappyType === 'Both') {
+        const basePayload = {
+            action: 'save', category: 'Nappy', value: 1,
+            user: window.auth.currentUser.email, child: state.currentChild
+        };
+        await saveWithOfflineSupport({ ...basePayload, timestamp: time, detail: 'Wee' }, null, null);
+        const pooTime = new Date(new Date(time).getTime() + 1).toISOString();
+        await saveWithOfflineSupport({ ...basePayload, timestamp: pooTime, detail: 'Poo' }, null, null);
+        document.getElementById('btn-save-nappy').innerText = 'Saved!';
+        setTimeout(() => { document.getElementById('btn-save-nappy').innerText = 'Log Nappy'; renderUI(); }, 1000);
+    } else {
+        await saveWithOfflineSupport({
+            action: 'save', timestamp: time, category: 'Nappy', value: 1,
+            detail: state.nappyType,
+            user: window.auth.currentUser.email, child: state.currentChild
+        }, 'btn-save-nappy', 'Log Nappy');
+    }
+};ಠ_ಠ
     window.saveSkin = () => {
         const startVal = document.getElementById('skinStart').value;
         const endVal   = document.getElementById('skinEnd').value;
@@ -903,7 +919,11 @@
         const time = new Date(timeVal).toISOString();
         document.getElementById('medName').value = '';
         document.getElementById('medDosage').value = '';
-        saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'Medication', value: 0, detail: `${name}|${dosage}`, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-med', 'Log Medication');
+    const detail = JSON.stringify({ name, dosage });
+await saveWithOfflineSupport({
+    action: 'save', timestamp: time, category: 'Medication', value: 0,
+    detail, user: window.auth.currentUser.email, child: state.currentChild
+}, 'btn-save-med', 'Log Medication');ಠ_ಠ
         window.resetTimeInputs();
     };
 
@@ -916,7 +936,11 @@
         const time = new Date(timeVal).toISOString();
         document.getElementById('hospitalName').value = '';
         document.getElementById('hospitalNotes').value = '';
-        saveWithOfflineSupport({ action: 'save', timestamp: time, category: 'HospitalNote', value: 0, detail: `${hospital}|${notes}`, user: window.auth.currentUser.email, child: state.currentChild }, 'btn-save-hospital', 'Save Note');
+        const detail = JSON.stringify({ hospital, notes });
+await saveWithOfflineSupport({
+    action: 'save', timestamp: time, category: 'HospitalNote', value: 0,
+    detail, user: window.auth.currentUser.email, child: state.currentChild
+}, 'btn-save-hospital', 'Save Note');
         window.resetTimeInputs();
     };
 
@@ -930,7 +954,11 @@
         document.getElementById('apptTitle').value = '';
         document.getElementById('apptLocation').value = '';
         document.getElementById('apptNotes').value = '';
-        saveWithOfflineSupport({ action:'save', timestamp: new Date(dt).toISOString(), category:'Appointment', value:0, detail:`${title}|${loc}|${notes}`, user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-appointment', 'Save Appointment');
+     const detail = JSON.stringify({ title, loc, notes });
+await saveWithOfflineSupport({
+    action:'save', timestamp: new Date(dt).toISOString(), category:'Appointment', value:0,
+    detail, user:window.auth.currentUser.email, child:state.currentChild
+}, 'btn-save-appointment', 'Save Appointment');
         window.resetTimeInputs();
     };
 
@@ -1450,6 +1478,10 @@
     };
 
     // PDF report
+    const loading = document.getElementById('loading-indicator');
+loading.style.display = 'block';
+loading.textContent = 'Generating PDF report...';
+    
     window.downloadFullChildReportPDF = async function() {
         const childLogs = state.logs.filter(l => l.child === state.currentChild);
         if (childLogs.length === 0) {
@@ -1654,7 +1686,15 @@
             pdf.save(`eco-family-flow-child-report-${state.currentChild}-${new Date().toISOString().slice(0,10)}.pdf`);
         }, 500);
     };
+    
+loading.style.display = 'none';
 
+} catch(e) {
+
+loading.style.display = 'none'; showError('PDF generation failed.');
+
+}
+    
     async function loadAccountDetails() {
         try {
             const resp = await fetch(`${GOOGLE_URL}?type=familyDetails&email=${window.auth.currentUser.email}`);
@@ -1700,28 +1740,7 @@
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
     // App initialization
-    window.finishWelcome = () => { localStorage.setItem('welcomeSeen','true'); document.getElementById('page-welcome').style.display='none'; window.initApp(); };
-    window.initApp = async () => {
-        if(!localStorage.getItem('welcomeSeen')) { document.getElementById('page-welcome').style.display='block'; return; }
-        if(!localStorage.getItem('familySetupComplete')) {
-            document.getElementById('page-family-setup').style.display='block';
-            document.getElementById('main-app').style.display='none';
-            return;
-        }
-        await checkTrialStatus();
-        document.getElementById('page-family-setup').style.display='none';
-        document.getElementById('page-welcome').style.display='none';
-        document.getElementById('main-app').style.display='block';
-        buildChildSelector();
-        window.resetTimeInputs();
-        document.querySelectorAll('.pro-only').forEach(el=>el.style.display=state.trialStatus&&state.trialStatus.isPro?'flex':'none');
-        await window.refreshData();
-        if(state.tab==='deals') loadProducts();
-        if(state.tab==='stash') fetchStashBalance();
-        if(state.tab==='account') loadAccountDetails();
-        renderUI();
-    };
-
+ 
     window.resetTimeInputs = () => {
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
