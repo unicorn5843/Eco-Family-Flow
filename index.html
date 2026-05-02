@@ -42,7 +42,7 @@
         window.logout = () => signOut(auth).then(() => location.reload());
     </script>
     <style>
-        :root { --bg: #f2f7f4; --card: #ffffff; --text: #2f4f2f; --accent: #8fbca0; --accent-dark: #6a9c7d; --border: #e0ebe3; --btn-text: #ffffff; --delete: #ff6b6b; --warning: #ff9800; --success: #4caf50; --safe-bottom: env(safe-area-inset-bottom, 0px); }
+        :root { --bg: #f2f7f4; --card: #ffffff; --text: #2f4f2f; --accent: #8fbca0; --accent-dark: #6a9c7d; --border: #e0ebe3; --btn-text: #ffffff; --delete: #ff6b6b; --warning: #ff9800; --success: #4caf50; --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-top: env(safe-area-inset-top, 0px); }
         body.night { --bg: #1a1a1a; --card: #2a2a2a; --text: #e0d7c6; --accent: #b33a3a; --accent-dark: #8b1a1a; --border: #3a3a3a; --btn-text: #f0e6d3; --delete: #cc0000; --warning: #e67e22; --success: #27ae60; }
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--text); padding-bottom: calc(90px + var(--safe-bottom)); transition: background-color 0.4s, color 0.4s; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; scroll-padding-top: 20px; }
         #app-interface { display: none; max-width: 500px; margin: 0 auto; padding: 15px; }
@@ -50,6 +50,7 @@
         .header-left, .header-right { display: flex; align-items: center; gap: 8px; width: 70px; }
         .header-left { justify-content: flex-start; } .header-right { justify-content: flex-end; }
         .header-title { font-size: 20px; font-weight: bold; color: var(--accent-dark); margin: 0; text-align: center; flex: 1; cursor: pointer; }
+        .header-title:active { opacity: 0.7; }
         .header-icon-text { display: flex; flex-direction: column; align-items: center; cursor: pointer; font-size: 11px; opacity: 0.9; }
         .header-icon-text span:first-child { font-size: 22px; }
         #lang-select { background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 4px; border-radius: 6px; font-size: 12px; outline: none; }
@@ -134,23 +135,32 @@
         .note-card-time { font-size: 12px; color: var(--accent-dark); margin-top: 5px; }
         .note-card-footer { display: flex; justify-content: flex-end; }
 
+        /* ── WELCOME PAGE ───────────────────────────────────────────────
+           "Get Started" pinned at the TOP (below the device status bar).
+           The rest of the welcome content scrolls freely underneath.
+        ──────────────────────────────────────────────────────────────── */
         #welcome-fixed-cta {
             position: fixed;
-            bottom: 0;
+            top: 0;
+            top: var(--safe-top, 0px);          /* respect notch/island */
             left: 0;
             right: 0;
             background: var(--bg);
-            padding: 15px;
+            padding: 12px 15px;
             z-index: 110;
-            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
             display: none;
         }
         #welcome-fixed-cta .save-btn {
-            font-size: 18px;
-            padding: 18px;
+            font-size: 17px;
+            padding: 16px;
+            border-radius: 12px;
         }
+
+        /* Push the welcome page content below the pinned CTA bar (~70px) */
         #page-welcome {
-            padding-bottom: 100px;
+            padding-top: 80px;          /* space for the fixed CTA */
+            padding-bottom: 20px;
         }
     </style>
 </head>
@@ -161,6 +171,11 @@
 </div>
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display: none;"></div>
+
+    <!-- ── FIXED "GET STARTED" CTA – sits at the very top of the screen ── -->
+    <div id="welcome-fixed-cta">
+        <button class="save-btn" onclick="window.finishWelcome()">🌿 Get Started</button>
+    </div>
 
     <!-- WELCOME PAGE -->
     <div id="page-welcome" class="page active">
@@ -221,11 +236,6 @@
         </div>
     </div>
 
-    <!-- Fixed CTA for welcome -->
-    <div id="welcome-fixed-cta">
-        <button class="save-btn" onclick="window.finishWelcome()">Get Started</button>
-    </div>
-
     <div id="page-family-setup" class="page">
         <div class="card" style="text-align:center;"><h2>👨‍👩‍👧 Set Up Your Family</h2><p>Link your account with a partner or other caregiver to share and sync data in real time.</p></div>
         <div class="card"><h3>Create a New Family</h3><div class="input-group"><input type="text" id="family-name" placeholder="Family name (optional)" value="My Family"></div><button class="save-btn" onclick="window.createFamily()">Create Family</button></div>
@@ -235,7 +245,14 @@
 
     <div id="main-app" style="display: none;">
     <div class="app-header">
-        <div class="header-left"><div class="header-icon-text" onclick="window.installApp()"><span>📲</span><span>Install</span></div></div>
+        <div class="header-left">
+            <!-- CHANGED: "Install" → "Share" with native Web Share API support -->
+            <div class="header-icon-text" onclick="window.shareApp()">
+                <span>📤</span>
+                <span>Share</span>
+            </div>
+        </div>
+        <!-- CHANGED: clicking the title always navigates back to the welcome page -->
         <div class="header-title" onclick="window.goToWelcome()" title="Back to welcome">Eco Family Flow</div>
         <div class="header-right"><select id="lang-select"><option value="en">🇬🇧 EN</option></select></div>
     </div>
@@ -438,9 +455,15 @@
 </div>
 
 <footer id="fixed-bottom">
-    <div class="footer-action" onclick="window.toggleNight()"><span>🌗</span><span>Night</span></div>
-    <div class="footer-action" onclick="window.toggleUnits()"><span id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span></div>
-    <div class="footer-action" onclick="window.switchTab('account')"><span>👤</span><span>Account</span></div>
+    <div class="footer-action" onclick="window.toggleNight()">
+        <span>🌗</span><span>Night</span>
+    </div>
+    <div class="footer-action" onclick="window.toggleUnits()">
+        <span id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span>
+    </div>
+    <div class="footer-action" onclick="window.switchTab('account')">
+        <span>👤</span><span>Account</span>
+    </div>
 </footer>
 
 <script>
@@ -471,9 +494,6 @@
 
     let currentCategory = '';
 
-    // ----------------------------------------------------------------
-    // FIX 1: children array fully defined (was [ … ] placeholder)
-    // ----------------------------------------------------------------
     let state = {
         units: 'UK',
         tab: 'milk',
@@ -496,11 +516,13 @@
         stashBalance: 0
     };
 
+    // ── CHANGED: goToWelcome hides main app and shows welcome with CTA ──
     window.goToWelcome = function() {
         localStorage.removeItem('welcomeSeen');
         document.getElementById('main-app').style.display = 'none';
         document.getElementById('page-family-setup').style.display = 'none';
         document.getElementById('page-welcome').style.display = 'block';
+        document.getElementById('page-welcome').classList.add('active');
         document.getElementById('welcome-fixed-cta').style.display = 'block';
         document.getElementById('fixed-bottom').style.display = 'none';
         if (timerInterval) clearInterval(timerInterval);
@@ -512,6 +534,7 @@
 
     window.finishWelcome = function() {
         localStorage.setItem('welcomeSeen', 'true');
+        document.getElementById('page-welcome').classList.remove('active');
         document.getElementById('page-welcome').style.display = 'none';
         showWelcomeCta(false);
         document.getElementById('fixed-bottom').style.display = 'flex';
@@ -521,6 +544,7 @@
     window.initApp = async function() {
         if (!localStorage.getItem('welcomeSeen')) {
             document.getElementById('page-welcome').style.display = 'block';
+            document.getElementById('page-welcome').classList.add('active');
             showWelcomeCta(true);
             document.getElementById('fixed-bottom').style.display = 'none';
             document.getElementById('main-app').style.display = 'none';
@@ -573,9 +597,6 @@
         if (type === 'synced') setTimeout(() => { banner.style.display = 'none'; }, 3000);
     }
 
-    // ----------------------------------------------------------------
-    // FIX 2: removed extra closing brace that was breaking this function
-    // ----------------------------------------------------------------
     async function processOfflineQueue() {
         if (!navigator.onLine || state.offlineQueue.length === 0) return;
         showBanner(`Syncing ${state.offlineQueue.length} item(s)...`, 'offline');
@@ -826,9 +847,6 @@
         saveWithOfflineSupport(payload, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
 
-    // ----------------------------------------------------------------
-    // FIX 3: removed ಠ_ಠ from end of saveNappy
-    // ----------------------------------------------------------------
     window.saveNappy = async () => {
         const timeVal = document.getElementById('nappyTime').value;
         if (!timeVal) return alert("Please select a date/time.");
@@ -880,9 +898,6 @@
         window.resetTimeInputs();
     };
 
-    // ----------------------------------------------------------------
-    // FIX 3 (continued): removed ಠ_ಠ from end of saveMedication
-    // ----------------------------------------------------------------
     window.saveMedication = () => {
         const name = document.getElementById('medName').value.trim();
         if (!name) return alert("Please enter medication name");
@@ -1244,9 +1259,6 @@
                 }).join('');
             }
 
-            // ----------------------------------------------------------------
-            // FIX 4: hospHist variable now declared before use
-            // ----------------------------------------------------------------
             const hospHist = document.getElementById('history-hospital');
             if (hospHist) {
                 const sorted = filterByDate(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp));
@@ -1263,9 +1275,6 @@
                 }).join('') || '<div>No hospital notes yet</div>';
             }
 
-            // ----------------------------------------------------------------
-            // FIX 5: apptEl variable now declared before use
-            // ----------------------------------------------------------------
             const apptEl = document.getElementById('appointments-list');
             if (apptEl) {
                 const appointments = filterByDate(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp));
@@ -1484,9 +1493,6 @@
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`; a.click();
     };
 
-    // ----------------------------------------------------------------
-    // FIX 4: PDF loading indicator now correctly inside the function
-    // ----------------------------------------------------------------
     window.downloadFullChildReportPDF = async function() {
         const loadingEl = document.getElementById('loading-indicator');
         try {
@@ -1715,13 +1721,36 @@
         } catch(e) { showError('Could not delete account'); }
     };
 
-    window.installApp = () => {
-        if (deferredPrompt) deferredPrompt.prompt();
-        else {
-            const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            alert(isIOS ? 'To install: tap the Share button then "Add to Home Screen".' : 'App can be installed from browser menu.');
+    // ── CHANGED: shareApp uses native Web Share API on mobile,
+    //    falls back to clipboard copy or the old PWA install prompt ──
+    window.shareApp = async () => {
+        const shareData = {
+            title: 'Eco Family Flow',
+            text: 'Track feeds, nappies, meds & more for your baby 🌿',
+            url: window.location.href
+        };
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                // User cancelled or share failed – silently ignore
+                if (err.name !== 'AbortError') console.warn('Share failed:', err);
+            }
+        } else if (navigator.clipboard) {
+            // Desktop fallback: copy link to clipboard
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                alert('Link copied to clipboard! Share it with anyone 📋');
+            } catch (e) {
+                prompt('Copy this link to share:', window.location.href);
+            }
+        } else {
+            // Last resort: show the link in a prompt
+            prompt('Copy this link to share:', window.location.href);
         }
     };
+
+    // Keep the old install prompt available just in case it fires
     window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
     window.resetTimeInputs = () => {
