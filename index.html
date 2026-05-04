@@ -18,38 +18,38 @@ import { getAnalytics } from "firebase/analytics";
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
 const firebaseConfig = {
   apiKey: "AIzaSyDft1ml5thBUv0rgfoUnlLgPA1AAA3Ebbg",
   authDomain: "eco-family-flow-v1.firebaseapp.com",
   projectId: "eco-family-flow-v1",
   storageBucket: "eco-family-flow-v1.firebasestorage.app",
   messagingSenderId: "584759224581",
-  appId: "1:584759224581:web:a8996496db7552b1926f6c",
-  measurementId: "G-J8BZ65QHXF"
+  appId: "1:584759224581:web:a8996496db7552b1926f6c"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-};
+const auth = getAuth(app);
+const provider = new GoogleAuthProvider();
+window.auth = auth;
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-        window.auth = auth;
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('auth-screen').style.display = 'none';
-                document.getElementById('app-interface').style.display = 'block';
-                window.initApp();
-            } else {
-                document.getElementById('auth-screen').style.display = 'flex';
-                document.getElementById('app-interface').style.display = 'none';
-            }
-        });
-        window.login = () => signInWithPopup(auth, provider);
-        window.logout = () => signOut(auth).then(() => location.reload());
-    </script>
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    document.getElementById('auth-screen').style.display = 'none';
+    document.getElementById('app-interface').style.display = 'block';
+    window.initApp();
+  } else {
+    document.getElementById('auth-screen').style.display = 'flex';
+    document.getElementById('app-interface').style.display = 'none';
+  }
+});
+
+window.login = () => signInWithPopup(auth, provider);
+window.logout = () => signOut(auth).then(() => location.reload());
+</script>
     <style>
         :root { --bg:#f2f7f4; --card:#ffffff; --text:#2f4f2f; --accent:#8fbca0; --accent-dark:#6a9c7d; --border:#e0ebe3; --btn-text:#ffffff; --delete:#ff6b6b; --warning:#ff9800; --success:#4caf50; --safe-bottom:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px); }
         body.night { --bg:#1a1a1a; --card:#2a2a2a; --text:#e0d7c6; --accent:#b33a3a; --accent-dark:#8b1a1a; --border:#3a3a3a; --btn-text:#f0e6d3; --delete:#cc0000; --warning:#e67e22; --success:#27ae60; }
