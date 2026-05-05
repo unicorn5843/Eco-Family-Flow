@@ -515,10 +515,17 @@ window.logout = () => signOut(auth).then(() => location.reload());
     // Split across three variables so a simple APK string-dump / grep doesn't
     // surface the full URL as a single constant. Combine with ProGuard R8
     // minification in the Android wrapper for a stronger barrier.
-    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbz2rSods_Y2mtzl207xkKSaLredXIKApDXzV60fmLYmk-watXLlnhuW_HW4vLJoGgU7/exec';
+    const GOOGLE_URL = 'https://script.google.com/macros/s/AKfycbz2rSods_Y2mtzl207xkKSaLredXIKApDXzV60fmLYmk-watXLlnhuW_HW4vLJoGgU7/usercontent';
 
     const POST_HEADERS = { 'Content-Type': 'application/json' };
 
+    const DEBUG_MODE = true;
+ 
+function debugLog(message, data) {
+  if (DEBUG_MODE) {
+    console.log(`[ECO DEBUG] ${message}`, data || '');
+  }
+}
     // ── FIX 2: Android bridge detection ────────────────────────────────────
     // The Android WebView wrapper must expose window.AndroidBridge with:
     //   scheduleAlarm(label, isoTimestamp)   → native AlarmManager notification
@@ -684,31 +691,143 @@ window.logout = () => signOut(auth).then(() => location.reload());
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') processOfflineQueue(); });
     window.onAppResume = function () { processOfflineQueue(); };
 
-    async function saveWithOfflineSupport(payload, btnId, defaultText) {
-        const btn = btnId ? document.getElementById(btnId) : null;
-        if (btn) btn.innerText = 'Saving…';
-        let saved = false;
-        if (navigator.onLine) {
-            try {
-                const r = await fetch(GOOGLE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify(payload) });
-                const j = await r.json();
-                if (j.success) {
-                    state.logs.push(payload); saved = true;
-                    if (btn) btn.innerText = 'Saved!';
-                    showBanner('Saved to cloud ✓', 'synced');
-                    setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
-                } else { showError('Save failed: ' + (j.message || 'unknown error')); }
-            } catch { /* fall through to queue */ }
-        }
-        if (!saved) {
-            state.offlineQueue.push({ id: crypto.randomUUID(), ...payload });
-            localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-            if (btn) btn.innerText = 'Queued';
-            showBanner('Saved offline – will sync when online', 'offline');
-            setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
-        }
+    
+async function saveWithOfflineSupport(payload, btnId, defaultText) {
+  const btn = btnId ? document.getElementById(btnId) : null;
+  if (btn) btn.innerText = 'Saving…';
+  
+  let saved = false;
+  
+  if (navigator.onLine) {
+    try {
+      debugLog('Attempting to save:', payload);
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      
+      const response = await fetch(GOOGLE_URL, { 
+        method: 'POST', 
+        headers: POST_HEADERS, 
+        body: JSON.stringify(payload),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      debugLog('Server response status:', response.status);
+      
+      const responseText = await response.text();
+      debugLog('Server response body:', responseText);
+      
+      // Try to parse as JSON
+      let j;
+      try {
+        j = JSON.parse(responseText);
+      } catch (parseError) {
+        debugLog('ERROR: Could not parse server response as JSON', parseError);
+        showError('Server response format error. Check Google Apps Script deployment.');
+        throw parseError;
+      }
+      
+      debugLog('Parsed response:', j);
+      
+      if (j.success) {
+        state.logs.push(payload);
+        saved = true;
+        if (btn) btn.innerText = 'Saved! ✓';
+        showBanner('Saved to cloud ✓', 'synced');
+        setTimeout(() => { 
+          if (btn && defaultText) btn.innerText = defaultText; 
+          renderUI(); 
+        }, 1000);
+      } else {
+        const errorMsg = j.message || 'Unknown server error';
+        debugLog('ERROR: Save failed -', errorMsg);
+        showError('Save failed: ' + errorMsg);
+      }
+    } catch (error) {
+      debugLog('ERROR: Network/fetch error -', error.toString());
+      showError(`Network error: ${error.name} - ${error.message}`);
+      // Fall through to offline queue
     }
+  } else {
+    debugLog('Device is offline - queuing data');
+  }
+  
+  // If not saved and online, queue it
+  if (!saved) {
+    debugLog('Adding to offline queue');
+    state.offlineQueue.push({ id: crypto.randomUUID(), ...payload });
+    localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+    if (btn) btn.innerText = 'Queued (offline)';
+    showBanner('Saved offline – will sync when online', 'offline');
+    setTimeout(() => { 
+      if (btn && defaultText) btn.innerText = defaultText; 
+      renderUI(); 
+    }, 2000);
+  }
+}
 
+// ── REPLACE processOfflineQueue with this improved version ──────────────
+async function processOfflineQueue() {
+  if (!navigator.onLine || state.offlineQueue.length === 0) {
+    if (!navigator.onLine) {
+      debugLog('Still offline');
+    }
+    return;
+  }
+  
+  debugLog(`Processing ${state.offlineQueue.length} queued items`);
+  showBanner(`Syncing ${state.offlineQueue.length} item(s)…`, 'offline');
+  
+  const queue = [...state.offlineQueue];
+  
+  for (const item of queue) {
+    if (!item.id) item.id = crypto.randomUUID();
+    const { id, ...payload } = item;
+    
+    try {
+      const response = await fetch(GOOGLE_URL, { 
+        method: 'POST', 
+        headers: POST_HEADERS, 
+        body: JSON.stringify(payload) 
+      });
+      
+      const responseText = await response.text();
+      let j;
+      
+      try {
+        j = JSON.parse(responseText);
+      } catch (parseError) {
+        debugLog('ERROR: Could not parse response in queue processing', parseError);
+        continue; // Try next item
+      }
+      
+      if (j.success) {
+        debugLog(`Queued item ${id} synced successfully`);
+        state.offlineQueue = state.offlineQueue.filter(i => i.id !== id);
+        state.logs.push(payload);
+      } else {
+        debugLog(`Queued item ${id} failed: ${j.message}`);
+      }
+    } catch (error) {
+      debugLog(`ERROR syncing queued item ${id}: ${error.toString()}`);
+      // retry next cycle
+    }
+  }
+  
+  localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
+  
+  if (state.offlineQueue.length === 0) {
+    debugLog('All data synced successfully');
+    showBanner('All data synced ✓', 'synced');
+  } else {
+    debugLog(`Still ${state.offlineQueue.length} items pending`);
+    showBanner(`${state.offlineQueue.length} item(s) still pending`, 'offline');
+  }
+  
+  renderUI();
+}
     // ── Family setup ────────────────────────────────────────────────────────
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete','true'); window.initApp(); };
 
