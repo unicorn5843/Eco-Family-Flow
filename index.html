@@ -37,7 +37,61 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('app-interface').style.display = 'none';
   }
 });
+<script>
+  // 1. THIS IS YOUR MAGIC LINK (Replace with your actual URL from Azure)
+  const AZURE_URL = "https://ecofamilyflow-cwb2gnerfudyhygr.ukwest-01.azurewebsites.net/api/BabyTrackerLog";
 
+  // 2. THE SAVE FUNCTION
+  // This sends data from your phone to Azure
+  window.saveData = async (type) => {
+    const user = window.auth.currentUser;
+    if (!user) return alert("Please sign in first!");
+
+    const data = {
+      userEmail: user.email,
+      type: type,
+      amount: document.getElementById('milkAmt')?.value || document.getElementById('formulaAmt')?.value,
+      timestamp: new Date().toISOString()
+    };
+
+    try {
+      const response = await fetch(AZURE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      
+      if (response.ok) {
+        alert(type + " saved to Azure!");
+        window.loadData(); // Refresh the list
+      }
+    } catch (err) {
+      console.error("Save failed:", err);
+    }
+  };
+
+  // 3. THE LOAD FUNCTION
+  // This pulls your history back from Azure to show on the screen
+  window.loadData = async () => {
+    const user = window.auth.currentUser;
+    if (!user) return;
+
+    try {
+      const response = await fetch(`${AZURE_URL}&email=${user.email}`);
+      const logs = await response.json();
+      console.log("Loaded logs:", logs);
+      // Here you would add code to update your charts and history lists
+    } catch (err) {
+      console.error("Load failed:", err);
+    }
+  };
+
+  // Initialize data when app starts
+  window.initApp = () => {
+    window.loadData();
+  };
+</script>
+    
 window.login = () => signInWithPopup(auth, provider);
 window.logout = () => signOut(auth).then(() => location.reload());
 </script>
