@@ -42,15 +42,28 @@
         window.logout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('auth-screen').style.display    = 'none';
-                document.getElementById('app-interface').style.display  = 'block';
+    if (user) {
+        console.log("User is signed in:", user.uid);
+        document.getElementById('auth-screen').classList.add('hidden');
+        document.getElementById('app-interface').classList.remove('hidden');
+
+        // The Fix: Check if initApp exists. If not, wait 100ms and try again.
+        const launchApp = () => {
+            if (typeof window.initApp === 'function') {
                 window.initApp();
             } else {
-                document.getElementById('auth-screen').style.display    = 'flex';
-                document.getElementById('app-interface').style.display  = 'none';
+                console.log("App logic not ready, retrying...");
+                setTimeout(launchApp, 100);
             }
-        });
+        };
+        launchApp();
+
+    } else {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        document.getElementById('app-interface').classList.add('hidden');
+    }
+});
+
     </script>
 
     <style>
