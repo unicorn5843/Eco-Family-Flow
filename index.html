@@ -781,11 +781,12 @@
     function buildChildSelector() {
         const container = document.getElementById('child-selector-container');
         if (!container) return;
-        const visible = state.trialStatus?.isPro ? state.children : state.children.slice(0, 1);
+        const trialActive = !!(state.trialStatus?.isPro || state.trialStatus?.daysLeft > 0);
+        const visible = trialActive ? state.children : state.children.slice(0, 1);
         container.innerHTML = visible.map(c =>
             `<button class="child-btn ${c.name === state.currentChild ? 'active' : ''}" data-child="${c.name}" style="border-color:${c.color};">👶 ${c.name.slice(-1)}</button>`
         ).join('');
-        if (!state.trialStatus?.isPro && state.currentChild !== 'Child A') state.currentChild = 'Child A';
+        if (!trialActive && state.currentChild !== 'Child A') state.currentChild = 'Child A';
         applyChildTheme(state.currentChild);
         container.querySelectorAll('.child-btn').forEach(b => b.addEventListener('click', e => window.setChild(e.currentTarget.dataset.child)));
         document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
@@ -794,7 +795,8 @@
 
     window.setChild = (name) => {
         const idx = state.children.findIndex(c => c.name === name);
-        if (!state.trialStatus?.isPro && idx > 0) { showPaywall(); return; }
+        const trialActive = !!(state.trialStatus?.isPro || state.trialStatus?.daysLeft > 0);
+        if (!trialActive && idx > 0) { showPaywall(); return; }
         state.currentChild = name;
         document.querySelectorAll('.child-btn').forEach(b => { b.classList.remove('active'); if (b.dataset.child === name) b.classList.add('active'); });
         applyChildTheme(name);
@@ -829,19 +831,32 @@
 
     // ── Trial status – fails CLOSED ───────────────────────────────────────────
     async function checkTrialStatus() {
+        // Record first login date locally so the countdown actually moves
+        if (!localStorage.getItem('ecoFirstLogin')) {
+            localStorage.setItem('ecoFirstLogin', new Date().toISOString());
+        }
+        const firstLogin   = new Date(localStorage.getItem('ecoFirstLogin'));
+        const daysElapsed  = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
+        const localDaysLeft = Math.max(0, 60 - daysElapsed);
+
         try {
             const r = await fetch(`${AZURE_URL}?type=trial&email=${encodeURIComponent(window.auth.currentUser.email)}`, { signal: AbortSignal.timeout(8000) });
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const data = await r.json();
-            state.trialStatus = { ...data, validated: true };
+            // Use whichever is smaller: backend says 60 days remaining but local
+            // date-tracking gives us the real elapsed time.
+            const effectiveDays = data.isPro ? data.daysLeft : Math.min(data.daysLeft ?? 60, localDaysLeft);
+            state.trialStatus = { ...data, daysLeft: effectiveDays, validated: true };
             localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
         } catch {
             const cached = JSON.parse(localStorage.getItem('ecoTrialCache') || 'null');
             if (cached && cached.validated) {
+                // Recalculate days from local tracking even from cache
+                cached.daysLeft = cached.isPro ? cached.daysLeft : localDaysLeft;
                 state.trialStatus = cached;
                 showBanner('Using cached subscription status – check your connection', 'offline');
             } else {
-                state.trialStatus = { daysLeft: 0, isPro: false, validated: false };
+                state.trialStatus = { daysLeft: localDaysLeft, isPro: false, validated: false };
                 showError('Could not verify subscription. Some features may be unavailable until you reconnect.');
             }
         }
