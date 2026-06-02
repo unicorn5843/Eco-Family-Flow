@@ -10,11 +10,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <!-- ═══════════════════════════════════════════════════
-         FIREBASE AUTH (module script — self-contained)
-         FIX: was broken with a <script> tag nested inside
-         this module, making window.login unreachable.
-    ════════════════════════════════════════════════════ -->
     <script type="module">
         import { initializeApp }                                         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider,
@@ -33,7 +28,6 @@
         const auth     = getAuth(app);
         const provider = new GoogleAuthProvider();
 
-        // Expose to global scope so non-module scripts can use them
         window.auth   = auth;
         window.login  = () => signInWithPopup(auth, provider).catch(err => {
             console.error('Login error:', err);
@@ -41,30 +35,22 @@
         });
         window.logout = () => signOut(auth).then(() => location.reload());
 
-       onAuthStateChanged(auth, (user) => {
-    const authScreen = document.getElementById('auth-screen');
-    const appInterface = document.getElementById('app-interface');
-
-    if (user) {
-        // Correct way to hide/show without needing extra CSS
-        authScreen.style.display = 'none';
-        appInterface.style.display = 'block'; 
-
-        const launchApp = () => {
-            if (typeof window.initApp === 'function') {
-                window.initApp();
+        onAuthStateChanged(auth, (user) => {
+            const authScreen   = document.getElementById('auth-screen');
+            const appInterface = document.getElementById('app-interface');
+            if (user) {
+                authScreen.style.display   = 'none';
+                appInterface.style.display = 'block';
+                const launchApp = () => {
+                    if (typeof window.initApp === 'function') window.initApp();
+                    else setTimeout(launchApp, 100);
+                };
+                launchApp();
             } else {
-                setTimeout(launchApp, 100);
+                authScreen.style.display   = 'flex';
+                appInterface.style.display = 'none';
             }
-        };
-        launchApp();
-    } else {
-        authScreen.style.display = 'flex'; // Use flex to keep your layout centered
-        appInterface.style.display = 'none';
-    }
-});
-
-
+        });
     </script>
 
     <style>
@@ -163,13 +149,108 @@
         .reminder-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
         .reminder-row label { font-size:14px; font-weight:600; flex-shrink:0; }
         .reminder-row select { flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
+
+        /* ── Appointment card ───────────────────────────────────── */
+        .appt-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 4px solid var(--accent);
+            border-radius: 14px;
+            padding: 14px;
+            margin-bottom: 10px;
+        }
+        .appt-card.past {
+            border-left-color: #aaa;
+            opacity: 0.85;
+        }
+        .appt-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+        .appt-datetime { font-size: 13px; color: var(--accent-dark); margin-bottom: 6px; font-weight: 600; }
+        .appt-detail-row { font-size: 13px; margin-bottom: 3px; opacity: 0.85; }
+        .appt-detail-row span { font-weight: 600; }
+        .appt-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .appt-edit-btn {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .appt-cal-btn {
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--accent-dark);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .appt-del-btn {
+            background: none;
+            border: 1px solid var(--delete);
+            color: var(--delete);
+            padding: 7px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            flex-shrink: 0;
+            margin-left: auto;
+        }
+        /* Editing state banner */
+        #appt-editing-banner {
+            display: none;
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        #appt-cancel-edit-btn {
+            display: none;
+            width: 100%;
+            margin-top: 8px;
+            background: var(--card);
+            color: var(--delete);
+            border: 1px solid var(--delete);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        /* Archive accordion */
+        .archive-toggle {
+            width: 100%;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 14px 16px;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .archive-toggle .chevron { transition: transform 0.3s; display: inline-block; }
+        .archive-toggle.open .chevron { transform: rotate(180deg); }
+        #appt-archive-list {
+            display: none;
+            margin-top: 10px;
+        }
+        #appt-archive-list.open { display: block; }
     </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════
-     AUTH SCREEN
-════════════════════════════════════════════════════ -->
 <div id="auth-screen">
     <div class="header-title" style="font-size:28px;margin-bottom:20px;">Eco Family Flow</div>
     <button onclick="window.login()" class="save-btn" style="width:auto;padding:15px 40px;">Sign in with Google</button>
@@ -182,9 +263,7 @@
         <button class="save-btn" onclick="window.finishWelcome()">🌿 Get Started</button>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
-         WELCOME PAGE
-    ════════════════════════════════════════════════════ -->
+    <!-- WELCOME PAGE -->
     <div id="page-welcome" class="page active">
         <div style="padding:20px 0;">
             <div class="card" style="text-align:center;background:linear-gradient(135deg,rgba(143,188,160,0.15),rgba(143,188,160,0.05));border:none;margin-bottom:20px;">
@@ -222,9 +301,7 @@
         </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
-         FAMILY SETUP PAGE
-    ════════════════════════════════════════════════════ -->
+    <!-- FAMILY SETUP PAGE -->
     <div id="page-family-setup" class="page">
         <div class="card" style="text-align:center;"><h2>👨‍👩‍👧 Set Up Your Family</h2><p>Link your account with a partner to share and sync data in real time.</p></div>
         <div class="card"><h3>Create a New Family</h3><div class="input-group"><input type="text" id="family-name" placeholder="Family name (optional)" value="My Family"></div><button class="save-btn" onclick="window.createFamily()">Create Family</button></div>
@@ -232,9 +309,7 @@
         <button class="secondary-btn" onclick="window.skipFamilySetup()">Skip for now – I'll set it up later</button>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════
-         MAIN APP
-    ════════════════════════════════════════════════════ -->
+    <!-- MAIN APP -->
     <div id="main-app" style="display:none;">
         <div class="app-header">
             <div class="header-left">
@@ -286,7 +361,7 @@
                     <tr><td>📈</td><td><strong>Trending</strong> – 7-day patterns, monthly charts, forecasts, and PDF report export.</td></tr>
                     <tr><td>🛒</td><td><strong>Deals</strong> – Compare prices per nappy/wipe/formula across brands.</td></tr>
                     <tr><td>❄️</td><td><strong>Stash</strong> (Pro) – Manually track frozen breastmilk inventory.</td></tr>
-                    <tr><td>📅</td><td><strong>Appts</strong> (Pro) – Schedule and manage upcoming medical appointments.</td></tr>
+                    <tr><td>📅</td><td><strong>Appts</strong> (Pro) – Schedule, edit and manage appointments. Past appointments are archived for reference.</td></tr>
                     <tr><td>💰</td><td><strong>Savings</strong> – Quick links to money‑saving offers.</td></tr>
                     <tr><td>📋</td><td><strong>Private Notes</strong> – Stored only on this device, never synced.</td></tr>
                     <tr><td>📍</td><td><strong>Emergency</strong> – One‑tap search for nearby pharmacies, A&amp;E, or GPs.</td></tr>
@@ -463,14 +538,26 @@
             <!-- APPOINTMENTS (Pro) -->
             <div id="page-appointments" class="page">
                 <div class="card">
-                    <h3>📅 New Appointment</h3>
+                    <h3 id="appt-form-heading">📅 New Appointment</h3>
+                    <div id="appt-editing-banner">✏️ Editing appointment — make your changes and save</div>
                     <div class="input-group"><input type="datetime-local" id="apptDateTime"></div>
                     <div class="input-group"><input type="text" id="apptTitle" placeholder="Title"></div>
                     <div class="input-group"><input type="text" id="apptLocation" placeholder="Location"></div>
                     <div class="input-group"><textarea id="apptNotes" placeholder="Notes"></textarea></div>
                     <button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()">Save Appointment</button>
+                    <button id="appt-cancel-edit-btn" onclick="window.cancelEditAppointment()">✕ Cancel Edit</button>
                 </div>
-                <div class="card"><div class="stat-lbl">Upcoming</div><div id="appointments-list" class="history-list"></div></div>
+                <div class="card">
+                    <div class="stat-lbl" style="margin-bottom:12px;">📌 Upcoming</div>
+                    <div id="appointments-list"></div>
+                </div>
+                <div class="card">
+                    <button class="archive-toggle" id="appt-archive-toggle" onclick="window.toggleApptArchive()">
+                        <span>🗂️ Past Appointments</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div id="appt-archive-list"></div>
+                </div>
             </div>
 
             <!-- SAVINGS -->
@@ -525,17 +612,10 @@
     <div class="footer-action" onclick="window.switchTab('account')"><span>👤</span><span>Account</span></div>
 </footer>
 
-<!-- ═══════════════════════════════════════════════════
-     MAIN APP LOGIC
-     FIX: Single clean IIFE. All backend calls use AZURE_URL.
-     Removed: duplicate processOfflineQueue, broken inner
-     script block, conflicting window.initApp, GOOGLE_URL.
-════════════════════════════════════════════════════ -->
 <script>
 (function () {
     'use strict';
 
-    // ── Backend URL (Azure Function) ────────────────────────────────────────
     const AZURE_URL    = 'https://ecofamilyflow-cwb2gnerfudyhygr.ukwest-01.azurewebsites.net/api/BabyTrackerLog';
     const POST_HEADERS = { 'Content-Type': 'application/json' };
     const DEBUG_MODE   = true;
@@ -544,12 +624,10 @@
         if (DEBUG_MODE) console.log('[ECO]', msg, data || '');
     }
 
-    // ── Android bridge detection ─────────────────────────────────────────────
     const Android   = window.AndroidBridge || null;
     const isAndroid = !!Android;
     const isLowMem  = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
     function escapeHTML(s) {
         if (!s) return '';
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -580,7 +658,9 @@
             { name:'Child D', color:'#9C27B0' },
             { name:'Child E', color:'#ff9800' }
         ],
-        stashBalance: 0
+        stashBalance: 0,
+        // Appointment editing state
+        editingApptTimestamp: null
     };
 
     // ── Navigation ────────────────────────────────────────────────────────────
@@ -662,7 +742,7 @@
         if (type === 'synced') setTimeout(() => { b.style.display = 'none'; }, 3000);
     }
 
-    // ── Offline queue (single definition) ────────────────────────────────────
+    // ── Offline queue ─────────────────────────────────────────────────────────
     async function processOfflineQueue() {
         if (!navigator.onLine || state.offlineQueue.length === 0) return;
         debugLog(`Processing ${state.offlineQueue.length} queued items`);
@@ -693,7 +773,7 @@
     window.onAppResume = processOfflineQueue;
     setInterval(processOfflineQueue, 30000);
 
-    // ── Save with offline fallback (single definition) ────────────────────────
+    // ── Save with offline fallback ────────────────────────────────────────────
     async function saveWithOfflineSupport(payload, btnId, defaultText) {
         const btn = btnId ? document.getElementById(btnId) : null;
         if (btn) btn.innerText = 'Saving…';
@@ -829,29 +909,25 @@
         if (n !== null) { fridgeNotes[state.currentChild] = n; localStorage.setItem('ecoFridgeNotes', JSON.stringify(fridgeNotes)); renderFridgeNote(); }
     };
 
-    // ── Trial status – fails CLOSED ───────────────────────────────────────────
+    // ── Trial status ──────────────────────────────────────────────────────────
     async function checkTrialStatus() {
-        // Record first login date locally so the countdown actually moves
         if (!localStorage.getItem('ecoFirstLogin')) {
             localStorage.setItem('ecoFirstLogin', new Date().toISOString());
         }
-        const firstLogin   = new Date(localStorage.getItem('ecoFirstLogin'));
-        const daysElapsed  = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
+        const firstLogin    = new Date(localStorage.getItem('ecoFirstLogin'));
+        const daysElapsed   = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
         const localDaysLeft = Math.max(0, 60 - daysElapsed);
 
         try {
             const r = await fetch(`${AZURE_URL}?type=trial&email=${encodeURIComponent(window.auth.currentUser.email)}`, { signal: AbortSignal.timeout(8000) });
             if (!r.ok) throw new Error('HTTP ' + r.status);
             const data = await r.json();
-            // Use whichever is smaller: backend says 60 days remaining but local
-            // date-tracking gives us the real elapsed time.
             const effectiveDays = data.isPro ? data.daysLeft : Math.min(data.daysLeft ?? 60, localDaysLeft);
             state.trialStatus = { ...data, daysLeft: effectiveDays, validated: true };
             localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
         } catch {
             const cached = JSON.parse(localStorage.getItem('ecoTrialCache') || 'null');
             if (cached && cached.validated) {
-                // Recalculate days from local tracking even from cache
                 cached.daysLeft = cached.isPro ? cached.daysLeft : localDaysLeft;
                 state.trialStatus = cached;
                 showBanner('Using cached subscription status – check your connection', 'offline');
@@ -1023,19 +1099,100 @@
         window.resetTimeInputs();
     };
 
-    window.saveAppointment = () => {
+    // ── Appointment save / edit / cancel ──────────────────────────────────────
+    window.saveAppointment = async () => {
         const dt    = document.getElementById('apptDateTime').value;
         if (!dt) return alert('Select date/time');
         const title = document.getElementById('apptTitle').value.trim();
         if (!title) return alert('Enter title');
         const loc   = document.getElementById('apptLocation').value.trim();
         const notes = document.getElementById('apptNotes').value.trim();
+
+        // If editing, delete the old entry first
+        if (state.editingApptTimestamp) {
+            try {
+                await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'delete', timestamp:state.editingApptTimestamp, user:window.auth.currentUser.email }) });
+                state.logs = state.logs.filter(l => l.timestamp !== state.editingApptTimestamp);
+            } catch { showError('Could not delete old appointment. Please try again.'); return; }
+            state.editingApptTimestamp = null;
+        }
+
         document.getElementById('apptTitle').value    = '';
         document.getElementById('apptLocation').value = '';
         document.getElementById('apptNotes').value    = '';
+        resetApptFormUI();
+
         saveWithOfflineSupport({ action:'save', timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-appointment', 'Save Appointment');
         window.resetTimeInputs();
     };
+
+    window.editAppointment = (ts) => {
+        const log = state.logs.find(l => l.timestamp === ts && l.category === 'Appointment');
+        if (!log) return;
+        const d = parseDetail(log.detail);
+
+        // Pre-fill the form
+        const dtLocal = new Date(new Date(ts).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16);
+        document.getElementById('apptDateTime').value  = dtLocal;
+        document.getElementById('apptTitle').value    = d.title || '';
+        document.getElementById('apptLocation').value = d.loc   || '';
+        document.getElementById('apptNotes').value    = d.notes || '';
+
+        // Show editing UI
+        state.editingApptTimestamp = ts;
+        document.getElementById('appt-editing-banner').style.display    = 'block';
+        document.getElementById('appt-cancel-edit-btn').style.display   = 'block';
+        document.getElementById('appt-form-heading').textContent        = '✏️ Edit Appointment';
+        document.getElementById('btn-save-appointment').textContent     = '💾 Update Appointment';
+
+        // Scroll the form into view
+        document.getElementById('page-appointments').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+
+    window.cancelEditAppointment = () => {
+        state.editingApptTimestamp = null;
+        document.getElementById('apptTitle').value    = '';
+        document.getElementById('apptLocation').value = '';
+        document.getElementById('apptNotes').value    = '';
+        resetApptFormUI();
+        window.resetTimeInputs();
+    };
+
+    function resetApptFormUI() {
+        document.getElementById('appt-editing-banner').style.display  = 'none';
+        document.getElementById('appt-cancel-edit-btn').style.display = 'none';
+        document.getElementById('appt-form-heading').textContent       = '📅 New Appointment';
+        document.getElementById('btn-save-appointment').textContent    = 'Save Appointment';
+    }
+
+    // ── Archive toggle ────────────────────────────────────────────────────────
+    window.toggleApptArchive = () => {
+        const list   = document.getElementById('appt-archive-list');
+        const toggle = document.getElementById('appt-archive-toggle');
+        const isOpen = list.classList.contains('open');
+        list.classList.toggle('open', !isOpen);
+        toggle.classList.toggle('open', !isOpen);
+    };
+
+    // ── Build an appointment card HTML ────────────────────────────────────────
+    function buildApptCard(log, isPast) {
+        const d    = parseDetail(log.detail);
+        const ts   = log.timestamp;
+        const when = new Date(ts).toLocaleString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        let html   = `<div class="appt-card${isPast ? ' past' : ''}">`;
+        html += `<div class="appt-title">${escapeHTML(d.title || '—')}</div>`;
+        html += `<div class="appt-datetime">📆 ${when}</div>`;
+        if (d.loc)   html += `<div class="appt-detail-row">📍 <span>Location:</span> ${escapeHTML(d.loc)}</div>`;
+        if (d.notes) html += `<div class="appt-detail-row" style="white-space:pre-wrap;">📝 <span>Notes:</span> ${escapeHTML(d.notes)}</div>`;
+        html += `<div class="appt-actions">`;
+        if (!isPast) {
+            html += `<button class="appt-edit-btn" onclick="window.editAppointment('${ts}')">✏️ Edit</button>`;
+            html += `<button class="appt-cal-btn" onclick="window.addToCalendar('${escapeHTML(d.title||'')}','${ts}','${escapeHTML(d.loc||'')}','${escapeHTML(d.notes||'')}')">📅 Add to Calendar</button>`;
+        }
+        html += `<button class="appt-del-btn" onclick="window.deleteEntry('${ts}')">🗑️</button>`;
+        html += `</div></div>`;
+        return html;
+    }
 
     window.savePrivateNote = () => {
         const title   = document.getElementById('note-title').value.trim();
@@ -1275,9 +1432,31 @@
             const hh = ge('history-hospital');
             if (hh) hh.innerHTML = f14(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l=>{const d=parseDetail(l.detail);return`<div class="hospital-note-item"><div class="hospital-name">🏥 ${escapeHTML(d.hospital||d.raw||'—')}</div><div class="hospital-note-text">${escapeHTML(d.notes||'').replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`;}).join('') || '<div>No hospital notes yet</div>';
 
-            // Appointments
+            // ── Appointments – split into upcoming and past ──────────────────
+            const now       = new Date();
+            const allAppts  = child.filter(l => l.category === 'Appointment');
+            const upcoming  = allAppts.filter(l => new Date(l.timestamp) >= now).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+            const past      = allAppts.filter(l => new Date(l.timestamp) <  now).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
             const ae = ge('appointments-list');
-            if (ae) ae.innerHTML = f14(child.filter(l=>l.category==='Appointment')).sort((a,b)=>new Date(a.timestamp)-new Date(b.timestamp)).map(l=>{const d=parseDetail(l.detail);return`<div class="history-item"><div><strong>${escapeHTML(d.title||'—')}</strong><div>${new Date(l.timestamp).toLocaleString()}</div></div><button class="calendar-btn" onclick="window.addToCalendar('${escapeHTML(d.title||'')}','${l.timestamp}','${escapeHTML(d.loc||'')}','${escapeHTML(d.notes||'')}')">📅 Add</button><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;}).join('') || '<div>No appointments</div>';
+            if (ae) {
+                ae.innerHTML = upcoming.length
+                    ? upcoming.map(l => buildApptCard(l, false)).join('')
+                    : '<div style="padding:10px;opacity:0.6;">No upcoming appointments</div>';
+            }
+
+            const archiveList = ge('appt-archive-list');
+            const archiveToggle = ge('appt-archive-toggle');
+            if (archiveList) {
+                // Update the toggle button label with count
+                if (archiveToggle) {
+                    archiveToggle.querySelector('span:first-child').textContent =
+                        `🗂️ Past Appointments (${past.length})`;
+                }
+                archiveList.innerHTML = past.length
+                    ? past.map(l => buildApptCard(l, true)).join('')
+                    : '<div style="padding:10px;opacity:0.6;">No past appointments yet</div>';
+            }
 
             // Trending page
             if (state.tab === 'trending') {
