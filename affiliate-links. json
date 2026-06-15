@@ -1,30 +1,222 @@
-{
-  "lastUpdated": "2026-04-09",
-  "categories": [
-    {
-      "name": "Nappies",
-      "icon": "🧻",
-      "items": [
-        { "name": "Pampers Baby-Dry (Size 1)", "url": "https://www.awin1.com/cread.php?..." },
-        { "name": "Kit & Kin Eco Nappies", "url": "https://..." },
-        { "name": "Amazon Brand Mama Bear", "url": "https://amzn.to/..." }
-      ]
-    },
-    {
-      "name": "Formula",
-      "icon": "🍼",
-      "items": [
-        { "name": "Aptamil First Infant Milk", "url": "https://..." },
-        { "name": "HiPP Organic Combiotic", "url": "https://..." }
-      ]
-    },
-    {
-      "name": "Medicines",
-      "icon": "💊",
-      "items": [
-        { "name": "Calpol Infant Suspension", "url": "https://..." },
-        { "name": "Nurofen for Children", "url": "https://..." }
-      ]
-    }
-  ]
-}
+[
+  {
+    "id": 1,
+    "category": "Nappies",
+    "brand": "Pampers",
+    "name": "Swaddlers Size 2",
+    "size": "Small",
+    "quantity": 37,
+    "unit": "nappy",
+    "price": 9.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Pampers+Swaddlers+Size+2"
+  },
+  {
+    "id": 2,
+    "category": "Nappies",
+    "brand": "Pampers",
+    "name": "Swaddlers Size 2",
+    "size": "Large",
+    "quantity": 82,
+    "unit": "nappy",
+    "price": 18.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Pampers+Swaddlers+Size+2+Large"
+  },
+  {
+    "id": 3,
+    "category": "Nappies",
+    "brand": "Huggies",
+    "name": "Little Snugglers Size 2",
+    "size": "Medium",
+    "quantity": 42,
+    "unit": "nappy",
+    "price": 11.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Huggies+Little+Snugglers+Size+2"
+  },
+  {
+    "id": 4,
+    "category": "Nappies",
+    "brand": "Morrisons",
+    "name": "Baby Nappies Size 2",
+    "size": "Large",
+    "quantity": 108,
+    "unit": "nappy",
+    "price": 14.00,
+    "affiliatelink": "https://www.morrisons.com/"
+  },
+  {
+    "id": 5,
+    "category": "Nappies",
+    "brand": "Tesco",
+    "name": "Fine Living Size 2",
+    "size": "Large",
+    "quantity": 104,
+    "unit": "nappy",
+    "price": 13.50,
+    "affiliatelink": "https://www.tesco.com/"
+  },
+  {
+    "id": 6,
+    "category": "Wipes",
+    "brand": "Johnson's",
+    "name": "Extra Gentle Wipes",
+    "size": "Bundle",
+    "quantity": 224,
+    "unit": "wipe",
+    "price": 7.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Johnsons+Extra+Gentle+Wipes"
+  },
+  {
+    "id": 7,
+    "category": "Wipes",
+    "brand": "WaterWipes",
+    "name": "99.9% Water",
+    "size": "Bundle",
+    "quantity": 180,
+    "unit": "wipe",
+    "price": 13.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=WaterWipes"
+  },
+  {
+    "id": 8,
+    "category": "Wipes",
+    "brand": "Pampers",
+    "name": "Fresh Clean Wipes",
+    "size": "Pack",
+    "quantity": 144,
+    "unit": "wipe",
+    "price": 6.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Pampers+Fresh+Clean+Wipes"
+  },
+  {
+    "id": 9,
+    "category": "Formula",
+    "brand": "Cow & Gate",
+    "name": "1 Infant Formula",
+    "size": "800g",
+    "quantity": 800,
+    "unit": "g",
+    "price": 6.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Cow+Gate+Infant+Formula"
+  },
+  {
+    "id": 10,
+    "category": "Formula",
+    "brand": "SMA",
+    "name": "Pro First Infant",
+    "size": "800g",
+    "quantity": 800,
+    "unit": "g",
+    "price": 6.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=SMA+Pro+First+Infant"
+  },
+  {
+    "id": 11,
+    "category": "Formula",
+    "brand": "Aptamil",
+    "name": "1 Infant Formula",
+    "size": "800g",
+    "quantity": 800,
+    "unit": "g",
+    "price": 7.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Aptamil+Infant+Formula"
+  },
+  {
+    "id": 12,
+    "category": "Formula",
+    "brand": "Tesco",
+    "name": "Infant Formula",
+    "size": "800g",
+    "quantity": 800,
+    "unit": "g",
+    "price": 5.50,
+    "affiliatelink": "https://www.tesco.com/"
+  },
+  {
+    "id": 13,
+    "category": "Dummies",
+    "brand": "MAM",
+    "name": "Original Soother",
+    "size": "0-6 months",
+    "quantity": 1,
+    "unit": "unit",
+    "price": 4.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=MAM+Original+Soother"
+  },
+  {
+    "id": 14,
+    "category": "Dummies",
+    "brand": "Tommee Tippee",
+    "name": "Ultra-Light Soother",
+    "size": "0-6 months",
+    "quantity": 1,
+    "unit": "unit",
+    "price": 3.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Tommee+Tippee+Soother"
+  },
+  {
+    "id": 15,
+    "category": "Dummies",
+    "brand": "Philips Avent",
+    "name": "Pacifier",
+    "size": "0-6 months",
+    "quantity": 1,
+    "unit": "unit",
+    "price": 4.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Philips+Avent+Pacifier"
+  },
+  {
+    "id": 16,
+    "category": "Bottles",
+    "brand": "Tommee Tippee",
+    "name": "Closer to Nature",
+    "size": "260ml",
+    "quantity": 1,
+    "unit": "bottle",
+    "price": 4.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Tommee+Tippee+Closer+to+Nature+Bottle"
+  },
+  {
+    "id": 17,
+    "category": "Bottles",
+    "brand": "Philips Avent",
+    "name": "Natural Bottle",
+    "size": "260ml",
+    "quantity": 1,
+    "unit": "bottle",
+    "price": 5.50,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Philips+Avent+Natural+Bottle"
+  },
+  {
+    "id": 18,
+    "category": "Bottles",
+    "brand": "MAM",
+    "name": "Anti-Colic Bottle",
+    "size": "260ml",
+    "quantity": 1,
+    "unit": "bottle",
+    "price": 6.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=MAM+Anti-Colic+Bottle"
+  },
+  {
+    "id": 19,
+    "category": "Bottles",
+    "brand": "Dr. Brown's",
+    "name": "Options Wide Neck",
+    "size": "270ml",
+    "quantity": 1,
+    "unit": "bottle",
+    "price": 7.99,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Dr+Browns+Options+Wide+Neck"
+  },
+  {
+    "id": 20,
+    "category": "Nappies",
+    "brand": "Pampers",
+    "name": "Pure Protection Size 2",
+    "size": "Medium",
+    "quantity": 88,
+    "unit": "nappy",
+    "price": 20.00,
+    "affiliatelink": "https://www.amazon.co.uk/s?k=Pampers+Pure+Protection+Size+2"
+  }
+]
