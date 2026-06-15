@@ -14,6 +14,8 @@
         import { initializeApp }                                         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider,
                  onAuthStateChanged, signOut }                           from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, setDoc } 
+                                                                          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey:            "AIzaSyDft1ml5thBUv0rgfoUnlLgPA1AAA3Ebbg",
@@ -26,9 +28,11 @@
 
         const app      = initializeApp(firebaseConfig);
         const auth     = getAuth(app);
+        const db       = getFirestore(app);
         const provider = new GoogleAuthProvider();
 
         window.auth   = auth;
+        window.db     = db;
         window.login  = () => signInWithPopup(auth, provider).catch(err => {
             console.error('Login error:', err);
             alert('Sign-in failed: ' + err.message);
@@ -296,7 +300,7 @@
             </div>
             <div class="card" style="background:var(--bg);text-align:center;font-size:14px;padding:12px;">
                 <p style="margin:0;font-style:italic;">"I created this app for me, now I'll share it with you."</p>
-                <p style="margin:5px 0 0;opacity:0.7;">— Creator</p>
+                <p style="margin:5px 0 0;opacity:0.7;">— Rav</p>
             </div>
         </div>
     </div>
@@ -584,7 +588,7 @@
                     <div class="input-group"><input type="text" id="join-invite-code" placeholder="6‑digit code"></div>
                     <button class="save-btn" onclick="window.joinFamilyFromAccount()">Join Family</button>
                 </div>
-                <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely. We do not share or sell your information. You can delete your account at any time.</p></div>
+                <div class="card"><h3>🔒 Privacy Policy</h3><p>Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p></div>
                 <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.deleteAccount()">🗑️ Delete Account &amp; Data</button></div>
                 <div class="card"><button class="save-btn" style="background:var(--delete);" onclick="window.logout()">🚪 Sign Out</button></div>
             </div>
@@ -616,22 +620,19 @@
 (function () {
     'use strict';
 
-    const AZURE_URL    = 'https://ecofamilyflow-cwb2gnerfudyhygr.ukwest-01.azurewebsites.net/api/BabyTrackerLog';
-    const POST_HEADERS = { 'Content-Type': 'application/json' };
-    const DEBUG_MODE   = true;
+    const DEBUG_MODE = true;
 
     function debugLog(msg, data) {
         if (DEBUG_MODE) console.log('[ECO]', msg, data || '');
     }
 
-    const Android   = window.AndroidBridge || null;
-    const isAndroid = !!Android;
-    const isLowMem  = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
+    const isLowMem = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
 
     function escapeHTML(s) {
         if (!s) return '';
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     }
+
     function parseDetail(d) {
         try { return JSON.parse(d); } catch {
             const p = d.split('|');
@@ -646,9 +647,7 @@
     // ── App state ─────────────────────────────────────────────────────────────
     let state = {
         units: 'UK', tab: 'milk', currentChild: 'Child A',
-        milkMode: 'Pump', milkSide: 'Left', nappyType: 'Wee',
         logs: [],
-        offlineQueue: JSON.parse(localStorage.getItem('offlineQueue') || '[]'),
         allProducts: [],
         trialStatus: { daysLeft: 0, isPro: false, validated: false },
         children: [
@@ -659,7 +658,6 @@
             { name:'Child E', color:'#ff9800' }
         ],
         stashBalance: 0,
-        // Appointment editing state
         editingApptTimestamp: null
     };
 
@@ -714,9 +712,6 @@
         window.resetTimeInputs();
         updateProUI();
 
-        const ni = document.getElementById('med-notif-info');
-        if (ni) ni.style.display = isAndroid ? 'none' : 'block';
-
         await window.refreshData();
         if (state.tab === 'deals')   loadProducts();
         if (state.tab === 'stash')   fetchStashBalance();
@@ -742,119 +737,71 @@
         if (type === 'synced') setTimeout(() => { b.style.display = 'none'; }, 3000);
     }
 
-    // ── Offline queue ─────────────────────────────────────────────────────────
-    async function processOfflineQueue() {
-        if (!navigator.onLine || state.offlineQueue.length === 0) return;
-        debugLog(`Processing ${state.offlineQueue.length} queued items`);
-        showBanner(`Syncing ${state.offlineQueue.length} item(s)…`, 'offline');
-        const queue = [...state.offlineQueue];
-        for (const item of queue) {
-            if (!item.id) item.id = crypto.randomUUID();
-            const { id, ...payload } = item;
-            try {
-                const response = await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify(payload) });
-                const text = await response.text();
-                let j;
-                try { j = JSON.parse(text); } catch { debugLog('Queue: bad JSON', text); continue; }
-                if (j.success) {
-                    state.offlineQueue = state.offlineQueue.filter(i => i.id !== id);
-                    state.logs.push(payload);
-                }
-            } catch (err) { debugLog('Queue sync error', err.toString()); }
-        }
-        localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-        const pending = state.offlineQueue.length;
-        showBanner(pending === 0 ? 'All data synced ✓' : `${pending} item(s) still pending`, pending === 0 ? 'synced' : 'offline');
-        if (pending === 0) renderUI();
-    }
-
-    window.addEventListener('online',   processOfflineQueue);
-    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') processOfflineQueue(); });
-    window.onAppResume = processOfflineQueue;
-    setInterval(processOfflineQueue, 30000);
-
-    // ── Save with offline fallback ────────────────────────────────────────────
-    async function saveWithOfflineSupport(payload, btnId, defaultText) {
-        const btn = btnId ? document.getElementById(btnId) : null;
-        if (btn) btn.innerText = 'Saving…';
-        let saved = false;
-
-        if (navigator.onLine) {
-            try {
-                debugLog('Saving:', payload);
-                const controller = new AbortController();
-                const tid = setTimeout(() => controller.abort(), 10000);
-                const response = await fetch(AZURE_URL, {
-                    method:'POST', headers:POST_HEADERS,
-                    body:JSON.stringify(payload), signal:controller.signal
-                });
-                clearTimeout(tid);
-                const text = await response.text();
-                debugLog('Server response:', text);
-                let j;
-                try { j = JSON.parse(text); } catch {
-                    showError('Server response format error.');
-                    throw new Error('Bad JSON');
-                }
-                if (j.success) {
-                    state.logs.push(payload);
-                    saved = true;
-                    if (btn) btn.innerText = 'Saved! ✓';
-                    showBanner('Saved to cloud ✓', 'synced');
-                    setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
-                } else {
-                    showError('Save failed: ' + (j.message || 'Unknown error'));
-                }
-            } catch (err) {
-                debugLog('Network error', err.toString());
-            }
-        }
-
-        if (!saved) {
-            state.offlineQueue.push({ id: crypto.randomUUID(), ...payload });
-            localStorage.setItem('offlineQueue', JSON.stringify(state.offlineQueue));
-            if (btn) btn.innerText = 'Queued (offline)';
-            showBanner('Saved offline – will sync when online', 'offline');
-            setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 2000);
-        }
-    }
-
     // ── Family setup ──────────────────────────────────────────────────────────
     window.skipFamilySetup = () => { localStorage.setItem('familySetupComplete','true'); window.initApp(); };
 
     window.createFamily = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
         try {
-            const r = await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'createFamily', user:window.auth.currentUser.email, familyName }) });
-            const j = await r.json();
-            if (j.familyId || j.success) {
-                localStorage.setItem('familySetupComplete','true');
-                alert(`Family created!\n\nYour invite code: ${j.inviteCode}\n\nShare this with your partner so they can join.`);
-                window.initApp();
-            } else alert('Could not create family. ' + (j.message || ''));
-        } catch { showError('Network error during family creation.'); }
+            const { collection: fsColl, addDoc: fsAddDoc, setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const inviteCode = Math.random().toString(36).substring(2,8).toUpperCase();
+            await fsSetDoc(fsDoc(window.db, 'families', inviteCode), {
+                familyName,
+                createdBy: window.auth.currentUser.email,
+                members: [window.auth.currentUser.email],
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('familySetupComplete','true');
+            alert(`Family created!\n\nYour invite code: ${inviteCode}\n\nShare this with your partner so they can join.`);
+            window.initApp();
+        } catch(e) {
+            console.error(e);
+            showError('Could not create family. ' + e.message);
+        }
     };
 
     window.joinFamily = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
         const code = document.getElementById('invite-code').value.trim().toUpperCase();
         if (!code) return alert('Please enter the 6‑digit invite code.');
         try {
-            const r = await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'joinFamily', user:window.auth.currentUser.email, inviteCode:code }) });
-            const j = await r.json();
-            if (j.success) { localStorage.setItem('familySetupComplete','true'); alert('Successfully joined the family!'); window.initApp(); }
-            else alert('Invalid invite code. Please check and try again.');
-        } catch { showError('Network error during join.'); }
+            const { doc: fsDoc, getDoc, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const familyRef = fsDoc(window.db, 'families', code);
+            const familySnap = await getDoc(familyRef);
+            if (!familySnap.exists()) return alert('Invalid invite code. Please check and try again.');
+            await fsUpdateDoc(familyRef, {
+                members: arrayUnion(window.auth.currentUser.email)
+            });
+            localStorage.setItem('familySetupComplete','true');
+            alert('Successfully joined the family!');
+            window.initApp();
+        } catch(e) {
+            console.error(e);
+            showError('Could not join family. ' + e.message);
+        }
     };
 
     window.joinFamilyFromAccount = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
         const code = document.getElementById('join-invite-code').value.trim().toUpperCase();
         if (!code) return alert('Enter the invite code.');
         try {
-            const r = await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'joinFamily', user:window.auth.currentUser.email, inviteCode:code }) });
-            const j = await r.json();
-            if (j.success) { alert('Joined!'); loadAccountDetails(); }
-            else alert('Invalid code.');
-        } catch { showError('Network error'); }
+            const { doc: fsDoc, getDoc, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const familyRef = fsDoc(window.db, 'families', code);
+            const familySnap = await getDoc(familyRef);
+            if (!familySnap.exists()) return alert('Invalid code.');
+            if (!familySnap.data().members.includes(window.auth.currentUser.email)) {
+                await fsUpdateDoc(familyRef, {
+                    members: arrayUnion(window.auth.currentUser.email)
+                });
+            }
+            alert('Joined!');
+            loadAccountDetails();
+        } catch(e) {
+            console.error(e);
+            showError('Network error');
+        }
     };
 
     // ── Child selector ────────────────────────────────────────────────────────
@@ -891,6 +838,7 @@
             document.documentElement.style.setProperty('--accent-dark', shiftColor(c.color, -20));
         }
     }
+
     function shiftColor(hex, d) {
         let r = Math.min(255, Math.max(0, parseInt(hex.slice(1,3),16)+d));
         let g = Math.min(255, Math.max(0, parseInt(hex.slice(3,5),16)+d));
@@ -904,6 +852,7 @@
         const note = escapeHTML(fridgeNotes[state.currentChild] || '');
         el.innerHTML = `<div style="display:flex;justify-content:space-between;"><strong>🧊 Kitchen Fridge Note</strong><span style="cursor:pointer;" onclick="window.editFridgeNote()">✏️</span></div><div style="margin-top:5px;">${note || 'No note yet. Tap ✏️ to add.'}</div>`;
     }
+
     window.editFridgeNote = () => {
         const n = prompt('Enter kitchen fridge note for caregivers:', fridgeNotes[state.currentChild] || '');
         if (n !== null) { fridgeNotes[state.currentChild] = n; localStorage.setItem('ecoFridgeNotes', JSON.stringify(fridgeNotes)); renderFridgeNote(); }
@@ -918,24 +867,9 @@
         const daysElapsed   = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
         const localDaysLeft = Math.max(0, 60 - daysElapsed);
 
-        try {
-            const r = await fetch(`${AZURE_URL}?type=trial&email=${encodeURIComponent(window.auth.currentUser.email)}`, { signal: AbortSignal.timeout(8000) });
-            if (!r.ok) throw new Error('HTTP ' + r.status);
-            const data = await r.json();
-            const effectiveDays = data.isPro ? data.daysLeft : Math.min(data.daysLeft ?? 60, localDaysLeft);
-            state.trialStatus = { ...data, daysLeft: effectiveDays, validated: true };
-            localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
-        } catch {
-            const cached = JSON.parse(localStorage.getItem('ecoTrialCache') || 'null');
-            if (cached && cached.validated) {
-                cached.daysLeft = cached.isPro ? cached.daysLeft : localDaysLeft;
-                state.trialStatus = cached;
-                showBanner('Using cached subscription status – check your connection', 'offline');
-            } else {
-                state.trialStatus = { daysLeft: localDaysLeft, isPro: false, validated: false };
-                showError('Could not verify subscription. Some features may be unavailable until you reconnect.');
-            }
-        }
+        state.trialStatus = { daysLeft: localDaysLeft, isPro: false, validated: true };
+        localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
+
         if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0 && state.trialStatus.validated) showPaywall();
         updateTrialBanner();
         updateProUI();
@@ -961,22 +895,7 @@
     function showPaywall() { document.getElementById('paywall-overlay').style.display = 'flex'; }
 
     window.initiatePurchase = () => {
-        if (isAndroid && Android.initiatePurchase) Android.initiatePurchase();
-        else alert('To upgrade please visit the app store or contact support.');
-    };
-
-    window.onPurchaseValidated = async (token) => {
-        try {
-            const r = await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'validatePurchase', user:window.auth.currentUser.email, token }) });
-            const j = await r.json();
-            if (j.success && j.isPro) {
-                state.trialStatus = { ...state.trialStatus, isPro:true, validated:true };
-                localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
-                document.getElementById('paywall-overlay').style.display = 'none';
-                updateProUI(); updateTrialBanner(); renderUI();
-                alert('✅ Pro access activated! Thank you.');
-            } else alert('Purchase could not be verified. Please contact support.');
-        } catch { showError('Could not verify purchase. Please try again.'); }
+        alert('To upgrade please visit the app store or contact support.');
     };
 
     window.continueFree = () => {
@@ -989,27 +908,39 @@
         document.body.classList.toggle('night');
     };
 
-    // ── Data ──────────────────────────────────────────────────────────────────
+    // ── Data with Firestore ────────────────────────────────────────────────────
     window.refreshData = async () => {
         if (!window.auth?.currentUser) return;
         const li = document.getElementById('loading-indicator');
         if (li) li.style.display = 'block';
         try {
-            const r = await fetch(`${AZURE_URL}?type=logs&email=${encodeURIComponent(window.auth.currentUser.email)}`);
-            const j = await r.json();
-            state.logs = (j.success && Array.isArray(j.data)) ? j.data : Array.isArray(j) ? j : [];
+            const { query: fsQuery, where: fsWhere, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const logsRef = fsQuery(
+                await (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).then(m => m.collection(window.db, 'logs')),
+                fsWhere('email', '==', window.auth.currentUser.email)
+            );
+            const snapshot = await getDocs(logsRef);
+            state.logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            debugLog('Loaded logs:', state.logs.length);
             renderUI();
-        } catch { showError('Could not load data. Check your connection.'); }
+        } catch(e) {
+            console.error(e);
+            showError('Could not load data. Check your connection.');
+        }
         finally { if (li) li.style.display = 'none'; }
     };
 
-    window.deleteEntry = async (ts) => {
+    window.deleteEntry = async (docId) => {
         if (!confirm('Delete this entry?')) return;
         try {
-            await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'delete', timestamp:ts, user:window.auth.currentUser.email }) });
-            state.logs = state.logs.filter(l => l.timestamp !== ts);
+            const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            await fsDeleteDoc(fsDoc(window.db, 'logs', docId));
+            state.logs = state.logs.filter(l => l.id !== docId);
             renderUI();
-        } catch { showError('Network error during delete'); }
+        } catch(e) {
+            console.error(e);
+            showError('Network error during delete');
+        }
     };
 
     // ── Save helpers ──────────────────────────────────────────────────────────
@@ -1023,22 +954,40 @@
         if (!timeEl.value) return alert('Please select a date/time.');
         const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
         amtEl.value = '';
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(timeEl.value).toISOString(), category, value:Math.round(val), detail, user:window.auth.currentUser.email, child:state.currentChild }, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
+        saveToFirestore({ timestamp:new Date(timeEl.value).toISOString(), category, value:Math.round(val), detail, email:window.auth.currentUser.email, child:state.currentChild }, `btn-save-${category.toLowerCase()}`, `Save ${category} Log`);
     };
+
+    async function saveToFirestore(payload, btnId, defaultText) {
+        const btn = btnId ? document.getElementById(btnId) : null;
+        if (btn) btn.innerText = 'Saving…';
+
+        try {
+            const { addDoc: fsAddDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const ref = await fsAddDoc(fsColl(window.db, 'logs'), payload);
+            state.logs.push({ id: ref.id, ...payload });
+            if (btn) btn.innerText = 'Saved! ✓';
+            showBanner('Saved to cloud ✓', 'synced');
+            setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
+        } catch(e) {
+            console.error(e);
+            showError('Save failed: ' + e.message);
+            if (btn && defaultText) btn.innerText = defaultText;
+        }
+    }
 
     window.saveNappy = async () => {
         const tv = document.getElementById('nappyTime').value;
         if (!tv) return alert('Please select a date/time.');
         const ts   = new Date(tv).toISOString();
-        const base = { action:'save', category:'Nappy', value:1, user:window.auth.currentUser.email, child:state.currentChild };
+        const base = { category:'Nappy', value:1, email:window.auth.currentUser.email, child:state.currentChild };
         if (state.nappyType === 'Both') {
-            await saveWithOfflineSupport({ ...base, timestamp:ts, detail:'Wee' }, null, null);
-            await saveWithOfflineSupport({ ...base, timestamp:new Date(new Date(ts).getTime()+1).toISOString(), detail:'Poo' }, null, null);
+            await saveToFirestore({ ...base, timestamp:ts, detail:'Wee' }, null, null);
+            await saveToFirestore({ ...base, timestamp:new Date(new Date(ts).getTime()+1).toISOString(), detail:'Poo' }, null, null);
             const b = document.getElementById('btn-save-nappy');
             b.innerText = 'Saved!';
             setTimeout(() => { b.innerText = 'Log Nappy'; renderUI(); }, 1000);
         } else {
-            await saveWithOfflineSupport({ ...base, timestamp:ts, detail:state.nappyType }, 'btn-save-nappy', 'Log Nappy');
+            await saveToFirestore({ ...base, timestamp:ts, detail:state.nappyType }, 'btn-save-nappy', 'Log Nappy');
         }
     };
 
@@ -1047,7 +996,7 @@
         if (!s || !e) return alert('Please set both start and end times');
         const mins = Math.round((new Date(e) - new Date(s)) / 60000);
         if (mins <= 0) return alert('End time must be after start time');
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(s).toISOString(), category:'SkinToSkin', value:mins, detail:'Session', user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-skin', 'Save Skin‑to‑Skin');
+        saveToFirestore({ timestamp:new Date(s).toISOString(), category:'SkinToSkin', value:mins, detail:'Session', email:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-skin', 'Save Skin‑to‑Skin');
         window.resetTimeInputs();
     };
 
@@ -1056,7 +1005,7 @@
         if (!s || !e) return alert('Please set both start and end times');
         const mins = Math.round((new Date(e) - new Date(s)) / 60000);
         if (mins <= 0) return alert('End time must be after start time');
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(s).toISOString(), category:'TummyTime', value:mins, detail:'Tummy Time', user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-tummy', 'Save Tummy Time');
+        saveToFirestore({ timestamp:new Date(s).toISOString(), category:'TummyTime', value:mins, detail:'Tummy Time', email:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-tummy', 'Save Tummy Time');
         window.resetTimeInputs();
     };
 
@@ -1070,7 +1019,7 @@
         document.getElementById('medName').value   = '';
         document.getElementById('medDosage').value = '';
         document.getElementById('med-reminder-hours').value = '0';
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-med', 'Log Medication');
+        saveToFirestore({ timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), email:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-med', 'Log Medication');
         if (reminderH > 0) scheduleAlarm(name, dosage, reminderH);
         window.resetTimeInputs();
     };
@@ -1078,9 +1027,7 @@
     function scheduleAlarm(medName, dosage, hours) {
         const fireAt = new Date(Date.now() + hours * 3600000);
         const label  = `💊 ${medName}${dosage ? ' – ' + dosage : ''} for ${state.currentChild}`;
-        if (isAndroid && Android.scheduleAlarm) {
-            Android.scheduleAlarm(label, fireAt.toISOString());
-        } else if ('Notification' in window) {
+        if ('Notification' in window) {
             Notification.requestPermission().then(p => {
                 if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'/icon-192.png' }), fireAt - Date.now());
             });
@@ -1095,11 +1042,11 @@
         if (!tv) return alert('Please select a date/time.');
         document.getElementById('hospitalName').value  = '';
         document.getElementById('hospitalNotes').value = '';
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(tv).toISOString(), category:'HospitalNote', value:0, detail:JSON.stringify({ hospital, notes }), user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-hospital', 'Save Note');
+        saveToFirestore({ timestamp:new Date(tv).toISOString(), category:'HospitalNote', value:0, detail:JSON.stringify({ hospital, notes }), email:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-hospital', 'Save Note');
         window.resetTimeInputs();
     };
 
-    // ── Appointment save / edit / cancel ──────────────────────────────────────
+    // ── Appointments ──────────────────────────────────────────────────────────
     window.saveAppointment = async () => {
         const dt    = document.getElementById('apptDateTime').value;
         if (!dt) return alert('Select date/time');
@@ -1108,12 +1055,16 @@
         const loc   = document.getElementById('apptLocation').value.trim();
         const notes = document.getElementById('apptNotes').value.trim();
 
-        // If editing, delete the old entry first
         if (state.editingApptTimestamp) {
             try {
-                await fetch(AZURE_URL, { method:'POST', headers:POST_HEADERS, body:JSON.stringify({ action:'delete', timestamp:state.editingApptTimestamp, user:window.auth.currentUser.email }) });
-                state.logs = state.logs.filter(l => l.timestamp !== state.editingApptTimestamp);
-            } catch { showError('Could not delete old appointment. Please try again.'); return; }
+                const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                await fsDeleteDoc(fsDoc(window.db, 'logs', state.editingApptTimestamp));
+                state.logs = state.logs.filter(l => l.id !== state.editingApptTimestamp);
+            } catch(e) {
+                console.error(e);
+                showError('Could not delete old appointment. Please try again.');
+                return;
+            }
             state.editingApptTimestamp = null;
         }
 
@@ -1122,30 +1073,27 @@
         document.getElementById('apptNotes').value    = '';
         resetApptFormUI();
 
-        saveWithOfflineSupport({ action:'save', timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), user:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-appointment', 'Save Appointment');
+        saveToFirestore({ timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), email:window.auth.currentUser.email, child:state.currentChild }, 'btn-save-appointment', 'Save Appointment');
         window.resetTimeInputs();
     };
 
-    window.editAppointment = (ts) => {
-        const log = state.logs.find(l => l.timestamp === ts && l.category === 'Appointment');
+    window.editAppointment = (docId) => {
+        const log = state.logs.find(l => l.id === docId && l.category === 'Appointment');
         if (!log) return;
         const d = parseDetail(log.detail);
 
-        // Pre-fill the form
-        const dtLocal = new Date(new Date(ts).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16);
+        const dtLocal = new Date(new Date(log.timestamp).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16);
         document.getElementById('apptDateTime').value  = dtLocal;
         document.getElementById('apptTitle').value    = d.title || '';
         document.getElementById('apptLocation').value = d.loc   || '';
         document.getElementById('apptNotes').value    = d.notes || '';
 
-        // Show editing UI
-        state.editingApptTimestamp = ts;
+        state.editingApptTimestamp = docId;
         document.getElementById('appt-editing-banner').style.display    = 'block';
         document.getElementById('appt-cancel-edit-btn').style.display   = 'block';
         document.getElementById('appt-form-heading').textContent        = '✏️ Edit Appointment';
         document.getElementById('btn-save-appointment').textContent     = '💾 Update Appointment';
 
-        // Scroll the form into view
         document.getElementById('page-appointments').scrollIntoView({ behavior:'smooth', block:'start' });
     };
 
@@ -1165,7 +1113,6 @@
         document.getElementById('btn-save-appointment').textContent    = 'Save Appointment';
     }
 
-    // ── Archive toggle ────────────────────────────────────────────────────────
     window.toggleApptArchive = () => {
         const list   = document.getElementById('appt-archive-list');
         const toggle = document.getElementById('appt-archive-toggle');
@@ -1174,11 +1121,10 @@
         toggle.classList.toggle('open', !isOpen);
     };
 
-    // ── Build an appointment card HTML ────────────────────────────────────────
     function buildApptCard(log, isPast) {
         const d    = parseDetail(log.detail);
-        const ts   = log.timestamp;
-        const when = new Date(ts).toLocaleString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        const docId = log.id;
+        const when = new Date(log.timestamp).toLocaleString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
         let html   = `<div class="appt-card${isPast ? ' past' : ''}">`;
         html += `<div class="appt-title">${escapeHTML(d.title || '—')}</div>`;
         html += `<div class="appt-datetime">📆 ${when}</div>`;
@@ -1186,10 +1132,10 @@
         if (d.notes) html += `<div class="appt-detail-row" style="white-space:pre-wrap;">📝 <span>Notes:</span> ${escapeHTML(d.notes)}</div>`;
         html += `<div class="appt-actions">`;
         if (!isPast) {
-            html += `<button class="appt-edit-btn" onclick="window.editAppointment('${ts}')">✏️ Edit</button>`;
-            html += `<button class="appt-cal-btn" onclick="window.addToCalendar('${escapeHTML(d.title||'')}','${ts}','${escapeHTML(d.loc||'')}','${escapeHTML(d.notes||'')}')">📅 Add to Calendar</button>`;
+            html += `<button class="appt-edit-btn" onclick="window.editAppointment('${docId}')">✏️ Edit</button>`;
+            html += `<button class="appt-cal-btn" onclick="window.addToCalendar('${escapeHTML(d.title||'')}','${log.timestamp}','${escapeHTML(d.loc||'')}','${escapeHTML(d.notes||'')}')">📅 Add to Calendar</button>`;
         }
-        html += `<button class="appt-del-btn" onclick="window.deleteEntry('${ts}')">🗑️</button>`;
+        html += `<button class="appt-del-btn" onclick="window.deleteEntry('${docId}')">🗑️</button>`;
         html += `</div></div>`;
         return html;
     }
@@ -1204,12 +1150,14 @@
         document.getElementById('note-content').value = '';
         renderPrivateNotes();
     };
+
     window.deletePrivateNote = (id) => {
         if (!confirm('Delete this note?')) return;
         privateNotes = privateNotes.filter(n => n.id !== id);
         localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
         renderPrivateNotes();
     };
+
     function renderPrivateNotes() {
         const el = document.getElementById('private-notes-list');
         if (!el) return;
@@ -1361,7 +1309,7 @@
                 const se = ge(`stats-${pref}`);
                 if (se) se.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total (14d)</div></div><div class="stat-box"><div class="stat-val">${fl.length}</div><div class="stat-lbl">Entries</div></div>`;
                 const he = ge(`history-${pref}`);
-                if (he) he.innerHTML = fl.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(l.detail)} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div style="padding:10px;opacity:0.6;">No entries yet</div>';
+                if (he) he.innerHTML = fl.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(l.detail)} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`).join('') || '<div style="padding:10px;opacity:0.6;">No entries yet</div>';
             };
             section(milk,    'milk',    v=>`${cv(v)}${unit}`);
             section(formula, 'formula', v=>`${cv(v)}${unit}`);
@@ -1404,7 +1352,7 @@
                 {label:'Avg Poo',data:ndd.map(d=>poma.get(d)??null),   borderColor:'#ff9800', borderDash:[2,2]}
             ], {labels:ndl});
             const nh = ge('history-nappy');
-            if (nh) nh.innerHTML = f14(nappy).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div style="padding:10px;opacity:0.6;">No entries yet</div>';
+            if (nh) nh.innerHTML = f14(nappy).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`).join('') || '<div style="padding:10px;opacity:0.6;">No entries yet</div>';
 
             // Skin / Tummy chart
             const skinL = child.filter(l=>l.category==='SkinToSkin'), tumL = child.filter(l=>l.category==='TummyTime');
@@ -1421,18 +1369,18 @@
             const sse = ge('stats-skin');
             if (sse) sse.innerHTML = `<div class="stat-box"><div class="stat-val">${skinL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Skin total</div></div><div class="stat-box"><div class="stat-val">${tumL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Tummy total</div></div>`;
             const sh = ge('history-skin');
-            if (sh) sh.innerHTML = [...skinL,...tumL].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail} (${l.value} min)</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`).join('') || '<div>No entries</div>';
+            if (sh) sh.innerHTML = [...skinL,...tumL].sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail} (${l.value} min)</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`).join('') || '<div>No entries</div>';
 
             // Meds history
             renderMedicationTimers();
             const mh = ge('history-meds');
-            if (mh) mh.innerHTML = f14(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>{const d=parseDetail(l.detail);return`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div>`;}).join('');
+            if (mh) mh.innerHTML = f14(child.filter(l=>l.category==='Medication')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l=>{const d=parseDetail(l.detail);return`<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`;}).join('');
 
             // Hospital notes
             const hh = ge('history-hospital');
-            if (hh) hh.innerHTML = f14(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l=>{const d=parseDetail(l.detail);return`<div class="hospital-note-item"><div class="hospital-name">🏥 ${escapeHTML(d.hospital||d.raw||'—')}</div><div class="hospital-note-text">${escapeHTML(d.notes||'').replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.timestamp}')">🗑️</span></div></div>`;}).join('') || '<div>No hospital notes yet</div>';
+            if (hh) hh.innerHTML = f14(child.filter(l=>l.category==='HospitalNote')).sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l=>{const d=parseDetail(l.detail);return`<div class="hospital-note-item"><div class="hospital-name">🏥 ${escapeHTML(d.hospital||d.raw||'—')}</div><div class="hospital-note-text">${escapeHTML(d.notes||'').replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div></div>`;}).join('') || '<div>No hospital notes yet</div>';
 
-            // ── Appointments – split into upcoming and past ──────────────────
+            // ── Appointments ──────────────────────────────────────────────────
             const now       = new Date();
             const allAppts  = child.filter(l => l.category === 'Appointment');
             const upcoming  = allAppts.filter(l => new Date(l.timestamp) >= now).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
@@ -1448,7 +1396,6 @@
             const archiveList = ge('appt-archive-list');
             const archiveToggle = ge('appt-archive-toggle');
             if (archiveList) {
-                // Update the toggle button label with count
                 if (archiveToggle) {
                     archiveToggle.querySelector('span:first-child').textContent =
                         `🗂️ Past Appointments (${past.length})`;
@@ -1542,7 +1489,7 @@
     // ── Deals / Products ──────────────────────────────────────────────────────
     async function loadProducts() {
         try {
-            const r = await fetch(AZURE_URL + '?type=products');
+            const r = await fetch('affiliate-links.json');
             state.allProducts = await r.json();
             if (!Array.isArray(state.allProducts)) state.allProducts = [];
             updateBrandFilter(); updateSizeFilter(); renderProductList();
@@ -1602,7 +1549,6 @@
             const url = (lat&&lon)
                 ? (apple?`maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}`:`https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`)
                 : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
-            if (isAndroid && Android.openMap) { Android.openMap(url); return; }
             const w = window.open(url,'_blank');
             if (!w && fb) fb.innerHTML=`<div class="card" style="margin-top:10px;"><a href="${url}" target="_blank" style="color:var(--accent-dark);">Open map manually →</a></div>`;
         };
@@ -1612,16 +1558,32 @@
 
     // ── Stash ─────────────────────────────────────────────────────────────────
     window.adjustStash = async (change) => {
-        await fetch(AZURE_URL,{method:'POST',headers:POST_HEADERS,body:JSON.stringify({action:'updateStash',user:window.auth.currentUser.email,child:state.currentChild,change})});
-        fetchStashBalance();
+        if (!window.auth?.currentUser) return;
+        try {
+            const { setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.email}_${state.currentChild}`);
+            const newBalance = (state.stashBalance || 0) + change;
+            await fsSetDoc(stashRef, { balance: Math.max(0, newBalance), email: window.auth.currentUser.email, child: state.currentChild });
+            state.stashBalance = Math.max(0, newBalance);
+            const el = document.getElementById('stash-balance');
+            if (el) el.textContent = state.stashBalance;
+        } catch(e) {
+            console.error(e);
+            showError('Could not update stash');
+        }
     };
+
     async function fetchStashBalance() {
         try {
-            const d=await(await fetch(`${AZURE_URL}?type=stash&email=${encodeURIComponent(window.auth.currentUser.email)}&child=${encodeURIComponent(state.currentChild)}`)).json();
-            state.stashBalance=d.balance||0;
-            const el=document.getElementById('stash-balance');
-            if(el) el.textContent=state.stashBalance;
-        } catch{}
+            const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.email}_${state.currentChild}`);
+            const snap = await getDoc(stashRef);
+            state.stashBalance = snap.exists() ? snap.data().balance : 0;
+            const el = document.getElementById('stash-balance');
+            if (el) el.textContent = state.stashBalance;
+        } catch(e) {
+            console.error(e);
+        }
     }
 
     // ── Export ────────────────────────────────────────────────────────────────
@@ -1631,13 +1593,9 @@
             ...state.logs.filter(l=>l.child===state.currentChild).map(l=>[l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(','))
         ].join('\n');
         const fname = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`;
-        if (isAndroid && Android.saveFile) {
-            Android.saveFile(btoa(unescape(encodeURIComponent(rows))), fname, 'text/csv');
-        } else {
-            const a=document.createElement('a');
-            a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));
-            a.download=fname; a.click();
-        }
+        const a=document.createElement('a');
+        a.href=URL.createObjectURL(new Blob([rows],{type:'text/csv'}));
+        a.download=fname; a.click();
     };
 
     // ── PDF Report ────────────────────────────────────────────────────────────
@@ -1710,13 +1668,10 @@
             if(li) li.style.display='none';
 
             const fname=`eco-family-flow-${state.currentChild}-${new Date().toISOString().slice(0,10)}.pdf`;
-            if (isAndroid && Android.saveFile) {
-                Android.saveFile(pdf.output('datauristring').split(',')[1], fname, 'application/pdf');
-            } else {
-                pdf.save(fname);
-            }
+            pdf.save(fname);
         } catch(e) {
             if(li) li.style.display='none';
+            console.error(e);
             showError('PDF generation failed: ' + e.message);
         }
     };
@@ -1724,35 +1679,61 @@
     // ── Account ───────────────────────────────────────────────────────────────
     async function loadAccountDetails() {
         try {
-            const d=await(await fetch(`${AZURE_URL}?type=familyDetails&email=${encodeURIComponent(window.auth.currentUser.email)}`)).json();
-            document.getElementById('account-email').textContent=window.auth.currentUser.email;
-            const hf=!!d.familyId;
-            document.getElementById('account-family-name').textContent=d.familyName||'—';
-            document.getElementById('account-family-id').textContent=d.familyId||'—';
-            document.getElementById('account-invite-code').textContent=d.inviteCode||'—';
-            document.getElementById('account-members').innerHTML=d.members?d.members.split(',').map(m=>`<div class="history-item">${escapeHTML(m.trim())}</div>`).join(''):'No members';
-            document.getElementById('family-invite-card').style.display=hf?'block':'none';
-            document.getElementById('join-family-card').style.display=hf?'none':'block';
-        } catch { document.getElementById('join-family-card').style.display='block'; }
+            const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const familiesRef = fsDoc(window.db, 'families', 'user_' + window.auth.currentUser.email);
+            const familySnap = await getDoc(familiesRef);
+            
+            document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            
+            if (familySnap.exists()) {
+                const data = familySnap.data();
+                document.getElementById('account-family-name').textContent = data.familyName || '—';
+                document.getElementById('account-family-id').textContent = familySnap.id || '—';
+                document.getElementById('account-invite-code').textContent = 'user_' + window.auth.currentUser.email;
+                document.getElementById('account-members').innerHTML = data.members ? data.members.map(m=>`<div class="history-item">${escapeHTML(m.trim())}</div>`).join('') : 'No members';
+                document.getElementById('family-invite-card').style.display = 'block';
+                document.getElementById('join-family-card').style.display = 'none';
+            } else {
+                document.getElementById('account-family-name').textContent = '—';
+                document.getElementById('account-family-id').textContent = '—';
+                document.getElementById('account-invite-code').textContent = '—';
+                document.getElementById('account-members').innerHTML = 'No family';
+                document.getElementById('family-invite-card').style.display = 'none';
+                document.getElementById('join-family-card').style.display = 'block';
+            }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('join-family-card').style.display='block';
+        }
     }
+
     window.copyInviteCode = () => {
-        const c=document.getElementById('account-invite-code').textContent;
+        const c = document.getElementById('account-invite-code').textContent;
         if(c&&c!=='—') navigator.clipboard?.writeText(c).then(()=>alert('Copied!')).catch(()=>prompt('Copy manually:',c));
     };
+
     window.deleteAccount = async () => {
         if(!confirm('Permanently delete all your data? This cannot be undone.')) return;
         try {
-            await fetch(AZURE_URL,{method:'POST',headers:POST_HEADERS,body:JSON.stringify({action:'deleteAccount',user:window.auth.currentUser.email})});
-            alert('Account deleted.'); window.logout();
-        } catch { showError('Could not delete account'); }
+            const { query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const logsRef = fsQuery(
+                await (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).then(m => m.collection(window.db, 'logs')),
+                fsWhere('email', '==', window.auth.currentUser.email)
+            );
+            const snapshot = await getDocs(logsRef);
+            snapshot.docs.forEach(doc => fsDeleteDoc(doc.ref));
+            alert('Account deleted.');
+            window.logout();
+        } catch(e) {
+            console.error(e);
+            showError('Could not delete account');
+        }
     };
 
     // ── Share ─────────────────────────────────────────────────────────────────
     window.shareApp = async () => {
         const title='Eco Family Flow', text='Track feeds, nappies, meds & more for your baby 🌿', url='https://unicorn5843.github.io/Eco-Family-Flow/';
-        if (isAndroid && Android.shareText) {
-            Android.shareText(title, text, url);
-        } else if (navigator.share) {
+        if (navigator.share) {
             try { await navigator.share({title,text,url}); } catch(e){ if(e.name!=='AbortError') console.warn(e); }
         } else if (navigator.clipboard) {
             try { await navigator.clipboard.writeText(url); alert('Link copied to clipboard 📋'); } catch { prompt('Copy this link:',url); }
