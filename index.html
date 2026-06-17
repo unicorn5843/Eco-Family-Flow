@@ -251,6 +251,16 @@
             margin-top: 10px;
         }
         #appt-archive-list.open { display: block; }
+        .copy-code-btn { 
+            background: var(--accent); 
+            color: white; 
+            border: none; 
+            padding: 10px 16px; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-weight: 600;
+            margin-top: 8px;
+        }
     </style>
 </head>
 <body>
@@ -578,8 +588,8 @@
                 <div class="card"><div class="stat-lbl">Family ID</div><div id="account-family-id"></div></div>
                 <div class="card" id="family-invite-card">
                     <div class="stat-lbl">Invite Code</div>
-                    <div id="account-invite-code" style="font-size:26px;font-weight:bold;letter-spacing:4px;margin:8px 0;"></div>
-                    <button class="save-btn" onclick="window.copyInviteCode()">📋 Copy Code</button>
+                    <div id="account-invite-code" style="font-size:26px;font-weight:bold;letter-spacing:4px;margin:8px 0;font-family:monospace;"></div>
+                    <button class="copy-code-btn" onclick="window.copyInviteCode()">📋 Copy Code</button>
                 </div>
                 <div class="card"><div class="stat-lbl">Members</div><div id="account-members"></div></div>
                 <div class="card" id="join-family-card" style="display:none;">
@@ -640,6 +650,11 @@
             if (p.length === 3) return { title:p[0], loc:p[1], notes:p[2] };
             return { raw: d };
         }
+    }
+
+    // Generate 6-digit code
+    function generateInviteCode() {
+        return Math.random().toString(36).substring(2,8).toUpperCase();
     }
 
     let currentCategory = '';
@@ -744,15 +759,20 @@
         if (!window.auth?.currentUser) return alert('Not signed in');
         const familyName = document.getElementById('family-name').value.trim() || 'My Family';
         try {
-            const { collection: fsColl, addDoc: fsAddDoc, setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const inviteCode = Math.random().toString(36).substring(2,8).toUpperCase();
-            await fsSetDoc(fsDoc(window.db, 'families', inviteCode), {
-                familyName,
+            const { setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const inviteCode = generateInviteCode();
+            const familyDocId = `family_${window.auth.currentUser.uid}`;
+            
+            await fsSetDoc(fsDoc(window.db, 'families', familyDocId), {
+                inviteCode: inviteCode,
+                familyName: familyName,
                 createdBy: window.auth.currentUser.email,
                 members: [window.auth.currentUser.email],
                 createdAt: new Date().toISOString()
             });
+            
             localStorage.setItem('familySetupComplete','true');
+            localStorage.setItem('myInviteCode', inviteCode);
             alert(`Family created!\n\nYour invite code: ${inviteCode}\n\nShare this with your partner so they can join.`);
             window.initApp();
         } catch(e) {
@@ -766,14 +786,24 @@
         const code = document.getElementById('invite-code').value.trim().toUpperCase();
         if (!code) return alert('Please enter the 6‑digit invite code.');
         try {
-            const { doc: fsDoc, getDoc, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const familyRef = fsDoc(window.db, 'families', code);
-            const familySnap = await getDoc(familyRef);
-            if (!familySnap.exists()) return alert('Invalid invite code. Please check and try again.');
-            await fsUpdateDoc(familyRef, {
+            const { query: fsQuery, where: fsWhere, getDocs, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            // Find the family with this invite code
+            const familiesRef = fsQuery(
+                await (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).then(m => m.collection(window.db, 'families')),
+                fsWhere('inviteCode', '==', code)
+            );
+            
+            const snapshot = await getDocs(familiesRef);
+            if (snapshot.empty) return alert('Invalid invite code. Please check and try again.');
+            
+            const familyDoc = snapshot.docs[0];
+            await fsUpdateDoc(familyDoc.ref, {
                 members: arrayUnion(window.auth.currentUser.email)
             });
+            
             localStorage.setItem('familySetupComplete','true');
+            localStorage.setItem('myInviteCode', code);
             alert('Successfully joined the family!');
             window.initApp();
         } catch(e) {
@@ -787,15 +817,24 @@
         const code = document.getElementById('join-invite-code').value.trim().toUpperCase();
         if (!code) return alert('Enter the invite code.');
         try {
-            const { doc: fsDoc, getDoc, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const familyRef = fsDoc(window.db, 'families', code);
-            const familySnap = await getDoc(familyRef);
-            if (!familySnap.exists()) return alert('Invalid code.');
-            if (!familySnap.data().members.includes(window.auth.currentUser.email)) {
-                await fsUpdateDoc(familyRef, {
+            const { query: fsQuery, where: fsWhere, getDocs, updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            
+            const familiesRef = fsQuery(
+                await (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).then(m => m.collection(window.db, 'families')),
+                fsWhere('inviteCode', '==', code)
+            );
+            
+            const snapshot = await getDocs(familiesRef);
+            if (snapshot.empty) return alert('Invalid code.');
+            
+            const familyDoc = snapshot.docs[0];
+            if (!familyDoc.data().members.includes(window.auth.currentUser.email)) {
+                await fsUpdateDoc(familyDoc.ref, {
                     members: arrayUnion(window.auth.currentUser.email)
                 });
             }
+            
+            localStorage.setItem('myInviteCode', code);
             alert('Joined!');
             loadAccountDetails();
         } catch(e) {
@@ -914,20 +953,22 @@
         const li = document.getElementById('loading-indicator');
         if (li) li.style.display = 'block';
         try {
-            const { query: fsQuery, where: fsWhere, getDocs } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             const logsRef = fsQuery(
-                await (await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js')).then(m => m.collection(window.db, 'logs')),
+                fsColl(window.db, 'logs'),
                 fsWhere('email', '==', window.auth.currentUser.email)
             );
             const snapshot = await getDocs(logsRef);
             state.logs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             debugLog('Loaded logs:', state.logs.length);
-            renderUI();
         } catch(e) {
             console.error(e);
             showError('Could not load data. Check your connection.');
         }
-        finally { if (li) li.style.display = 'none'; }
+        finally { 
+            if (li) li.style.display = 'none';
+            renderUI();
+        }
     };
 
     window.deleteEntry = async (docId) => {
@@ -1560,25 +1601,35 @@
     window.adjustStash = async (change) => {
         if (!window.auth?.currentUser) return;
         try {
-            const { setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.email}_${state.currentChild}`);
-            const newBalance = (state.stashBalance || 0) + change;
-            await fsSetDoc(stashRef, { balance: Math.max(0, newBalance), email: window.auth.currentUser.email, child: state.currentChild });
-            state.stashBalance = Math.max(0, newBalance);
+            const { doc: fsDoc, getDoc, setDoc: fsSetDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.uid}_${state.currentChild}`);
+            const snap = await getDoc(stashRef);
+            const currentBalance = snap.exists() ? snap.data().balance || 0 : 0;
+            const newBalance = Math.max(0, currentBalance + change);
+            
+            await fsSetDoc(stashRef, { 
+                balance: newBalance, 
+                email: window.auth.currentUser.email, 
+                child: state.currentChild,
+                lastUpdated: new Date().toISOString()
+            });
+            
+            state.stashBalance = newBalance;
             const el = document.getElementById('stash-balance');
             if (el) el.textContent = state.stashBalance;
+            showBanner('Stash updated ✓', 'synced');
         } catch(e) {
             console.error(e);
-            showError('Could not update stash');
+            showError('Could not update stash: ' + e.message);
         }
     };
 
     async function fetchStashBalance() {
         try {
             const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.email}_${state.currentChild}`);
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.uid}_${state.currentChild}`);
             const snap = await getDoc(stashRef);
-            state.stashBalance = snap.exists() ? snap.data().balance : 0;
+            state.stashBalance = snap.exists() ? snap.data().balance || 0 : 0;
             const el = document.getElementById('stash-balance');
             if (el) el.textContent = state.stashBalance;
         } catch(e) {
@@ -1679,37 +1730,40 @@
     // ── Account ───────────────────────────────────────────────────────────────
     async function loadAccountDetails() {
         try {
-            const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const familiesRef = fsDoc(window.db, 'families', 'user_' + window.auth.currentUser.email);
-            const familySnap = await getDoc(familiesRef);
-            
             document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            const myCode = localStorage.getItem('myInviteCode') || generateInviteCode();
+            localStorage.setItem('myInviteCode', myCode);
             
-            if (familySnap.exists()) {
-                const data = familySnap.data();
-                document.getElementById('account-family-name').textContent = data.familyName || '—';
-                document.getElementById('account-family-id').textContent = familySnap.id || '—';
-                document.getElementById('account-invite-code').textContent = 'user_' + window.auth.currentUser.email;
-                document.getElementById('account-members').innerHTML = data.members ? data.members.map(m=>`<div class="history-item">${escapeHTML(m.trim())}</div>`).join('') : 'No members';
-                document.getElementById('family-invite-card').style.display = 'block';
-                document.getElementById('join-family-card').style.display = 'none';
-            } else {
-                document.getElementById('account-family-name').textContent = '—';
-                document.getElementById('account-family-id').textContent = '—';
-                document.getElementById('account-invite-code').textContent = '—';
-                document.getElementById('account-members').innerHTML = 'No family';
-                document.getElementById('family-invite-card').style.display = 'none';
-                document.getElementById('join-family-card').style.display = 'block';
+            document.getElementById('account-family-name').textContent = 'Connected';
+            document.getElementById('account-family-id').textContent = window.auth.currentUser.uid.slice(0, 8);
+            document.getElementById('account-invite-code').textContent = myCode;
+            document.getElementById('family-invite-card').style.display = 'block';
+            document.getElementById('join-family-card').style.display = 'none';
+            
+            // Try to load family members if in Firestore
+            try {
+                const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const familiesRef = fsQuery(
+                    fsColl(window.db, 'families'),
+                    fsWhere('inviteCode', '==', myCode)
+                );
+                const snapshot = await getDocs(familiesRef);
+                if (!snapshot.empty) {
+                    const family = snapshot.docs[0].data();
+                    document.getElementById('account-family-name').textContent = family.familyName || 'Connected';
+                    document.getElementById('account-members').innerHTML = (family.members || []).map(m=>`<div class="history-item">${escapeHTML(m)}</div>`).join('') || 'Just you';
+                }
+            } catch(e) {
+                console.warn('Could not load family members:', e);
             }
         } catch(e) {
             console.error(e);
-            document.getElementById('join-family-card').style.display='block';
         }
     }
 
     window.copyInviteCode = () => {
         const c = document.getElementById('account-invite-code').textContent;
-        if(c&&c!=='—') navigator.clipboard?.writeText(c).then(()=>alert('Copied!')).catch(()=>prompt('Copy manually:',c));
+        if(c) navigator.clipboard?.writeText(c).then(()=>alert('Copied!')).catch(()=>prompt('Copy manually:',c));
     };
 
     window.deleteAccount = async () => {
