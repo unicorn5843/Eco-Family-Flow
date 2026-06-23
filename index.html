@@ -868,6 +868,11 @@
         applyChildTheme(name);
         document.getElementById('current-child-display').textContent = `👤 ${name}`;
         renderFridgeNote(); renderUI();
+        
+        // ---- FIX: Refresh stash balance when switching child on stash tab ----
+        if (state.tab === 'stash') {
+            fetchStashBalance();
+        }
     };
 
     function applyChildTheme(name) {
@@ -899,6 +904,8 @@
 
     // ── Trial status ──────────────────────────────────────────────────────────
     async function checkTrialStatus() {
+        // ---- CHANGED: Load isPro from localStorage so "Continue Free" sticks ----
+        const savedPro = localStorage.getItem('ecoIsPro') === 'true';
         if (!localStorage.getItem('ecoFirstLogin')) {
             localStorage.setItem('ecoFirstLogin', new Date().toISOString());
         }
@@ -906,7 +913,8 @@
         const daysElapsed   = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
         const localDaysLeft = Math.max(0, 60 - daysElapsed);
 
-        state.trialStatus = { daysLeft: localDaysLeft, isPro: false, validated: true };
+        // isPro can be set manually by continueFree (or later by purchase)
+        state.trialStatus = { daysLeft: localDaysLeft, isPro: savedPro, validated: true };
         localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
 
         if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0 && state.trialStatus.validated) showPaywall();
@@ -938,6 +946,9 @@
     };
 
     window.continueFree = () => {
+        // ---- FIX: Actually enable Pro permanently when user clicks "Continue Free" ----
+        state.trialStatus.isPro = true;
+        localStorage.setItem('ecoIsPro', 'true');
         document.getElementById('paywall-overlay').style.display = 'none';
         updateProUI(); updateTrialBanner(); renderUI();
     };
@@ -1625,6 +1636,7 @@
     };
 
     async function fetchStashBalance() {
+        if (!window.auth?.currentUser) return;
         try {
             const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
             const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.uid}_${state.currentChild}`);
