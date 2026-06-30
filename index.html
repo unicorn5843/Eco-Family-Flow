@@ -70,10 +70,7 @@
         .header-icon-text { display:flex; flex-direction:column; align-items:center; cursor:pointer; font-size:11px; opacity:0.9; }
         .header-icon-text span:first-child { font-size:22px; }
         #lang-select { background:var(--card); border:1px solid var(--border); color:var(--text); padding:4px; border-radius:6px; font-size:12px; outline:none; }
-        #trial-banner { width:100%; padding:10px; text-align:center; font-weight:bold; font-size:14px; border-radius:8px; margin-bottom:15px; display:none; box-sizing:border-box; }
-        .trial-green { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
-        .trial-amber { background:#fef3c7; color:#92400e; border:1px solid #fde68a; }
-        .trial-red   { background:#fee2e2; color:#991b1b; border:1px solid #fecaca; }
+        #trial-banner { display:none; } /* Now hidden permanently */
         .sync-banner { position:fixed; top:0; left:0; right:0; padding:8px; text-align:center; font-size:14px; font-weight:bold; z-index:200; }
         .banner-offline { background:#ff9800; color:white; } .banner-synced { background:#4caf50; color:white; }
         .child-selector { display:flex; justify-content:center; flex-wrap:wrap; margin-bottom:15px; gap:5px; }
@@ -128,11 +125,11 @@
         .product-card { background:var(--card); border-radius:12px; padding:15px; margin-bottom:10px; border:1px solid var(--border); }
         .price-per-unit { background:var(--accent); color:white; padding:3px 8px; border-radius:20px; font-size:12px; display:inline-block; margin-left:10px; }
         .fridge-note { background:#fef9c3; padding:10px; border-radius:8px; margin-bottom:15px; color:#1f2937; }
-        .pro-only { display:none; }
+        .pro-only { display:flex; } /* Always visible now */
         .category-chip { padding:10px 16px; border-radius:30px; background:var(--card); border:1px solid var(--border); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; }
         .category-chip.active { background:var(--accent); color:white; border-color:var(--accent); }
         .calendar-btn { background:none; border:1px solid var(--accent); color:var(--accent-dark); padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; margin-left:10px; }
-        .paywall-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); z-index:1000; align-items:center; justify-content:center; }
+        .paywall-overlay { display:none; } /* Removed entirely */
         #report-container { position:absolute; left:-9999px; top:0; width:800px; background:white; color:black; font-family:Arial,sans-serif; padding:20px; box-sizing:border-box; }
         .report-month { margin-bottom:30px; page-break-after:always; }
         .report-month h2 { color:#2f4f2f; border-bottom:2px solid #8fbca0; padding-bottom:5px; }
@@ -335,7 +332,6 @@
             <div class="header-right"><select id="lang-select"><option value="en">🇬🇧 EN</option></select></div>
         </div>
 
-        <div id="trial-banner"></div>
         <div class="child-selector" id="child-selector-container"></div>
         <div id="current-child-display" class="current-child-badge"></div>
         <div id="fridge-note-container" class="fridge-note"></div>
@@ -352,8 +348,8 @@
             <div id="tab-hospital"     class="nav-tile"        onclick="window.switchTab('hospital')">    <span class="nav-emoji">🏥</span><span class="nav-label">Hospital</span></div>
             <div id="tab-trending"     class="nav-tile"        onclick="window.switchTab('trending')">    <span class="nav-emoji">📈</span><span class="nav-label">Trending</span></div>
             <div id="tab-deals"        class="nav-tile"        onclick="window.switchTab('deals')">       <span class="nav-emoji">🛒</span><span class="nav-label">Deals</span></div>
-            <div id="tab-stash"        class="nav-tile pro-only" onclick="window.switchTab('stash')">     <span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
-            <div id="tab-appointments" class="nav-tile pro-only" onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
+            <div id="tab-stash"        class="nav-tile"        onclick="window.switchTab('stash')">       <span class="nav-emoji">❄️</span><span class="nav-label">Stash</span></div>
+            <div id="tab-appointments" class="nav-tile"        onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label">Appts</span></div>
             <div id="tab-savings"      class="nav-tile"        onclick="window.switchTab('savings')">     <span class="nav-emoji">💰</span><span class="nav-label">Savings</span></div>
             <div id="tab-notes"        class="nav-tile wide"   onclick="window.switchTab('notes')">       <span class="nav-emoji">📋</span><span class="nav-label">Private Notes</span></div>
             <div id="tab-emergency"    class="nav-tile wide"   onclick="window.switchTab('emergency')">   <span class="nav-emoji">📍</span><span class="nav-label">Emergency</span></div>
@@ -374,8 +370,8 @@
                     <tr><td>🏥</td><td><strong>Hospital</strong> – Notes from any medical visit.</td></tr>
                     <tr><td>📈</td><td><strong>Trending</strong> – 7-day patterns, monthly charts, forecasts, and PDF report export.</td></tr>
                     <tr><td>🛒</td><td><strong>Deals</strong> – Compare prices per nappy/wipe/formula across brands.</td></tr>
-                    <tr><td>❄️</td><td><strong>Stash</strong> (Pro) – Manually track frozen breastmilk inventory.</td></tr>
-                    <tr><td>📅</td><td><strong>Appts</strong> (Pro) – Schedule, edit and manage appointments. Past appointments are archived for reference.</td></tr>
+                    <tr><td>❄️</td><td><strong>Stash</strong> – Manually track frozen breastmilk inventory.</td></tr>
+                    <tr><td>📅</td><td><strong>Appts</strong> – Schedule, edit and manage appointments. Past appointments are archived for reference.</td></tr>
                     <tr><td>💰</td><td><strong>Savings</strong> – Quick links to money‑saving offers.</td></tr>
                     <tr><td>📋</td><td><strong>Private Notes</strong> – Stored only on this device, never synced.</td></tr>
                     <tr><td>📍</td><td><strong>Emergency</strong> – One‑tap search for nearby pharmacies, A&amp;E, or GPs.</td></tr>
@@ -544,12 +540,12 @@
                 <div id="emergency-fallback"></div>
             </div>
 
-            <!-- STASH (Pro) -->
+            <!-- STASH -->
             <div id="page-stash" class="page">
                 <div class="card"><h3>❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)">➖ Remove</button></div><p style="text-align:center;opacity:0.7;">Manual updates only</p></div>
             </div>
 
-            <!-- APPOINTMENTS (Pro) -->
+            <!-- APPOINTMENTS -->
             <div id="page-appointments" class="page">
                 <div class="card">
                     <h3 id="appt-form-heading">📅 New Appointment</h3>
@@ -608,18 +604,6 @@
 
 <div id="report-container"></div>
 
-<!-- PAYWALL -->
-<div id="paywall-overlay" class="paywall-overlay">
-    <div class="card" style="max-width:350px;text-align:center;">
-        <h3>✨ Pro Features</h3>
-        <p>Your 60‑day trial has ended.</p>
-        <ul style="text-align:left;"><li>Night Mode</li><li>Export &amp; Reports</li><li>History &gt;30 days</li><li>All Pro tabs</li><li>Multiple children</li></ul>
-        <p style="font-size:24px;">£1.99 <span style="font-size:14px;">/ month</span></p>
-        <button class="save-btn" onclick="window.initiatePurchase()">Upgrade Now</button>
-        <button style="background:none;border:none;color:var(--text);margin-top:10px;cursor:pointer;" onclick="window.continueFree()">Continue with Free Plan</button>
-    </div>
-</div>
-
 <footer id="fixed-bottom">
     <div class="footer-action" onclick="window.toggleNight()"><span>🌗</span><span>Night</span></div>
     <div class="footer-action" onclick="window.toggleUnits()"><span id="flag-emoji">🇬🇧</span><span id="unit-label">UK Units</span></div>
@@ -652,19 +636,19 @@
         }
     }
 
-    // Generate 6-digit code
     function generateInviteCode() {
         return Math.random().toString(36).substring(2,8).toUpperCase();
     }
 
     let currentCategory = '';
 
-    // ── App state ─────────────────────────────────────────────────────────────
+    // ── App state (now permanently free) ────────────────────────────────────
     let state = {
         units: 'UK', tab: 'milk', currentChild: 'Child A',
         logs: [],
         allProducts: [],
-        trialStatus: { daysLeft: 0, isPro: false, validated: false },
+        // isPro is now always true – no trial needed
+        trialStatus: { isPro: true, daysLeft: 9999 },
         children: [
             { name:'Child A', color:'#8fbca0' },
             { name:'Child B', color:'#4a90e2' },
@@ -717,15 +701,13 @@
             return;
         }
 
-        await checkTrialStatus();
-
+        // No trial check – app is free
         document.getElementById('page-family-setup').style.display = 'none';
         document.getElementById('page-welcome').style.display      = 'none';
         document.getElementById('main-app').style.display          = 'block';
 
         buildChildSelector();
         window.resetTimeInputs();
-        updateProUI();
 
         await window.refreshData();
         if (state.tab === 'deals')   loadProducts();
@@ -846,12 +828,10 @@
     function buildChildSelector() {
         const container = document.getElementById('child-selector-container');
         if (!container) return;
-        const trialActive = !!(state.trialStatus?.isPro || state.trialStatus?.daysLeft > 0);
-        const visible = trialActive ? state.children : state.children.slice(0, 1);
+        const visible = state.children; // all children always visible
         container.innerHTML = visible.map(c =>
             `<button class="child-btn ${c.name === state.currentChild ? 'active' : ''}" data-child="${c.name}" style="border-color:${c.color};">👶 ${c.name.slice(-1)}</button>`
         ).join('');
-        if (!trialActive && state.currentChild !== 'Child A') state.currentChild = 'Child A';
         applyChildTheme(state.currentChild);
         container.querySelectorAll('.child-btn').forEach(b => b.addEventListener('click', e => window.setChild(e.currentTarget.dataset.child)));
         document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
@@ -859,16 +839,13 @@
     }
 
     window.setChild = (name) => {
-        const idx = state.children.findIndex(c => c.name === name);
-        const trialActive = !!(state.trialStatus?.isPro || state.trialStatus?.daysLeft > 0);
-        if (!trialActive && idx > 0) { showPaywall(); return; }
         state.currentChild = name;
         document.querySelectorAll('.child-btn').forEach(b => { b.classList.remove('active'); if (b.dataset.child === name) b.classList.add('active'); });
         applyChildTheme(name);
         document.getElementById('current-child-display').textContent = `👤 ${name}`;
         renderFridgeNote(); renderUI();
         
-        // Refresh stash balance when switching child while on stash tab
+        // FIX: Refresh stash balance when switching child while on stash tab
         if (state.tab === 'stash') {
             fetchStashBalance();
         }
@@ -901,58 +878,8 @@
         if (n !== null) { fridgeNotes[state.currentChild] = n; localStorage.setItem('ecoFridgeNotes', JSON.stringify(fridgeNotes)); renderFridgeNote(); }
     };
 
-    // ── Trial status ──────────────────────────────────────────────────────────
-    async function checkTrialStatus() {
-        const savedPro = localStorage.getItem('ecoIsPro') === 'true';
-        if (!localStorage.getItem('ecoFirstLogin')) {
-            localStorage.setItem('ecoFirstLogin', new Date().toISOString());
-        }
-        const firstLogin    = new Date(localStorage.getItem('ecoFirstLogin'));
-        const daysElapsed   = Math.max(0, Math.floor((Date.now() - firstLogin) / 86400000));
-        const localDaysLeft = Math.max(0, 60 - daysElapsed);
-
-        // isPro can be set manually by continueFree (or later by purchase)
-        state.trialStatus = { daysLeft: localDaysLeft, isPro: savedPro, validated: true };
-        localStorage.setItem('ecoTrialCache', JSON.stringify(state.trialStatus));
-
-        if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0 && state.trialStatus.validated) showPaywall();
-        updateTrialBanner();
-        updateProUI();
-    }
-
-    function updateTrialBanner() {
-        const b = document.getElementById('trial-banner');
-        if (!b || state.trialStatus.isPro) { if (b) b.style.display = 'none'; return; }
-        const days = state.trialStatus.daysLeft;
-        if (days <= 0) { b.style.display = 'none'; return; }
-        b.style.display = 'block';
-        b.textContent   = `🎁 ${days} day${days !== 1 ? 's' : ''} of Free Pro Access remaining`;
-        b.className     = days > 30 ? 'trial-green' : days > 14 ? 'trial-amber' : 'trial-red';
-    }
-
-    function updateProUI() {
-        const active = !!(state.trialStatus.isPro || state.trialStatus.daysLeft > 0);
-        document.querySelectorAll('.pro-only').forEach(el => el.style.display = active ? 'flex' : 'none');
-        const nb = document.querySelector('.footer-action[onclick*="toggleNight"]');
-        if (nb) nb.style.display = active ? 'flex' : 'none';
-    }
-
-    function showPaywall() { document.getElementById('paywall-overlay').style.display = 'flex'; }
-
-    window.initiatePurchase = () => {
-        alert('To upgrade please visit the app store or contact support.');
-    };
-
-    window.continueFree = () => {
-        // Enable Pro permanently when user clicks "Continue Free"
-        state.trialStatus.isPro = true;
-        localStorage.setItem('ecoIsPro', 'true');
-        document.getElementById('paywall-overlay').style.display = 'none';
-        updateProUI(); updateTrialBanner(); renderUI();
-    };
-
+    // Night mode always available
     window.toggleNight = () => {
-        if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0) return showPaywall();
         document.body.classList.toggle('night');
     };
 
@@ -1606,7 +1533,7 @@
         else open(null,null);
     };
 
-    // ── Stash (with improved error message for permission problems) ─────────────
+    // ── Stash (permission error message included) ──────────────────────────────
     window.adjustStash = async (change) => {
         if (!window.auth?.currentUser) return;
         try {
@@ -1629,13 +1556,11 @@
             showBanner('Stash updated ✓', 'synced');
         } catch(e) {
             console.error(e);
-            // If the error is a permission problem, give the user clear instructions
             if (e.code === 'permission-denied' || e.message.includes('permission')) {
                 alert('❌ Permission denied by Firestore.\n\n' +
                     '👉 Add this rule to your Firebase Firestore Rules:\n\n' +
                     'match /stash/{documentId} {\n' +
-                    '  allow read, write: if request.auth != null\n' +
-                    '    && request.resource.data.email == request.auth.token.email;\n' +
+                    '  allow read, write: if request.auth != null;\n' +
                     '}\n\n' +
                     'Then try again.');
             } else {
@@ -1658,9 +1583,8 @@
         }
     }
 
-    // ── Export ────────────────────────────────────────────────────────────────
+    // ── Export (always allowed) ───────────────────────────────────────────────
     window.exportData = () => {
-        if (!state.trialStatus.isPro && state.trialStatus.daysLeft <= 0) return showPaywall();
         const rows = ['Timestamp,Category,Value,Detail,Child',
             ...state.logs.filter(l=>l.child===state.currentChild).map(l=>[l.timestamp,l.category,l.value,(l.detail||'').replace(/,/g,';'),l.child].join(','))
         ].join('\n');
