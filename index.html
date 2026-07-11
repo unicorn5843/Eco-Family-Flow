@@ -243,7 +243,6 @@
                 <select id="lang-select">
                     <option value="en">🇬🇧 EN</option>
                     <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 CY</option>
-                    <!-- To add a language, add another <option> here and create locales/xx.json -->
                 </select>
             </div>
         </div>
@@ -537,7 +536,7 @@
     function debugLog(msg, data) { if (DEBUG_MODE) console.log('[ECO]', msg, data || ''); }
     const isLowMem = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
 
-    // ── i18n — flat structure with deep merge fallback ────────────────────────
+    // ── i18n ──────────────────────────────────────────────────────────────────
     const defaultTranslations = {
         welcome: {
             cta: "🌿 Get Started",
@@ -560,18 +559,13 @@
             skip: "Skip for now – I'll set it up later"
         },
         dashboard: {
-    milk: "Milk",
-    pump: "Pump",
-    feed: "Feed",
-    nappy: "Nappy",
-    medication: "Medication",
-    next_appt: "Next Appt",
-    none: "—"
-},
-fridge: {
-    title: "🧊 Kitchen Fridge Note",
-    no_note: "No note yet. Tap ✏️ to add."
-}
+            milk: "Milk", pump: "Pump", feed: "Feed", nappy: "Nappy",
+            medication: "Medication", next_appt: "Next Appt", none: "—"
+        },
+        fridge: {
+            title: "🧊 Kitchen Fridge Note",
+            no_note: "No note yet. Tap ✏️ to add."
+        },
         footer: { night: "Night", units: "UK Units", account: "Account" },
         tabs: {
             info: "Your Guide", milk: "Milk", formula: "Formula", nappy: "Nappy",
@@ -674,7 +668,6 @@ fridge: {
             const response = await fetch(`locales/${lang}.json`);
             if (!response.ok) throw new Error('File not found');
             const data = await response.json();
-            // Deep merge so partial translation files always fall back to English
             function deepMerge(target, source) {
                 for (const key in source) {
                     if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
@@ -708,9 +701,7 @@ fridge: {
         localStorage.setItem('eco-lang', lang);
         const select = document.getElementById('lang-select');
         if (select) select.value = lang;
-
         await loadTranslation(lang);
-
         document.querySelectorAll('[data-i18n]').forEach(el => {
             const key = el.getAttribute('data-i18n');
             el.textContent = t(key, el.textContent);
@@ -719,7 +710,6 @@ fridge: {
             const key = el.getAttribute('data-i18n-placeholder');
             el.placeholder = t(key, el.placeholder);
         });
-
         renderUI();
     }
 
@@ -959,10 +949,10 @@ fridge: {
     }
 
     function renderFridgeNote() {
-    const el = document.getElementById('fridge-note-container');
-    if (!el) return;
-    const note = escapeHTML(fridgeNotes[state.currentChild] || '');
-    el.innerHTML = `<div style="display:flex;justify-content:space-between;"><strong>${t('fridge.title')}</strong><span style="cursor:pointer;" onclick="window.editFridgeNote()">✏️</span></div><div style="margin-top:5px;">${note || t('fridge.no_note')}</div>`;
+        const el = document.getElementById('fridge-note-container');
+        if (!el) return;
+        const note = escapeHTML(fridgeNotes[state.currentChild] || '');
+        el.innerHTML = `<div style="display:flex;justify-content:space-between;"><strong>${t('fridge.title')}</strong><span style="cursor:pointer;" onclick="window.editFridgeNote()">✏️</span></div><div style="margin-top:5px;">${note || t('fridge.no_note')}</div>`;
     }
 
     window.editFridgeNote = () => {
@@ -1218,7 +1208,7 @@ fridge: {
         return html;
     }
 
-    // ── Private notes (local only) ────────────────────────────────────────────
+    // ── Private notes ─────────────────────────────────────────────────────────
     window.savePrivateNote = () => {
         const title   = document.getElementById('note-title').value.trim();
         const content = document.getElementById('note-content').value.trim();
@@ -1313,46 +1303,45 @@ fridge: {
 
     // ── Dashboard ─────────────────────────────────────────────────────────────
     function renderDashboard() {
-    const dash = document.getElementById('dashboard');
-    if (!dash) return;
-    const cl  = state.logs.filter(l => l.child === state.currentChild);
-    const cv  = v => state.units === 'US' ? (v/29.5735).toFixed(1)+'oz' : v+'ml';
-    const lat = cat => cl.filter(l => l.category === cat).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-    const lm  = lat('Milk'), ln = lat('Nappy'), lmed = lat('Medication');
-    const na  = cl.filter(l => l.category === 'Appointment' && new Date(l.timestamp) > new Date()).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))[0];
+        const dash = document.getElementById('dashboard');
+        if (!dash) return;
+        const cl  = state.logs.filter(l => l.child === state.currentChild);
+        const cv  = v => state.units === 'US' ? (v/29.5735).toFixed(1)+'oz' : v+'ml';
+        const lat = cat => cl.filter(l => l.category === cat).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+        const lm  = lat('Milk'), ln = lat('Nappy'), lmed = lat('Medication');
+        const na  = cl.filter(l => l.category === 'Appointment' && new Date(l.timestamp) > new Date()).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))[0];
 
-    const item = (ic, lb, val, ts) => `<div class="dash-item"><div class="dash-label">${ic} ${lb}</div><div class="dash-value">${val||t('dashboard.none')}</div><div class="dash-time">${ts ? new Date(ts).toLocaleString() : t('dashboard.none')}</div></div>`;
+        const item = (ic, lb, val, ts) => `<div class="dash-item"><div class="dash-label">${ic} ${lb}</div><div class="dash-value">${val||t('dashboard.none')}</div><div class="dash-time">${ts ? new Date(ts).toLocaleString() : t('dashboard.none')}</div></div>`;
 
-    let h = '';
-    if (lm) {
-        const mode = lm.detail.includes('Pump') ? t('dashboard.pump') : t('dashboard.feed');
-        h += item('🤱', `${t('dashboard.milk')} (${mode})`, cv(lm.value), lm.timestamp);
-    } else {
-        h += item('🤱', t('dashboard.milk'), t('dashboard.none'), null);
-    }
+        let h = '';
+        if (lm) {
+            const mode = lm.detail.includes('Pump') ? t('dashboard.pump') : t('dashboard.feed');
+            h += item('🤱', `${t('dashboard.milk')} (${mode})`, cv(lm.value), lm.timestamp);
+        } else {
+            h += item('🤱', t('dashboard.milk'), t('dashboard.none'), null);
+        }
 
-    if (ln) {
-        h += item('🧻', t('dashboard.nappy'), ln.detail, ln.timestamp);
-    } else {
-        h += item('🧻', t('dashboard.nappy'), t('dashboard.none'), null);
-    }
+        if (ln) {
+            h += item('🧻', t('dashboard.nappy'), ln.detail, ln.timestamp);
+        } else {
+            h += item('🧻', t('dashboard.nappy'), t('dashboard.none'), null);
+        }
 
-    if (lmed) {
-        const d = parseDetail(lmed.detail);
-        h += item('💊', t('dashboard.medication'), `${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}`, lmed.timestamp);
-    } else {
-        h += item('💊', t('dashboard.medication'), t('dashboard.none'), null);
-    }
+        if (lmed) {
+            const d = parseDetail(lmed.detail);
+            h += item('💊', t('dashboard.medication'), `${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}`, lmed.timestamp);
+        } else {
+            h += item('💊', t('dashboard.medication'), t('dashboard.none'), null);
+        }
 
-    if (na) {
-        const d = parseDetail(na.detail);
-        h += item('📅', t('dashboard.next_appt'), escapeHTML(d.title||'—'), na.timestamp);
-    } else {
-        h += item('📅', t('dashboard.next_appt'), t('dashboard.none'), null);
-    }
+        if (na) {
+            const d = parseDetail(na.detail);
+            h += item('📅', t('dashboard.next_appt'), escapeHTML(d.title||'—'), na.timestamp);
+        } else {
+            h += item('📅', t('dashboard.next_appt'), t('dashboard.none'), null);
+        }
 
-    dash.innerHTML = h;
-}
+        dash.innerHTML = h;
     }
 
     function renderMedicationTimers() {
