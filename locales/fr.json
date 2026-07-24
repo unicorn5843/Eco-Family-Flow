@@ -1,0 +1,118 @@
+{
+  "welcome": {
+    "cta": "🌿 Commencer",
+    "subtitle": "Le compagnon parental dont vous ne saviez pas que vous aviez besoin",
+    "intro": "Les premières années sont magiques — mais elles sont aussi épuisantes...",
+    "whatitdoes": "Voici ce que fait Eco Family Flow :",
+    "point1title": "Suivez chaque tétée",
+    "point1desc": "Enregistrez l'allaitement, le tire-lait et le lait maternisé en quelques secondes.",
+    "point2title": "Surveillez les indicateurs de santé",
+    "point2desc": "Suivez les couches, les médicaments, la santé de la peau et le temps sur le ventre.",
+    "point3title": "Construisez votre historique médical",
+    "point3desc": "Prenez des notes lors des visites à l'hôpital et des rendez-vous.",
+    "point4title": "Économisez là où ça compte",
+    "point4desc": "Comparez les prix des couches et du lait maternisé pour trouver la meilleure offre.",
+    "point5title": "Partagez avec votre partenaire",
+    "point5desc": "Synchronisez les données avec votre partenaire ou d'autres aidants en temps réel.",
+    "privacy_title": "Tranquillité d'esprit intégrée",
+    "privacy_desc": "Vos données sont privées, stockées en toute sécurité et jamais partagées. Pas de publicités. Pas de vente de vos informations."
+  },
+  "family": {
+    "setup_title": "Configurez votre famille",
+    "setup_desc": "Associez votre compte à un partenaire pour partager et synchroniser les données en temps réel.",
+    "create_title": "Créer une nouvelle famille",
+    "name_placeholder": "Nom de la famille (facultatif)",
+    "create_btn": "Créer une famille",
+    "join_title": "Rejoindre une famille existante",
+    "join_desc": "Demandez à votre partenaire le <strong>code d'invitation à 6 chiffres</strong> depuis leur page Compte.",
+    "code_placeholder": "Code d'invitation (ex. AB3X9K)",
+    "join_btn": "Rejoindre la famille",
+    "skip": "Ignorer pour l'instant – je le configurerai plus tard"
+  },
+  "footer": { "night": "Nuit", "units": "Unités FR", "account": "Compte" },
+  "tabs": {
+    "info": "Votre guide", "milk": "Lait", "formula": "Lait maternisé", "nappy": "Couche",
+    "skin": "Peau/Ventre", "meds": "Médicaments", "hospital": "Hôpital", "trending": "Tendances",
+    "deals": "Promos", "stash": "Stock", "appointments": "Rendez-vous", "savings": "Économies",
+    "notes": "Notes privées", "emergency": "Urgence"
+  },
+  "dashboard": {
+    "milk": "Lait", "pump": "Tire-lait", "feed": "Tétée", "nappy": "Couche",
+    "medication": "Médicament", "next_appt": "Prochain RDV", "none": "—"
+  },
+  "fridge": { "title": "🧊 Note pour le frigo", "no_note": "Pas encore de note. Appuyez sur ✏️ pour ajouter." },
+  "guide": {
+    "title": "📘 Votre guide",
+    "milk_title": "Lait", "milk_desc": "Suivez les séances d'allaitement / tire-lait. Affiche un graphique offre vs demande.",
+    "formula_title": "Lait maternisé", "formula_desc": "Enregistrez les biberons (ml) avec une moyenne sur 7 jours.",
+    "nappy_title": "Couche", "nappy_desc": "Enregistrez mouillée, sale, ou les deux. Graphiques de tendances séparés.",
+    "skin_title": "Peau/Ventre", "skin_desc": "Enregistrez peau-à-peau et temps sur le ventre avec des moyennes sur 7 jours.",
+    "meds_title": "Médicaments", "meds_desc": "Enregistrez les médicaments. Minuteur en direct. Définissez des rappels natifs.",
+    "hospital_title": "Hôpital", "hospital_desc": "Notes de toute visite médicale.",
+    "trending_title": "Tendances", "trending_desc": "Schémas sur 7 jours, graphiques mensuels, prévisions et export PDF.",
+    "deals_title": "Promos", "deals_desc": "Comparez les prix par couche/lingette/lait maternisé entre les marques.",
+    "stash_title": "Stock", "stash_desc": "Suivez manuellement l'inventaire de lait maternel congelé.",
+    "appts_title": "Rendez-vous", "appts_desc": "Planifiez, modifiez et gérez les rendez-vous. Archivage automatique.",
+    "savings_title": "Économies", "savings_desc": "Liens rapides vers les offres promotionnelles.",
+    "notes_title": "Notes privées", "notes_desc": "Stockées uniquement sur cet appareil, jamais synchronisées.",
+    "emergency_title": "Urgence", "emergency_desc": "Recherche en un clic pour les pharmacies, les urgences ou les médecins.",
+    "privacy_why": "👶 Pourquoi \"Enfant A\", \"Enfant B\" … ?",
+    "privacy_explanation": "Des étiquettes génériques protègent la vie privée de votre famille.",
+    "report_title": "📋 Rapport complet PDF",
+    "report_desc": "Disponible sur la page Tendances – génère un PDF de style médical couvrant tous les mois."
+  },
+  "milk": {
+    "supply_title": "📊 État de l'approvisionnement (tendance 7 jours)",
+    "pump": "Tirer", "feed": "Téter", "left": "Gauche", "right": "Droite", "both": "Les deux",
+    "amt_placeholder": "Quantité (ml)", "save": "Enregistrer le lait",
+    "pumped_label": "Tiré", "feed_label": "Tétée", "avg_label": "Moy. 7 jours"
+  },
+  "formula": { "amt_placeholder": "Quantité (ml)", "save": "Enregistrer le lait maternisé" },
+  "nappy": { "wee": "💧 Pipi", "poo": "💩 Caca", "both": "♻️ Les deux", "save": "Enregistrer la couche" },
+  "skin": { "skin_title": "🤱 Peau-à-peau", "tummy_title": "👶 Temps sur le ventre", "save_skin": "Enregistrer peau-à-peau", "save_tummy": "Enregistrer temps sur le ventre" },
+  "meds": {
+    "name": "Nom du médicament", "dosage": "Dosage (ex. 5ml)", "save": "Enregistrer le médicament",
+    "reminder_label": "⏰ Définir un rappel ?", "no_reminder": "Pas de rappel", "in_4h": "Dans 4 h", "in_6h": "Dans 6 h", "in_8h": "Dans 8 h", "in_12h": "Dans 12 h",
+    "time_since_label": "💊 Temps écoulé depuis la dernière dose", "recent_history": "Historique récent"
+  },
+  "hospital": { "hospital_name": "Nom de l'hôpital", "notes": "Notes…", "save": "Enregistrer la note", "recent_notes": "📋 Notes récentes" },
+  "trending": {
+    "title": "📈 Données de tendances",
+    "combined_feeding": "🍽️ Alimentation combinée (7 derniers jours)",
+    "nappies": "🧻 Couches (7 derniers jours)",
+    "skin_tummy": "💖 Peau-à-peau et temps sur le ventre (14 derniers jours)",
+    "recent_feed_log": "📋 Journal d'alimentation récent", "recent_nappy_log": "📋 Journal de couches récent",
+    "monthly_milk": "🥛 Lait mensuel", "monthly_formula": "🍼 Lait maternisé mensuel",
+    "monthly_nappies": "🧻 Couches mensuelles",
+    "download_csv": "📥 Télécharger toutes les données (CSV)", "download_pdf": "📋 Rapport complet (PDF)"
+  },
+  "deals": { "title": "🛒 Trouvez la meilleure offre", "brand": "Marque", "size": "Taille" },
+  "stash": { "title": "❄️ Stock de lait", "add": "➕ Ajouter", "remove": "➖ Retirer", "manual": "Mises à jour manuelles uniquement" },
+  "appointments": {
+    "new": "📅 Nouveau rendez-vous", "edit": "✏️ Modifier", "update": "💾 Mettre à jour",
+    "save": "Enregistrer", "title_placeholder": "Titre", "location_placeholder": "Lieu",
+    "notes_placeholder": "Notes", "upcoming": "📌 À venir", "past": "🗂️ Rendez-vous passés"
+  },
+  "savings": { "title": "💰 Économisez de l'argent" },
+  "notes": {
+    "new_note": "✍️ Nouvelle note", "save": "💾 Enregistrer", "placeholder_title": "Titre",
+    "placeholder_content": "Écrivez votre note ici…", "your_notes": "📋 Vos notes"
+  },
+  "emergency": { "title": "🚨 Accès rapide", "pharmacy": "💊 Pharmacies", "ae": "🏥 Urgences", "gp": "👨‍⚕️ Médecin" },
+  "account": {
+    "title": "👤 Compte", "signed_in": "Connecté en tant que", "family_name": "Nom de la famille",
+    "family_id": "ID Famille", "invite_code": "Code d'invitation", "members": "Membres",
+    "join_family": "🔗 Rejoindre une famille", "copy_code": "📋 Copier le code", "privacy": "🔒 Politique de confidentialité"
+  },
+  "general": {
+    "share": "Partager", "recent_history": "Historique récent", "start": "Début", "end": "Fin",
+    "no_data": "Aucune entrée", "delete_confirm": "Supprimer cette entrée ?",
+    "no_notes": "Pas encore de notes privées. Créez-en une ci-dessus ✍️", "empty_note": "(vide)",
+    "enter_valid_amount": "Veuillez entrer un montant valide",
+    "select_datetime": "Veuillez sélectionner une date/heure.",
+    "saved": "Enregistré ! ✓", "saving": "Enregistrement…",
+    "product_loading": "Chargement des produits…", "product_error": "Erreur de chargement.",
+    "child_a": "Enfant A", "child_b": "Enfant B", "child_c": "Enfant C", "child_d": "Enfant D", "child_e": "Enfant E"
+  },
+  "supply": { "surplus": "Surplus", "balanced": "Équilibré", "deficit": "Légère déficience", "critical": "Déficience critique" }
+}
