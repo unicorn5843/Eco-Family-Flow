@@ -44,11 +44,11 @@
     "medication": "Meddyginiaeth",
     "next_appt": "Apwyntiad Nesaf",
     "none": "—"
-},
-"fridge": {
+  },
+  "fridge": {
     "title": "🧊 Nodyn Oergell Cegin",
     "no_note": "Dim nodyn eto. Tapiwch ✏️ i ychwanegu."
-}
+  },
   "guide": {
     "title": "📘 Eich Canllaw",
     "milk_title": "Llaeth", "milk_desc": "Olrhain sesiynau bwydo ar y fron / pwmpio. Yn dangos siart cyflenwad yn erbyn galw.",
