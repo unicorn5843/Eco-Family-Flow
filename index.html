@@ -6,6 +6,8 @@
     <title>Eco Family Flow</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <meta name="description" content="Track feeds, nappies, medications, appointments and more for your baby — private, ad-free, and shareable with your partner.">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -513,7 +515,12 @@
                 <div class="card">
                     <h3 data-i18n="account.privacy">🔒 Privacy Policy</h3>
                     <p>Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p>
-                    <p><a href="https://github.com/unicorn5843/Eco-Family-Flow/blob/main/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
+                    <p><a href="https://unicorn5843.github.io/Eco-Family-Flow/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
+                </div>
+                <div class="card">
+                    <h3 data-i18n="account.delete_title">🗑️ Delete Account &amp; Data</h3>
+                    <p style="font-size:14px;opacity:0.8;" data-i18n="account.delete_desc">This permanently deletes your logs, stash balance and family membership from our servers. This cannot be undone.</p>
+                    <button class="save-btn" style="background:#e74c3c;" onclick="window.deleteAccount()" data-i18n="account.delete_btn">Delete Account &amp; Data</button>
                 </div>
             </div>
         </main>
@@ -533,7 +540,7 @@
     'use strict';
 
     // ── Debug ─────────────────────────────────────────────────────────────────
-    const DEBUG_MODE = true;
+    const DEBUG_MODE = false;
     function debugLog(msg, data) { if (DEBUG_MODE) console.log('[ECO]', msg, data || ''); }
     const isLowMem = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
 
@@ -640,7 +647,10 @@
         account: {
             title: "👤 Account", signed_in: "Signed in as", family_name: "Family Name",
             family_id: "Family ID", invite_code: "Invite Code", members: "Members",
-            join_family: "🔗 Join a Family", copy_code: "📋 Copy Code", privacy: "🔒 Privacy Policy"
+            join_family: "🔗 Join a Family", copy_code: "📋 Copy Code", privacy: "🔒 Privacy Policy",
+            delete_title: "🗑️ Delete Account & Data",
+            delete_desc: "This permanently deletes your logs, stash balance and family membership from our servers. This cannot be undone.",
+            delete_btn: "Delete Account & Data"
         },
         general: {
             share: "Share", recent_history: "Recent History", start: "Start", end: "End",
@@ -1096,7 +1106,7 @@
         const label = `💊 ${medName}${dosage ? ' – ' + dosage : ''} for ${state.currentChild}`;
         if ('Notification' in window) {
             Notification.requestPermission().then(p => {
-                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'/icon-192.png' }), hours * 3600000);
+                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'./icon-192.png' }), hours * 3600000);
             });
         }
     }
@@ -1830,14 +1840,55 @@
     };
 
     window.deleteAccount = async () => {
-        if (!confirm('Permanently delete all your data? This cannot be undone.')) return;
+        if (!window.auth?.currentUser) return;
+        if (!confirm('Permanently delete all your data? This removes your logs, stash balance and family membership, and cannot be undone.')) return;
         try {
-            const { query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const snap = await getDocs(fsQuery(fsColl(window.db,'logs'), fsWhere('email','==',window.auth.currentUser.email)));
-            snap.docs.forEach(doc => fsDeleteDoc(doc.ref));
-            alert('Account deleted.');
-            window.logout();
-        } catch(e) { console.error(e); showError('Could not delete account'); }
+            const user  = window.auth.currentUser;
+            const email = user.email;
+            const uid   = user.uid;
+            const {
+                query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc,
+                collection: fsColl, doc: fsDoc, updateDoc: fsUpdateDoc, arrayRemove
+            } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
+
+            // 1. Delete every log entry for this user
+            const logsSnap = await getDocs(fsQuery(fsColl(window.db, 'logs'), fsWhere('email', '==', email)));
+            await Promise.all(logsSnap.docs.map(d => fsDeleteDoc(d.ref)));
+
+            // 2. Delete stash balances for every child profile
+            await Promise.all(state.children.map(c =>
+                fsDeleteDoc(fsDoc(window.db, 'stash', `${uid}_${c.name}`)).catch(() => {})
+            ));
+
+            // 3. Leave or remove any family this account belongs to
+            const famSnap = await getDocs(fsQuery(fsColl(window.db, 'families'), fsWhere('members', 'array-contains', email)));
+            await Promise.all(famSnap.docs.map(d =>
+                d.data().createdBy === email
+                    ? fsDeleteDoc(d.ref)
+                    : fsUpdateDoc(d.ref, { members: arrayRemove(email) })
+            ));
+
+            // 4. Clear on-device data tied to this account
+            localStorage.removeItem('ecoPrivateNotes');
+            localStorage.removeItem('ecoFridgeNotes');
+            localStorage.removeItem('familySetupComplete');
+            localStorage.removeItem('myInviteCode');
+
+            // 5. Remove the sign-in record itself (may require a recent login)
+            try {
+                await deleteUser(user);
+                alert('Your account and all associated data have been deleted.');
+                window.location.reload();
+            } catch (authErr) {
+                console.warn('Could not remove sign-in record, data was still wiped:', authErr);
+                alert('Your data has been deleted. To fully remove your sign-in, please sign out, sign back in, then delete once more.');
+                window.logout();
+            }
+        } catch (e) {
+            console.error(e);
+            showError('Could not delete account. Please try again or contact support.');
+        }
     };
 
     // ── Share ─────────────────────────────────────────────────────────────────
@@ -1890,6 +1941,15 @@
     };
 
 })();
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('[SW] Registered:', reg.scope))
+                .catch(err => console.warn('[SW] Registration failed:', err));
+        });
+    }
 </script>
 </body>
 </html>
