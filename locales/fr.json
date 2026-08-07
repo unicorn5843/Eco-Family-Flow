@@ -102,7 +102,10 @@
   "account": {
     "title": "👤 Compte", "signed_in": "Connecté en tant que", "family_name": "Nom de la famille",
     "family_id": "ID Famille", "invite_code": "Code d'invitation", "members": "Membres",
-    "join_family": "🔗 Rejoindre une famille", "copy_code": "📋 Copier le code", "privacy": "🔒 Politique de confidentialité"
+    "join_family": "🔗 Rejoindre une famille", "copy_code": "📋 Copier le code", "privacy": "🔒 Politique de confidentialité",
+    "delete_title": "🗑️ Supprimer le compte et les données",
+    "delete_desc": "Cela supprime définitivement vos journaux, votre solde de réserve et votre appartenance à la famille de nos serveurs. Cette action est irréversible.",
+    "delete_btn": "Supprimer le compte et les données"
   },
   "general": {
     "share": "Partager", "recent_history": "Historique récent", "start": "Début", "end": "Fin",
