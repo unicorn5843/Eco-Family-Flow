@@ -121,7 +121,10 @@
   "account": {
     "title": "👤 Cyfrif", "signed_in": "Mewngofnodi fel", "family_name": "Enw'r Teulu",
     "family_id": "ID Teulu", "invite_code": "Cod Gwahoddiad", "members": "Aelodau",
-    "join_family": "🔗 Ymuno â Theulu", "copy_code": "📋 Copïo Cod", "privacy": "🔒 Polisi Preifatrwydd"
+    "join_family": "🔗 Ymuno â Theulu", "copy_code": "📋 Copïo Cod", "privacy": "🔒 Polisi Preifatrwydd",
+    "delete_title": "🗑️ Dileu Cyfrif a Data",
+    "delete_desc": "Bydd hyn yn dileu eich cofnodion, balans storfa, ac aelodaeth deuluol o'n gweinyddion yn barhaol. Ni ellir dad-wneud hyn.",
+    "delete_btn": "Dileu Cyfrif a Data"
   },
   "general": {
     "share": "Rhannu", "recent_history": "Hanes Diweddar", "start": "Dechrau", "end": "Gorffen",
