@@ -1,12 +1,19 @@
 {
+  "id": "/Eco-Family-Flow/",
   "name": "Eco Family Flow",
   "short_name": "EcoFlow",
+  "description": "Track feeds, nappies, medications, appointments and more for your baby — private, ad-free, and shareable with your partner.",
   "start_url": "/Eco-Family-Flow/",
+  "scope": "/Eco-Family-Flow/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#f2f7f4",
   "theme_color": "#8fbca0",
+  "lang": "en-GB",
+  "categories": ["lifestyle", "health"],
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }
