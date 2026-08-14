@@ -6,8 +6,6 @@
     <title>Eco Family Flow</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8fbca0">
-    <link rel="icon" type="image/png" href="icon-192.png">
-    <meta name="description" content="Track feeds, nappies, medications, appointments and more for your baby — private, ad-free, and shareable with your partner.">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -124,12 +122,8 @@
         .med-name { font-weight:bold; font-size:16px; margin-bottom:4px; } .med-time { font-size:13px; font-weight:600; color:var(--accent-dark); }
         .hospital-note-item { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; border:1px solid var(--border); }
         .hospital-name { font-weight:bold; font-size:15px; margin-bottom:4px; } .hospital-note-text { font-size:14px; margin:8px 0; white-space:pre-wrap; } .hospital-timestamp { font-size:12px; opacity:0.7; }
-        .product-card { background:var(--card); border-radius:12px; padding:15px; margin-bottom:10px; border:1px solid var(--border); }
-        .price-per-unit { background:var(--accent); color:white; padding:3px 8px; border-radius:20px; font-size:12px; display:inline-block; margin-left:10px; }
         .fridge-note { background:#fef9c3; padding:10px; border-radius:8px; margin-bottom:15px; color:#1f2937; }
         .pro-only { display:flex; }
-        .category-chip { padding:10px 16px; border-radius:30px; background:var(--card); border:1px solid var(--border); color:var(--text); font-size:14px; font-weight:600; cursor:pointer; }
-        .category-chip.active { background:var(--accent); color:white; border-color:var(--accent); }
         .calendar-btn { background:none; border:1px solid var(--accent); color:var(--accent-dark); padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; margin-left:10px; }
         .paywall-overlay { display:none; }
         #report-container { position:absolute; left:-9999px; top:0; width:800px; background:white; color:black; font-family:Arial,sans-serif; padding:20px; box-sizing:border-box; }
@@ -219,7 +213,7 @@
             </div>
             <div class="card" style="background:var(--bg);text-align:center;font-size:14px;padding:12px;">
                 <p style="margin:0;font-style:italic;">"I created this app for me, now I'll share it with you."</p>
-                <p style="margin:5px 0 0;opacity:0.7;">— Creator</p>
+                <p style="margin:5px 0 0;opacity:0.7;">— Rav</p>
             </div>
         </div>
     </div>
@@ -243,10 +237,9 @@
             <div class="header-title" onclick="window.goToWelcome()" title="Back to welcome">Eco Family Flow</div>
             <div class="header-right">
                 <select id="lang-select">
-    <option value="en">🇬🇧 EN</option>
-    <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 CY</option>
-    <option value="fr">🇫🇷 FR</option>
-</select>
+                    <option value="en">🇬🇧 EN</option>
+                    <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 CY</option>
+                </select>
             </div>
         </div>
 
@@ -265,7 +258,6 @@
             <div id="tab-meds"         class="nav-tile"        onclick="window.switchTab('meds')">        <span class="nav-emoji">💊</span><span class="nav-label" data-i18n="tabs.meds">Meds</span></div>
             <div id="tab-hospital"     class="nav-tile"        onclick="window.switchTab('hospital')">    <span class="nav-emoji">🏥</span><span class="nav-label" data-i18n="tabs.hospital">Hospital</span></div>
             <div id="tab-trending"     class="nav-tile"        onclick="window.switchTab('trending')">    <span class="nav-emoji">📈</span><span class="nav-label" data-i18n="tabs.trending">Trending</span></div>
-            <div id="tab-deals"        class="nav-tile"        onclick="window.switchTab('deals')">       <span class="nav-emoji">🛒</span><span class="nav-label" data-i18n="tabs.deals">Deals</span></div>
             <div id="tab-stash"        class="nav-tile"        onclick="window.switchTab('stash')">       <span class="nav-emoji">❄️</span><span class="nav-label" data-i18n="tabs.stash">Stash</span></div>
             <div id="tab-appointments" class="nav-tile"        onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label" data-i18n="tabs.appointments">Appts</span></div>
             <div id="tab-savings"      class="nav-tile"        onclick="window.switchTab('savings')">     <span class="nav-emoji">💰</span><span class="nav-label" data-i18n="tabs.savings">Savings</span></div>
@@ -287,7 +279,6 @@
                     <tr><td>💊</td><td><strong data-i18n="guide.meds_title">Meds</strong> – <span data-i18n="guide.meds_desc">Log medications. Live timer shows time since last dose. Set native reminders.</span></td></tr>
                     <tr><td>🏥</td><td><strong data-i18n="guide.hospital_title">Hospital</strong> – <span data-i18n="guide.hospital_desc">Notes from any medical visit.</span></td></tr>
                     <tr><td>📈</td><td><strong data-i18n="guide.trending_title">Trending</strong> – <span data-i18n="guide.trending_desc">7-day patterns, monthly charts, forecasts, and PDF report export.</span></td></tr>
-                    <tr><td>🛒</td><td><strong data-i18n="guide.deals_title">Deals</strong> – <span data-i18n="guide.deals_desc">Compare prices per nappy/wipe/formula across brands.</span></td></tr>
                     <tr><td>❄️</td><td><strong data-i18n="guide.stash_title">Stash</strong> – <span data-i18n="guide.stash_desc">Manually track frozen breastmilk inventory.</span></td></tr>
                     <tr><td>📅</td><td><strong data-i18n="guide.appts_title">Appts</strong> – <span data-i18n="guide.appts_desc">Schedule, edit and manage appointments. Past appointments are archived for reference.</span></td></tr>
                     <tr><td>💰</td><td><strong data-i18n="guide.savings_title">Savings</strong> – <span data-i18n="guide.savings_desc">Quick links to money‑saving offers.</span></td></tr>
@@ -414,26 +405,6 @@
                 </div>
             </div>
 
-            <!-- DEALS -->
-            <div id="page-deals" class="page">
-                <div class="card"><h3 data-i18n="deals.title">🛒 Find Best Value</h3></div>
-                <div class="card" id="category-chips-container">
-                    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
-                        <button class="category-chip active" data-category="">All</button>
-                        <button class="category-chip" data-category="Nappies">🧻 Nappies</button>
-                        <button class="category-chip" data-category="Wipes">🧼 Wipes</button>
-                        <button class="category-chip" data-category="Formula">🍼 Formula</button>
-                        <button class="category-chip" data-category="Dummies">👶 Dummies</button>
-                        <button class="category-chip" data-category="Bottles">🥛 Bottles</button>
-                    </div>
-                </div>
-                <div class="card">
-                    <div class="input-group"><label data-i18n="deals.brand">Brand</label><select id="brand-filter"><option value="">All Brands</option></select></div>
-                    <div class="input-group"><label data-i18n="deals.size">Size</label><select id="size-filter"><option value="">All Sizes</option></select></div>
-                </div>
-                <div id="product-list">Loading products…</div>
-            </div>
-
             <!-- NOTES -->
             <div id="page-notes" class="page">
                 <div class="card" style="background:var(--accent-dark);color:white;"><p style="margin:0;">🔒 Private Notes are stored only on this device and are never synced or uploaded.</p></div>
@@ -515,12 +486,7 @@
                 <div class="card">
                     <h3 data-i18n="account.privacy">🔒 Privacy Policy</h3>
                     <p>Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p>
-                    <p><a href="https://unicorn5843.github.io/Eco-Family-Flow/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
-                </div>
-                <div class="card">
-                    <h3 data-i18n="account.delete_title">🗑️ Delete Account &amp; Data</h3>
-                    <p style="font-size:14px;opacity:0.8;" data-i18n="account.delete_desc">This permanently deletes your logs, stash balance and family membership from our servers. This cannot be undone.</p>
-                    <button class="save-btn" style="background:#e74c3c;" onclick="window.deleteAccount()" data-i18n="account.delete_btn">Delete Account &amp; Data</button>
+                    <p><a href="https://github.com/unicorn5843/Eco-Family-Flow/blob/main/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
                 </div>
             </div>
         </main>
@@ -540,7 +506,7 @@
     'use strict';
 
     // ── Debug ─────────────────────────────────────────────────────────────────
-    const DEBUG_MODE = false;
+    const DEBUG_MODE = true;
     function debugLog(msg, data) { if (DEBUG_MODE) console.log('[ECO]', msg, data || ''); }
     const isLowMem = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
 
@@ -578,7 +544,7 @@
         tabs: {
             info: "Your Guide", milk: "Milk", formula: "Formula", nappy: "Nappy",
             skin: "Skin/Tummy", meds: "Meds", hospital: "Hospital", trending: "Trending",
-            deals: "Deals", stash: "Stash", appointments: "Appts", savings: "Savings",
+            stash: "Stash", appointments: "Appts", savings: "Savings",
             notes: "Private Notes", emergency: "Emergency"
         },
         guide: {
@@ -590,7 +556,6 @@
             meds_title: "Meds", meds_desc: "Log medications. Live timer shows time since last dose. Set native reminders.",
             hospital_title: "Hospital", hospital_desc: "Notes from any medical visit.",
             trending_title: "Trending", trending_desc: "7-day patterns, monthly charts, forecasts, and PDF report export.",
-            deals_title: "Deals", deals_desc: "Compare prices per nappy/wipe/formula across brands.",
             stash_title: "Stash", stash_desc: "Manually track frozen breastmilk inventory.",
             appts_title: "Appts", appts_desc: "Schedule, edit and manage appointments. Past appointments are archived for reference.",
             savings_title: "Savings", savings_desc: "Quick links to money‑saving offers.",
@@ -631,7 +596,6 @@
             monthly_nappies: "🧻 Monthly Nappies",
             download_csv: "📥 Download All Data (CSV)", download_pdf: "📋 Full Child Report (PDF)"
         },
-        deals: { title: "🛒 Find Best Value", brand: "Brand", size: "Size" },
         stash: { title: "❄️ Milk Stash", add: "➕ Add", remove: "➖ Remove", manual: "Manual updates only" },
         appointments: {
             new: "📅 New Appointment", edit: "✏️ Edit Appointment", update: "💾 Update Appointment",
@@ -647,10 +611,7 @@
         account: {
             title: "👤 Account", signed_in: "Signed in as", family_name: "Family Name",
             family_id: "Family ID", invite_code: "Invite Code", members: "Members",
-            join_family: "🔗 Join a Family", copy_code: "📋 Copy Code", privacy: "🔒 Privacy Policy",
-            delete_title: "🗑️ Delete Account & Data",
-            delete_desc: "This permanently deletes your logs, stash balance and family membership from our servers. This cannot be undone.",
-            delete_btn: "Delete Account & Data"
+            join_family: "🔗 Join a Family", copy_code: "📋 Copy Code", privacy: "🔒 Privacy Policy"
         },
         general: {
             share: "Share", recent_history: "Recent History", start: "Start", end: "End",
@@ -752,11 +713,9 @@
     function generateInviteCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
 
     // ── App state ─────────────────────────────────────────────────────────────
-    let currentCategory = '';
     let state = {
         units: 'UK', tab: 'milk', currentChild: 'Child A',
         logs: [],
-        allProducts: [],
         trialStatus: { isPro: true, daysLeft: 9999 },
         children: [
             { name:'Child A', color:'#8fbca0' },
@@ -840,7 +799,6 @@
         window.resetTimeInputs();
 
         await window.refreshData();
-        if (state.tab === 'deals')   loadProducts();
         if (state.tab === 'stash')   fetchStashBalance();
         if (state.tab === 'account') loadAccountDetails();
         renderUI();
@@ -1106,7 +1064,7 @@
         const label = `💊 ${medName}${dosage ? ' – ' + dosage : ''} for ${state.currentChild}`;
         if ('Notification' in window) {
             Notification.requestPermission().then(p => {
-                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'./icon-192.png' }), hours * 3600000);
+                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'/icon-192.png' }), hours * 3600000);
             });
         }
     }
@@ -1607,79 +1565,6 @@
         } catch(e) { console.error(e); showError('UI error: ' + e.message); }
     };
 
-    // ── Deals / Products ──────────────────────────────────────────────────────
-    async function loadProducts() {
-        try {
-            const r = await fetch('affiliate-links.json');
-            state.allProducts = await r.json();
-            if (!Array.isArray(state.allProducts)) state.allProducts = [];
-            updateBrandFilter(); updateSizeFilter(); renderProductList();
-            const cc = document.getElementById('category-chips-container');
-            if (cc && !cc.dataset.lx) {
-                cc.addEventListener('click', e => {
-                    const chip = e.target.closest('.category-chip');
-                    if (!chip) return;
-                    cc.querySelectorAll('.category-chip').forEach(c => c.classList.remove('active'));
-                    chip.classList.add('active');
-                    currentCategory = chip.dataset.category;
-                    updateBrandFilter(); updateSizeFilter(); renderProductList();
-                });
-                cc.dataset.lx = '1';
-            }
-        } catch { document.getElementById('product-list').innerHTML = '<p style="text-align:center;">Error loading products.</p>'; }
-    }
-
-    function updateBrandFilter() {
-        const s = document.getElementById('brand-filter');
-        const b = [...new Set(state.allProducts.filter(p => !currentCategory || p.category === currentCategory).map(p => p.brand))];
-        s.innerHTML = '<option value="">All Brands</option>';
-        b.sort().forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; s.appendChild(o); });
-        s.onchange = () => { updateSizeFilter(); renderProductList(); };
-    }
-
-    function updateSizeFilter() {
-        const br = document.getElementById('brand-filter').value;
-        const s  = document.getElementById('size-filter');
-        const sz = [...new Set(state.allProducts.filter(p => (!currentCategory||p.category===currentCategory) && (!br||p.brand===br)).map(p => p.size))];
-        s.innerHTML = '<option value="">All Sizes</option>';
-        sz.sort().forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; s.appendChild(o); });
-        s.onchange = renderProductList;
-    }
-
-    function renderProductList() {
-        const br = document.getElementById('brand-filter').value, sz = document.getElementById('size-filter').value;
-        let fl   = state.allProducts.filter(p => (!currentCategory||p.category===currentCategory) && (!br||p.brand===br) && (!sz||p.size===sz));
-        fl       = fl.map(p => ({...p, ppu: p.price/p.quantity})).sort((a,b) => a.ppu - b.ppu);
-        const c  = document.getElementById('product-list');
-        if (!fl.length) { c.innerHTML = '<p style="text-align:center;">No products match filters.</p>'; return; }
-        c.innerHTML = fl.map((p,i) => {
-            const ud = p.unit==='nappy'?'per nappy':p.unit==='wipe'?'per wipe':`per ${p.unit}`;
-            return `<div class="product-card" style="${i===0?'border:2px solid var(--accent);':''}">
-                ${i===0?'<div style="background:var(--accent);color:white;padding:2px 8px;border-radius:20px;font-size:12px;display:inline-block;margin-bottom:8px;">🏆 Best Value</div>':''}
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                    <div><h4 style="margin:0 0 4px;">${escapeHTML(p.brand)} ${escapeHTML(p.name)}</h4>
-                    <div style="opacity:0.7;">${escapeHTML(p.size)} • ${p.quantity} ${p.unit}s</div>
-                    <div><span style="font-size:20px;">£${p.price.toFixed(2)}</span><span class="price-per-unit">£${p.ppu.toFixed(3)} ${ud}</span></div></div>
-                    <a href="${escapeHTML(p.affiliatelink)}" target="_blank" rel="nofollow" style="background:var(--accent-dark);color:white;padding:10px 15px;border-radius:8px;text-decoration:none;flex-shrink:0;margin-left:10px;">Buy</a>
-                </div></div>`;
-        }).join('');
-    }
-
-    // ── Emergency ─────────────────────────────────────────────────────────────
-    window.findNearby = (query) => {
-        const fb = document.getElementById('emergency-fallback');
-        const open = (lat, lon) => {
-            const apple = /iPhone|iPad|iPod/.test(navigator.userAgent);
-            const url   = (lat&&lon)
-                ? (apple ? `maps://maps.apple.com/?q=${encodeURIComponent(query)}&ll=${lat},${lon}` : `https://www.google.com/maps/search/${encodeURIComponent(query)}/@${lat},${lon},14z`)
-                : `https://www.google.com/maps/search/${encodeURIComponent(query)}`;
-            const w = window.open(url, '_blank');
-            if (!w && fb) fb.innerHTML = `<div class="card" style="margin-top:10px;"><a href="${url}" target="_blank" style="color:var(--accent-dark);">Open map manually →</a></div>`;
-        };
-        if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => open(p.coords.latitude, p.coords.longitude), () => open(null,null));
-        else open(null,null);
-    };
-
     // ── Stash ─────────────────────────────────────────────────────────────────
     window.adjustStash = async (change) => {
         if (!window.auth?.currentUser) return;
@@ -1840,55 +1725,14 @@
     };
 
     window.deleteAccount = async () => {
-        if (!window.auth?.currentUser) return;
-        if (!confirm('Permanently delete all your data? This removes your logs, stash balance and family membership, and cannot be undone.')) return;
+        if (!confirm('Permanently delete all your data? This cannot be undone.')) return;
         try {
-            const user  = window.auth.currentUser;
-            const email = user.email;
-            const uid   = user.uid;
-            const {
-                query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc,
-                collection: fsColl, doc: fsDoc, updateDoc: fsUpdateDoc, arrayRemove
-            } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const { deleteUser } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-
-            // 1. Delete every log entry for this user
-            const logsSnap = await getDocs(fsQuery(fsColl(window.db, 'logs'), fsWhere('email', '==', email)));
-            await Promise.all(logsSnap.docs.map(d => fsDeleteDoc(d.ref)));
-
-            // 2. Delete stash balances for every child profile
-            await Promise.all(state.children.map(c =>
-                fsDeleteDoc(fsDoc(window.db, 'stash', `${uid}_${c.name}`)).catch(() => {})
-            ));
-
-            // 3. Leave or remove any family this account belongs to
-            const famSnap = await getDocs(fsQuery(fsColl(window.db, 'families'), fsWhere('members', 'array-contains', email)));
-            await Promise.all(famSnap.docs.map(d =>
-                d.data().createdBy === email
-                    ? fsDeleteDoc(d.ref)
-                    : fsUpdateDoc(d.ref, { members: arrayRemove(email) })
-            ));
-
-            // 4. Clear on-device data tied to this account
-            localStorage.removeItem('ecoPrivateNotes');
-            localStorage.removeItem('ecoFridgeNotes');
-            localStorage.removeItem('familySetupComplete');
-            localStorage.removeItem('myInviteCode');
-
-            // 5. Remove the sign-in record itself (may require a recent login)
-            try {
-                await deleteUser(user);
-                alert('Your account and all associated data have been deleted.');
-                window.location.reload();
-            } catch (authErr) {
-                console.warn('Could not remove sign-in record, data was still wiped:', authErr);
-                alert('Your data has been deleted. To fully remove your sign-in, please sign out, sign back in, then delete once more.');
-                window.logout();
-            }
-        } catch (e) {
-            console.error(e);
-            showError('Could not delete account. Please try again or contact support.');
-        }
+            const { query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(fsQuery(fsColl(window.db,'logs'), fsWhere('email','==',window.auth.currentUser.email)));
+            snap.docs.forEach(doc => fsDeleteDoc(doc.ref));
+            alert('Account deleted.');
+            window.logout();
+        } catch(e) { console.error(e); showError('Could not delete account'); }
     };
 
     // ── Share ─────────────────────────────────────────────────────────────────
@@ -1924,7 +1768,6 @@
         document.querySelectorAll('.page,.nav-tile').forEach(e => e.classList.remove('active'));
         document.getElementById(`page-${tabId}`)?.classList.add('active');
         document.getElementById(`tab-${tabId}`)?.classList.add('active');
-        if (tabId === 'deals')   loadProducts();
         if (tabId === 'stash')   fetchStashBalance();
         if (tabId === 'account') loadAccountDetails();
         renderUI();
@@ -1941,15 +1784,6 @@
     };
 
 })();
-</script>
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('[SW] Registered:', reg.scope))
-                .catch(err => console.warn('[SW] Registration failed:', err));
-        });
-    }
 </script>
 </body>
 </html>
