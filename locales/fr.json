@@ -33,7 +33,7 @@
   "tabs": {
     "info": "Votre guide", "milk": "Lait", "formula": "Lait maternisé", "nappy": "Couche",
     "skin": "Peau/Ventre", "meds": "Médicaments", "hospital": "Hôpital", "trending": "Tendances",
-    "deals": "Promos", "stash": "Stock", "appointments": "Rendez-vous", "savings": "Économies",
+    "stash": "Stock", "appointments": "Rendez-vous", "savings": "Économies",
     "notes": "Notes privées", "emergency": "Urgence"
   },
   "dashboard": {
@@ -50,7 +50,6 @@
     "meds_title": "Médicaments", "meds_desc": "Enregistrez les médicaments. Minuteur en direct. Définissez des rappels natifs.",
     "hospital_title": "Hôpital", "hospital_desc": "Notes de toute visite médicale.",
     "trending_title": "Tendances", "trending_desc": "Schémas sur 7 jours, graphiques mensuels, prévisions et export PDF.",
-    "deals_title": "Promos", "deals_desc": "Comparez les prix par couche/lingette/lait maternisé entre les marques.",
     "stash_title": "Stock", "stash_desc": "Suivez manuellement l'inventaire de lait maternel congelé.",
     "appts_title": "Rendez-vous", "appts_desc": "Planifiez, modifiez et gérez les rendez-vous. Archivage automatique.",
     "savings_title": "Économies", "savings_desc": "Liens rapides vers les offres promotionnelles.",
@@ -86,7 +85,6 @@
     "monthly_nappies": "🧻 Couches mensuelles",
     "download_csv": "📥 Télécharger toutes les données (CSV)", "download_pdf": "📋 Rapport complet (PDF)"
   },
-  "deals": { "title": "🛒 Trouvez la meilleure offre", "brand": "Marque", "size": "Taille" },
   "stash": { "title": "❄️ Stock de lait", "add": "➕ Ajouter", "remove": "➖ Retirer", "manual": "Mises à jour manuelles uniquement" },
   "appointments": {
     "new": "📅 Nouveau rendez-vous", "edit": "✏️ Modifier", "update": "💾 Mettre à jour",
