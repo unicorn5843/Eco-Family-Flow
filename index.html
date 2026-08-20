@@ -1,0 +1,1799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Eco Family Flow</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8fbca0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.6/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script type="module">
+        import { initializeApp }                                         from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider,
+                 onAuthStateChanged, signOut }                           from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, setDoc }
+                                                                          from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey:            "AIzaSyDft1ml5thBUv0rgfoUnlLgPA1AAA3Ebbg",
+            authDomain:        "eco-family-flow-v1.firebaseapp.com",
+            projectId:         "eco-family-flow-v1",
+            storageBucket:     "eco-family-flow-v1.firebasestorage.app",
+            messagingSenderId: "584759224581",
+            appId:             "1:584759224581:web:a8996496db7552b1926f6c"
+        };
+
+        const app      = initializeApp(firebaseConfig);
+        const auth     = getAuth(app);
+        const db       = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        window.auth   = auth;
+        window.db     = db;
+        window.login  = () => signInWithPopup(auth, provider).catch(err => {
+            console.error('Login error:', err);
+            alert('Sign-in failed: ' + err.message);
+        });
+        window.logout = () => signOut(auth).then(() => location.reload());
+
+        onAuthStateChanged(auth, (user) => {
+            const authScreen   = document.getElementById('auth-screen');
+            const appInterface = document.getElementById('app-interface');
+            if (user) {
+                authScreen.style.display   = 'none';
+                appInterface.style.display = 'block';
+                const launchApp = () => {
+                    if (typeof window.initApp === 'function') window.initApp();
+                    else setTimeout(launchApp, 100);
+                };
+                launchApp();
+            } else {
+                authScreen.style.display   = 'flex';
+                appInterface.style.display = 'none';
+            }
+        });
+    </script>
+
+    <style>
+        :root { --bg:#f2f7f4; --card:#ffffff; --text:#2f4f2f; --accent:#8fbca0; --accent-dark:#6a9c7d; --border:#e0ebe3; --btn-text:#ffffff; --delete:#ff6b6b; --warning:#ff9800; --success:#4caf50; --safe-bottom:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px); }
+        body.night { --bg:#1a1a1a; --card:#2a2a2a; --text:#e0d7c6; --accent:#b33a3a; --accent-dark:#8b1a1a; --border:#3a3a3a; --btn-text:#f0e6d3; --delete:#cc0000; --warning:#e67e22; --success:#27ae60; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; margin:0; background:var(--bg); color:var(--text); padding-bottom:calc(90px + var(--safe-bottom)); transition:background-color 0.4s,color 0.4s; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased; }
+        #app-interface { display:none; max-width:500px; margin:0 auto; padding:15px; }
+        .app-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; }
+        .header-left,.header-right { display:flex; align-items:center; gap:8px; width:70px; }
+        .header-left { justify-content:flex-start; } .header-right { justify-content:flex-end; }
+        .header-title { font-size:20px; font-weight:bold; color:var(--accent-dark); margin:0; text-align:center; flex:1; cursor:pointer; }
+        .header-title:active { opacity:0.7; }
+        .header-icon-text { display:flex; flex-direction:column; align-items:center; cursor:pointer; font-size:11px; opacity:0.9; }
+        .header-icon-text span:first-child { font-size:22px; }
+        #lang-select { background:var(--card); border:1px solid var(--border); color:var(--text); padding:4px; border-radius:6px; font-size:12px; outline:none; }
+        #trial-banner { display:none; }
+        .sync-banner { position:fixed; top:0; left:0; right:0; padding:8px; text-align:center; font-size:14px; font-weight:bold; z-index:200; }
+        .banner-offline { background:#ff9800; color:white; } .banner-synced { background:#4caf50; color:white; }
+        .child-selector { display:flex; justify-content:center; flex-wrap:wrap; margin-bottom:15px; gap:5px; }
+        .child-btn { padding:8px 12px; border-radius:20px; background:var(--card); border:1px solid var(--border); color:var(--text); cursor:pointer; font-size:14px; }
+        .child-btn.active { background:var(--accent); color:white; border-color:var(--accent); }
+        .current-child-badge { text-align:center; font-size:14px; margin-top:-10px; margin-bottom:15px; opacity:0.8; }
+        #dashboard { background:var(--card); border-radius:16px; padding:15px; margin-bottom:20px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.04); display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+        .dash-item { display:flex; flex-direction:column; padding:8px; border-radius:12px; background:var(--bg); }
+        .dash-label { font-size:11px; opacity:0.8; text-transform:uppercase; font-weight:600; margin-bottom:4px; }
+        .dash-value { font-size:15px; font-weight:bold; }
+        .dash-time  { font-size:12px; opacity:0.7; }
+        #nav-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
+        .nav-tile { background:var(--card); border-radius:12px; aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid var(--border); cursor:pointer; transition:0.3s; box-shadow:0 4px 6px rgba(0,0,0,0.03); padding:4px; }
+        .nav-tile.wide { grid-column:span 4; aspect-ratio:auto; height:50px; margin-bottom:8px; }
+        .nav-tile.active { border-color:var(--accent); background:rgba(143,188,160,0.1); }
+        .nav-emoji { font-size:24px; margin-bottom:2px; } .nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; text-align:center; }
+        .page { display:none; animation:fadeIn 0.3s; } .page.active { display:block; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+        .card { background:var(--card); padding:18px; border-radius:16px; margin-bottom:15px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.04); }
+        .input-group { margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px; }
+        .input-group input,.input-group select,.input-group textarea { background:var(--bg); color:var(--text); border:1px solid var(--border); padding:14px; border-radius:10px; box-sizing:border-box; font-size:16px; outline:none; font-family:inherit; width:100%; }
+        .input-group input { flex:1; min-width:80px; } textarea { min-height:80px; resize:vertical; }
+        input:focus,select:focus,textarea:focus { border-color:var(--accent); }
+        .btn-row { display:flex; gap:8px; margin-bottom:12px; }
+        .toggle-btn { flex:1; padding:12px; border-radius:10px; border:1px solid var(--accent); background:var(--card); color:var(--accent-dark); font-weight:600; cursor:pointer; }
+        .toggle-btn.active { background:var(--accent); color:var(--btn-text); }
+        .save-btn { background:var(--accent-dark); color:var(--btn-text); border:none; padding:16px; border-radius:10px; width:100%; font-size:16px; font-weight:bold; cursor:pointer; }
+        .secondary-btn { background:var(--card); color:var(--accent-dark); border:1px solid var(--accent); padding:12px; border-radius:10px; width:100%; font-size:14px; cursor:pointer; margin-top:10px; }
+        .stat-container { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:15px; }
+        .stat-box { background:var(--card); padding:15px; border-radius:14px; text-align:center; border:1px solid var(--border); border-left:4px solid var(--accent); }
+        .stat-val { font-size:22px; font-weight:bold; margin-bottom:4px; } .stat-lbl { font-size:11px; text-transform:uppercase; opacity:0.7; font-weight:600; }
+        .supply-card { background:var(--card); padding:15px; border-radius:14px; margin-bottom:15px; border:2px solid var(--border); }
+        .supply-indicator { display:flex; align-items:center; justify-content:space-between; margin-top:10px; }
+        .supply-bar { flex:1; height:8px; background:var(--border); border-radius:4px; margin:0 10px; overflow:hidden; }
+        .supply-bar-fill { height:100%; background:var(--accent); transition:width 0.3s; }
+        .supply-status { font-weight:bold; padding:5px 10px; border-radius:20px; font-size:12px; }
+        .status-surplus{background:var(--success);color:white} .status-balanced{background:var(--accent);color:white} .status-deficit{background:var(--warning);color:white} .status-critical{background:var(--delete);color:white}
+        .history-list { margin-top:5px; }
+        .history-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); font-size:14px; }
+        .history-item:last-child { border-bottom:none; } .delete-btn { cursor:pointer; opacity:0.6; font-size:18px; margin-left:10px; }
+        #fixed-bottom { position:fixed; bottom:0; left:0; width:100%; height:calc(70px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:var(--card); display:flex; align-items:center; justify-content:space-around; border-top:1px solid var(--border); z-index:100; }
+        .footer-action { display:flex; flex-direction:column; align-items:center; cursor:pointer; font-size:12px; font-weight:600; opacity:0.8; }
+        #auth-screen { position:fixed; inset:0; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000; }
+        .loading { text-align:center; padding:20px; font-weight:bold; color:var(--accent); display:none; }
+        .chart-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:10px; font-size:11px; }
+        .legend-item { display:flex; align-items:center; gap:5px; } .legend-color { width:12px; height:12px; border-radius:3px; }
+        .error-banner { background:#ff6b6b; color:white; padding:12px; border-radius:10px; margin-bottom:15px; display:none; font-size:14px; }
+        .med-timer-card { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid var(--accent); }
+        .med-name { font-weight:bold; font-size:16px; margin-bottom:4px; } .med-time { font-size:13px; font-weight:600; color:var(--accent-dark); }
+        .hospital-note-item { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; border:1px solid var(--border); }
+        .hospital-name { font-weight:bold; font-size:15px; margin-bottom:4px; } .hospital-note-text { font-size:14px; margin:8px 0; white-space:pre-wrap; } .hospital-timestamp { font-size:12px; opacity:0.7; }
+        .fridge-note { background:#fef9c3; padding:10px; border-radius:8px; margin-bottom:15px; color:#1f2937; }
+        .pro-only { display:flex; }
+        .calendar-btn { background:none; border:1px solid var(--accent); color:var(--accent-dark); padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; margin-left:10px; }
+        .paywall-overlay { display:none; }
+        #report-container { position:absolute; left:-9999px; top:0; width:800px; background:white; color:black; font-family:Arial,sans-serif; padding:20px; box-sizing:border-box; }
+        .report-month { margin-bottom:30px; page-break-after:always; }
+        .report-month h2 { color:#2f4f2f; border-bottom:2px solid #8fbca0; padding-bottom:5px; }
+        .report-stats { display:flex; justify-content:space-around; margin:10px 0; }
+        .report-stat { text-align:center; } .report-stat strong { font-size:1.2em; }
+        .guide-table { width:100%; border-collapse:collapse; margin-top:10px; }
+        .guide-table td,.guide-table th { padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; font-size:14px; vertical-align:top; }
+        .guide-table th { font-weight:600; color:var(--accent-dark); background:rgba(143,188,160,0.1); }
+        .guide-table td:first-child { font-size:20px; text-align:center; width:40px; }
+        .note-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
+        .note-card-title { font-weight:700; font-size:16px; margin-bottom:4px; }
+        .note-card-text  { font-size:14px; margin:8px 0; white-space:pre-wrap; line-height:1.4; }
+        .note-card-time  { font-size:12px; color:var(--accent-dark); margin-top:5px; }
+        .note-card-footer{ display:flex; justify-content:flex-end; }
+        #welcome-fixed-cta { position:fixed; top:0; top:var(--safe-top,0px); left:0; right:0; background:var(--bg); padding:12px 15px; z-index:110; box-shadow:0 4px 12px rgba(0,0,0,0.08); display:none; }
+        #welcome-fixed-cta .save-btn { font-size:17px; padding:16px; border-radius:12px; }
+        #page-welcome { padding-top:80px; padding-bottom:20px; }
+        .reminder-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+        .reminder-row label { font-size:14px; font-weight:600; flex-shrink:0; }
+        .reminder-row select { flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
+        .appt-card { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+        .appt-card.past { border-left-color: #aaa; opacity: 0.85; }
+        .appt-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+        .appt-datetime { font-size: 13px; color: var(--accent-dark); margin-bottom: 6px; font-weight: 600; }
+        .appt-detail-row { font-size: 13px; margin-bottom: 3px; opacity: 0.85; }
+        .appt-detail-row span { font-weight: 600; }
+        .appt-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+        .appt-edit-btn { background: var(--accent); color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
+        .appt-cal-btn { background: none; border: 1px solid var(--accent); color: var(--accent-dark); padding: 7px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; flex-shrink: 0; }
+        .appt-del-btn { background: none; border: 1px solid var(--delete); color: var(--delete); padding: 7px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; flex-shrink: 0; margin-left: auto; }
+        #appt-editing-banner { display: none; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+        #appt-cancel-edit-btn { display: none; width: 100%; margin-top: 8px; background: var(--card); color: var(--delete); border: 1px solid var(--delete); padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; }
+        .archive-toggle { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px 16px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .archive-toggle .chevron { transition: transform 0.3s; display: inline-block; }
+        .archive-toggle.open .chevron { transform: rotate(180deg); }
+        #appt-archive-list { display: none; margin-top: 10px; }
+        #appt-archive-list.open { display: block; }
+        .copy-code-btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 8px; }
+    </style>
+</head>
+<body>
+
+<div id="auth-screen">
+    <div class="header-title" style="font-size:28px;margin-bottom:20px;">Eco Family Flow</div>
+    <button onclick="window.login()" class="save-btn" style="width:auto;padding:15px 40px;">Sign in with Google</button>
+</div>
+
+<div id="app-interface">
+    <div id="sync-banner" class="sync-banner" style="display:none;"></div>
+
+    <div id="welcome-fixed-cta">
+        <button class="save-btn" onclick="window.finishWelcome()" data-i18n="welcome.cta">🌿 Get Started</button>
+    </div>
+
+    <!-- WELCOME PAGE -->
+    <div id="page-welcome" class="page active">
+        <div style="padding:20px 0;">
+            <div class="card" style="text-align:center;background:linear-gradient(135deg,rgba(143,188,160,0.15),rgba(143,188,160,0.05));border:none;margin-bottom:20px;">
+                <div style="font-size:48px;margin-bottom:15px;">🌿</div>
+                <h1 style="margin:0 0 10px;font-size:32px;color:var(--accent-dark);">Eco Family Flow</h1>
+                <p style="margin:0;font-size:18px;font-weight:500;opacity:0.9;" data-i18n="welcome.subtitle">The parenting companion you didn't know you needed</p>
+            </div>
+            <div class="card" style="background:transparent;border:none;text-align:center;margin-bottom:20px;">
+                <p style="font-size:16px;line-height:1.6;" data-i18n="welcome.intro">The early years are magical—but they're also exhausting. Between feeds, nappies, medications and endless worries, it's easy to lose track.</p>
+                <div style="margin-top:15px;padding:15px;background:var(--bg);border-radius:12px;border-left:4px solid var(--accent);">
+                    <p style="margin:5px 0;font-size:14px;">⏰ <em>"When was the last feed? How much did they eat?"</em></p>
+                    <p style="margin:5px 0;font-size:14px;">💊 <em>"What time did I give the medication?"</em></p>
+                    <p style="margin:5px 0;font-size:14px;">🏥 <em>"What did the health visitor say at the last appointment?"</em></p>
+                    <p style="margin:5px 0;font-size:14px;">😰 <em>"Is this normal? Am I keeping up?"</em></p>
+                </div>
+            </div>
+            <div class="card" style="background:transparent;border:none;margin-bottom:20px;">
+                <h3 style="color:var(--accent-dark);margin-top:0;" data-i18n="welcome.whatitdoes">Here's what Eco Family Flow does:</h3>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🤱</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point1title">Track Every Feed</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point1desc">Log breastfeeding, pumping, and formula in seconds.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🧻</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point2title">Monitor Health Markers</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point2desc">Track nappies, medications, skin health, and tummy time.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🏥</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point3title">Build Your Medical Timeline</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point3desc">Keep notes from hospital visits and appointments.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🛒</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point4title">Save Money Where It Counts</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point4desc">Compare nappy and formula prices to find the best value.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">📋</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point5title">Share With Your Partner</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point5desc">Sync data with your partner or other caregivers in real time.</span></div></div>
+                </div>
+            </div>
+            <div class="card" style="background:var(--accent);color:white;border:none;text-align:center;margin-bottom:20px;">
+                <h3 style="margin-top:0;margin-bottom:10px;color:white;" data-i18n="welcome.privacy_title">Peace of Mind Built In</h3>
+                <p style="margin:0;font-size:14px;line-height:1.6;" data-i18n="welcome.privacy_desc">Your data is private, stored securely, and never shared. No ads. No selling your information.</p>
+            </div>
+            <div class="card" style="background:var(--bg);text-align:center;font-size:14px;padding:12px;">
+                <p style="margin:0;font-style:italic;">"I created this app for me, now I'll share it with you."</p>
+                <p style="margin:5px 0 0;opacity:0.7;">— Creator</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAMILY SETUP PAGE -->
+    <div id="page-family-setup" class="page">
+        <div class="card" style="text-align:center;"><h2>👨‍👩‍👧 <span data-i18n="family.setup_title">Set Up Your Family</span></h2><p data-i18n="family.setup_desc">Link your account with a partner to share and sync data in real time.</p></div>
+        <div class="card"><h3 data-i18n="family.create_title">Create a New Family</h3><div class="input-group"><input type="text" id="family-name" data-i18n-placeholder="family.name_placeholder" placeholder="Family name (optional)" value="My Family"></div><button class="save-btn" onclick="window.createFamily()" data-i18n="family.create_btn">Create Family</button></div>
+        <div class="card"><h3 data-i18n="family.join_title">Join an Existing Family</h3><p style="font-size:14px;opacity:0.8;" data-i18n="family.join_desc">Ask your partner for the <strong>6‑digit invite code</strong> from their Account page.</p><div class="input-group"><input type="text" id="invite-code" data-i18n-placeholder="family.code_placeholder" placeholder="Invite code (e.g., AB3X9K)"></div><button class="save-btn" onclick="window.joinFamily()" data-i18n="family.join_btn">Join Family</button></div>
+        <button class="secondary-btn" onclick="window.skipFamilySetup()" data-i18n="family.skip">Skip for now – I'll set it up later</button>
+    </div>
+
+    <!-- MAIN APP -->
+    <div id="main-app" style="display:none;">
+        <div class="app-header">
+            <div class="header-left"></div>
+            <div class="header-title" onclick="window.goToWelcome()" title="Back to welcome">Eco Family Flow</div>
+            <div class="header-right">
+                <select id="lang-select">
+                    <option value="en">🇬🇧 EN</option>
+                    <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 CY</option>
+                    <option value="fr">🇫🇷 FR</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="child-selector" id="child-selector-container"></div>
+        <div id="current-child-display" class="current-child-badge"></div>
+        <div id="fridge-note-container" class="fridge-note"></div>
+        <div id="dashboard"></div>
+        <div id="error-banner" class="error-banner"></div>
+
+        <section id="nav-grid">
+            <div id="tab-info"         class="nav-tile wide"   onclick="window.switchTab('info')">        <span class="nav-emoji">📘</span><span class="nav-label" data-i18n="tabs.info">Your Guide</span></div>
+            <div id="tab-milk"         class="nav-tile active" onclick="window.switchTab('milk')">        <span class="nav-emoji">🤱</span><span class="nav-label" data-i18n="tabs.milk">Milk</span></div>
+            <div id="tab-formula"      class="nav-tile"        onclick="window.switchTab('formula')">     <span class="nav-emoji">🍼</span><span class="nav-label" data-i18n="tabs.formula">Formula</span></div>
+            <div id="tab-nappy"        class="nav-tile"        onclick="window.switchTab('nappy')">       <span class="nav-emoji">🧻</span><span class="nav-label" data-i18n="tabs.nappy">Nappy</span></div>
+            <div id="tab-skin"         class="nav-tile"        onclick="window.switchTab('skin')">        <span class="nav-emoji">❤️</span><span class="nav-label" data-i18n="tabs.skin">Skin/Tummy</span></div>
+            <div id="tab-meds"         class="nav-tile"        onclick="window.switchTab('meds')">        <span class="nav-emoji">💊</span><span class="nav-label" data-i18n="tabs.meds">Meds</span></div>
+            <div id="tab-hospital"     class="nav-tile"        onclick="window.switchTab('hospital')">    <span class="nav-emoji">🏥</span><span class="nav-label" data-i18n="tabs.hospital">Hospital</span></div>
+            <div id="tab-trending"     class="nav-tile"        onclick="window.switchTab('trending')">    <span class="nav-emoji">📈</span><span class="nav-label" data-i18n="tabs.trending">Trending</span></div>
+            <div id="tab-stash"        class="nav-tile"        onclick="window.switchTab('stash')">       <span class="nav-emoji">❄️</span><span class="nav-label" data-i18n="tabs.stash">Stash</span></div>
+            <div id="tab-appointments" class="nav-tile"        onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label" data-i18n="tabs.appointments">Appts</span></div>
+            <div id="tab-savings"      class="nav-tile"        onclick="window.switchTab('savings')">     <span class="nav-emoji">💰</span><span class="nav-label" data-i18n="tabs.savings">Savings</span></div>
+            <div id="tab-notes"        class="nav-tile wide"   onclick="window.switchTab('notes')">       <span class="nav-emoji">📋</span><span class="nav-label" data-i18n="tabs.notes">Private Notes</span></div>
+            <div id="tab-emergency"    class="nav-tile wide"   onclick="window.switchTab('emergency')">   <span class="nav-emoji">📍</span><span class="nav-label" data-i18n="tabs.emergency">Emergency</span></div>
+        </section>
+
+        <div id="loading-indicator" class="loading">Syncing Data…</div>
+
+        <main>
+            <!-- GUIDE -->
+            <div id="page-info" class="page">
+                <div class="card"><h2 data-i18n="guide.title">📘 Your Guide</h2>
+                <table class="guide-table">
+                    <tr><td>🤱</td><td><strong data-i18n="guide.milk_title">Milk</strong> – <span data-i18n="guide.milk_desc">Track breastfeeding / pumping sessions. Shows a supply vs demand chart.</span></td></tr>
+                    <tr><td>🍼</td><td><strong data-i18n="guide.formula_title">Formula</strong> – <span data-i18n="guide.formula_desc">Log bottle feeds (ml) with 7‑day average.</span></td></tr>
+                    <tr><td>🧻</td><td><strong data-i18n="guide.nappy_title">Nappy</strong> – <span data-i18n="guide.nappy_desc">Record wet, dirty, or both. Graphs trends separately.</span></td></tr>
+                    <tr><td>❤️</td><td><strong data-i18n="guide.skin_title">Skin/Tummy</strong> – <span data-i18n="guide.skin_desc">Log skin‑to‑skin and tummy time with 7‑day averages.</span></td></tr>
+                    <tr><td>💊</td><td><strong data-i18n="guide.meds_title">Meds</strong> – <span data-i18n="guide.meds_desc">Log medications. Live timer shows time since last dose. Set native reminders.</span></td></tr>
+                    <tr><td>🏥</td><td><strong data-i18n="guide.hospital_title">Hospital</strong> – <span data-i18n="guide.hospital_desc">Notes from any medical visit.</span></td></tr>
+                    <tr><td>📈</td><td><strong data-i18n="guide.trending_title">Trending</strong> – <span data-i18n="guide.trending_desc">7-day patterns, monthly charts, forecasts, and PDF report export.</span></td></tr>
+                    <tr><td>❄️</td><td><strong data-i18n="guide.stash_title">Stash</strong> – <span data-i18n="guide.stash_desc">Manually track frozen breastmilk inventory.</span></td></tr>
+                    <tr><td>📅</td><td><strong data-i18n="guide.appts_title">Appts</strong> – <span data-i18n="guide.appts_desc">Schedule, edit and manage appointments. Past appointments are archived for reference.</span></td></tr>
+                    <tr><td>💰</td><td><strong data-i18n="guide.savings_title">Savings</strong> – <span data-i18n="guide.savings_desc">Quick links to money‑saving offers.</span></td></tr>
+                    <tr><td>📋</td><td><strong data-i18n="guide.notes_title">Private Notes</strong> – <span data-i18n="guide.notes_desc">Stored only on this device, never synced.</span></td></tr>
+                    <tr><td>📍</td><td><strong data-i18n="guide.emergency_title">Emergency</strong> – <span data-i18n="guide.emergency_desc">One‑tap search for nearby pharmacies, A&amp;E, or GPs.</span></td></tr>
+                </table></div>
+                <div class="card"><h3 data-i18n="guide.privacy_why">👶 Why "Child A", "Child B" …?</h3><p data-i18n="guide.privacy_explanation">Generic labels protect your family's privacy.</p></div>
+                <div class="card"><h3 data-i18n="guide.report_title">📋 Full Child Report PDF</h3><p data-i18n="guide.report_desc">Found on the Trending page – generates a medical‑style PDF covering every month of data.</p></div>
+            </div>
+
+            <!-- MILK -->
+            <div id="page-milk" class="page active">
+                <div id="supply-status-card" class="supply-card"><div style="font-weight:bold;margin-bottom:10px;" data-i18n="milk.supply_title">📊 Supply Status (7-Day Trend)</div><div id="supply-status-content">Loading…</div></div>
+                <div class="card">
+                    <div class="input-group"><input type="datetime-local" id="milkTime"></div>
+                    <div class="btn-row"><button id="milk-mode-pump" class="toggle-btn active" onclick="window.setParam('milkMode','Pump')" data-i18n="milk.pump">Pump</button><button id="milk-mode-feed" class="toggle-btn" onclick="window.setParam('milkMode','Feed')" data-i18n="milk.feed">Feed</button></div>
+                    <div class="btn-row"><button id="milk-side-left" class="toggle-btn active" onclick="window.setParam('milkSide','Left')" data-i18n="milk.left">Left</button><button id="milk-side-right" class="toggle-btn" onclick="window.setParam('milkSide','Right')" data-i18n="milk.right">Right</button><button id="milk-side-both" class="toggle-btn" onclick="window.setParam('milkSide','Both')" data-i18n="milk.both">Both</button></div>
+                    <div class="input-group"><input type="number" id="milkAmt" data-i18n-placeholder="milk.amt_placeholder" placeholder="Amount (ml)" inputmode="decimal"></div>
+                    <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')" data-i18n="milk.save">Save Milk Log</button>
+                </div>
+                <div id="stats-milk" class="stat-container"></div>
+                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div>
+                    <div class="chart-legend">
+                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> <span data-i18n="milk.pumped_label">Pumped</span></div>
+                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> <span data-i18n="milk.feed_label">Feed</span></div>
+                        <div class="legend-item"><span class="legend-color" style="border-bottom:3px dashed #ff9800;"></span> <span data-i18n="milk.avg_label">7‑Day Avg</span></div>
+                    </div>
+                </div>
+                <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-milk" class="history-list"></div></div>
+            </div>
+
+            <!-- FORMULA -->
+            <div id="page-formula" class="page">
+                <div class="card">
+                    <div class="input-group"><input type="datetime-local" id="formulaTime"></div>
+                    <div class="input-group"><input type="number" id="formulaAmt" data-i18n-placeholder="formula.amt_placeholder" placeholder="Amount (ml)" inputmode="decimal"></div>
+                    <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')" data-i18n="formula.save">Save Formula Log</button>
+                </div>
+                <div id="stats-formula" class="stat-container"></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-formula"></canvas></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-formula" class="history-list"></div></div>
+            </div>
+
+            <!-- NAPPY -->
+            <div id="page-nappy" class="page">
+                <div class="card">
+                    <div class="input-group"><input type="datetime-local" id="nappyTime"></div>
+                    <div class="btn-row"><button id="nappy-type-wee" class="toggle-btn active" onclick="window.setParam('nappyType','Wee')" data-i18n="nappy.wee">💧 Wee</button><button id="nappy-type-poo" class="toggle-btn" onclick="window.setParam('nappyType','Poo')" data-i18n="nappy.poo">💩 Poo</button><button id="nappy-type-both" class="toggle-btn" onclick="window.setParam('nappyType','Both')" data-i18n="nappy.both">♻️ Both</button></div>
+                    <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()" data-i18n="nappy.save">Log Nappy</button>
+                </div>
+                <div id="stats-nappy" class="stat-container"></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-nappy" class="history-list"></div></div>
+            </div>
+
+            <!-- SKIN / TUMMY -->
+            <div id="page-skin" class="page">
+                <div class="card"><h3 data-i18n="skin.skin_title">🤱 Skin‑to‑Skin</h3>
+                    <div class="stat-lbl" data-i18n="general.start">Start</div><div class="input-group"><input type="datetime-local" id="skinStart"></div>
+                    <div class="stat-lbl" data-i18n="general.end">End</div><div class="input-group"><input type="datetime-local" id="skinEnd"></div>
+                    <button class="save-btn" id="btn-save-skin" onclick="window.saveSkin()" data-i18n="skin.save_skin">Save Skin‑to‑Skin</button>
+                </div>
+                <div class="card"><h3 data-i18n="skin.tummy_title">👶 Tummy Time</h3>
+                    <div class="stat-lbl" data-i18n="general.start">Start</div><div class="input-group"><input type="datetime-local" id="tummyStart"></div>
+                    <div class="stat-lbl" data-i18n="general.end">End</div><div class="input-group"><input type="datetime-local" id="tummyEnd"></div>
+                    <button class="save-btn" id="btn-save-tummy" onclick="window.saveTummyTime()" data-i18n="skin.save_tummy">Save Tummy Time</button>
+                </div>
+                <div id="stats-skin" class="stat-container"></div>
+                <div class="card"><div style="height:250px;"><canvas id="chart-skin"></canvas></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-skin" class="history-list"></div></div>
+            </div>
+
+            <!-- MEDS -->
+            <div id="page-meds" class="page">
+                <div class="card">
+                    <div class="input-group"><input type="datetime-local" id="medTime"></div>
+                    <div class="input-group"><input type="text" id="medName" data-i18n-placeholder="meds.name" placeholder="Medication name"></div>
+                    <div class="input-group"><input type="text" id="medDosage" data-i18n-placeholder="meds.dosage" placeholder="Dosage (e.g., 5ml)"></div>
+                    <div class="reminder-row">
+                        <label data-i18n="meds.reminder_label">⏰ Set reminder?</label>
+                        <select id="med-reminder-hours">
+                            <option value="0" data-i18n="meds.no_reminder">No reminder</option>
+                            <option value="4" data-i18n="meds.in_4h">In 4 hours</option>
+                            <option value="6" data-i18n="meds.in_6h">In 6 hours</option>
+                            <option value="8" data-i18n="meds.in_8h">In 8 hours</option>
+                            <option value="12" data-i18n="meds.in_12h">In 12 hours</option>
+                        </select>
+                    </div>
+                    <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()" data-i18n="meds.save">Log Medication</button>
+                </div>
+                <div id="med-notif-info" class="card" style="background:#fef3c7;border-color:#fde68a;display:none;">
+                    <p style="margin:0;font-size:13px;color:#92400e;">💡 For reliable reminders install the app on your device and allow notifications when prompted.</p>
+                </div>
+                <div class="card"><div class="stat-lbl" data-i18n="meds.time_since_label">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="meds.recent_history">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
+            </div>
+
+            <!-- HOSPITAL -->
+            <div id="page-hospital" class="page">
+                <div class="card">
+                    <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
+                    <div class="input-group"><input type="text" id="hospitalName" data-i18n-placeholder="hospital.hospital_name" placeholder="Hospital name"></div>
+                    <div class="input-group"><textarea id="hospitalNotes" data-i18n-placeholder="hospital.notes" placeholder="Notes…"></textarea></div>
+                    <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()" data-i18n="hospital.save">Save Note</button>
+                </div>
+                <div class="card"><div class="stat-lbl" data-i18n="hospital.recent_notes">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
+            </div>
+
+            <!-- TRENDING -->
+            <div id="page-trending" class="page">
+                <div class="card"><h3 data-i18n="trending.title">📈 Trending Data</h3></div>
+                <div id="stats-overview" class="stat-container"></div>
+                <div class="card"><h4 data-i18n="trending.combined_feeding">🍽️ Combined Feeding (Last 7 Days)</h4><p id="trending-feeding-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-feeding"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.nappies">🧻 Nappies (Last 7 Days)</h4><p id="trending-nappy-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-nappy"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.skin_tummy">💖 Skin‑to‑Skin &amp; Tummy Time (Last 14 Days)</h4><p id="trending-skin-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-skin"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.recent_feed_log">📋 Recent Feed Log</h4><div id="trending-feed-log" class="history-list"></div></div>
+                <div class="card"><h4 data-i18n="trending.recent_nappy_log">📋 Recent Nappy Log</h4><div id="trending-nappy-log" class="history-list"></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_milk">🥛 Monthly Milk</h4><div style="height:250px;"><canvas id="chart-monthly-milk"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_formula">🍼 Monthly Formula</h4><div style="height:250px;"><canvas id="chart-monthly-formula"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_nappies">🧻 Monthly Nappies</h4><div style="height:250px;"><canvas id="chart-monthly-nappy"></canvas></div></div>
+                <div class="card">
+                    <button class="save-btn" onclick="window.exportData()" data-i18n="trending.download_csv">📥 Download All Data (CSV)</button>
+                    <button class="save-btn" onclick="window.downloadFullChildReportPDF()" style="margin-top:10px;" data-i18n="trending.download_pdf">📋 Full Child Report (PDF)</button>
+                </div>
+            </div>
+
+            <!-- NOTES -->
+            <div id="page-notes" class="page">
+                <div class="card" style="background:var(--accent-dark);color:white;"><p style="margin:0;">🔒 Private Notes are stored only on this device and are never synced or uploaded.</p></div>
+                <div class="card">
+                    <h3 data-i18n="notes.new_note">✍️ New Note</h3>
+                    <div class="input-group"><input type="text" id="note-title" data-i18n-placeholder="notes.placeholder_title" placeholder="Title"></div>
+                    <div class="input-group"><textarea id="note-content" data-i18n-placeholder="notes.placeholder_content" placeholder="Write your note here…"></textarea></div>
+                    <button class="save-btn" onclick="window.savePrivateNote()" data-i18n="notes.save">💾 Save Note</button>
+                </div>
+                <div class="card"><h3 style="margin-top:0;" data-i18n="notes.your_notes">📋 Your Notes</h3><div id="private-notes-list"></div></div>
+            </div>
+
+            <!-- EMERGENCY -->
+            <div id="page-emergency" class="page">
+                <div class="card"><h3 data-i18n="emergency.title">🚨 Quick Access</h3></div>
+                <div class="card" style="background:#fef9c3;"><p>⚠️ Allow location access when prompted.</p></div>
+                <div>
+                    <button class="save-btn" style="background:#4a90e2;margin-bottom:8px;" onclick="window.findNearby('pharmacy')" data-i18n="emergency.pharmacy">💊 Pharmacies</button>
+                    <button class="save-btn" style="background:#e74c3c;margin-bottom:8px;" onclick="window.findNearby('hospital emergency room')" data-i18n="emergency.ae">🏥 A&amp;E</button>
+                    <button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')" data-i18n="emergency.gp">👨‍⚕️ GP</button>
+                </div>
+                <div id="emergency-fallback"></div>
+            </div>
+
+            <!-- STASH -->
+            <div id="page-stash" class="page">
+                <div class="card"><h3 data-i18n="stash.title">❄️ Milk Stash</h3><div id="stash-balance" style="font-size:48px;text-align:center;">0</div><div class="btn-row"><button class="toggle-btn" onclick="window.adjustStash(1)" data-i18n="stash.add">➕ Add</button><button class="toggle-btn" onclick="window.adjustStash(-1)" data-i18n="stash.remove">➖ Remove</button></div><p style="text-align:center;opacity:0.7;" data-i18n="stash.manual">Manual updates only</p></div>
+            </div>
+
+            <!-- APPOINTMENTS -->
+            <div id="page-appointments" class="page">
+                <div class="card">
+                    <h3 id="appt-form-heading" data-i18n="appointments.new">📅 New Appointment</h3>
+                    <div id="appt-editing-banner">✏️ Editing appointment — make your changes and save</div>
+                    <div class="input-group"><input type="datetime-local" id="apptDateTime"></div>
+                    <div class="input-group"><input type="text" id="apptTitle" data-i18n-placeholder="appointments.title_placeholder" placeholder="Title"></div>
+                    <div class="input-group"><input type="text" id="apptLocation" data-i18n-placeholder="appointments.location_placeholder" placeholder="Location"></div>
+                    <div class="input-group"><textarea id="apptNotes" data-i18n-placeholder="appointments.notes_placeholder" placeholder="Notes"></textarea></div>
+                    <button class="save-btn" id="btn-save-appointment" onclick="window.saveAppointment()" data-i18n="appointments.save">Save Appointment</button>
+                    <button id="appt-cancel-edit-btn" onclick="window.cancelEditAppointment()">✕ Cancel Edit</button>
+                </div>
+                <div class="card">
+                    <div class="stat-lbl" style="margin-bottom:12px;" data-i18n="appointments.upcoming">📌 Upcoming</div>
+                    <div id="appointments-list"></div>
+                </div>
+                <div class="card">
+                    <button class="archive-toggle" id="appt-archive-toggle" onclick="window.toggleApptArchive()">
+                        <span data-i18n="appointments.past">🗂️ Past Appointments</span>
+                        <span class="chevron">▼</span>
+                    </button>
+                    <div id="appt-archive-list"></div>
+                </div>
+            </div>
+
+            <!-- SAVINGS -->
+            <div id="page-savings" class="page">
+                <div class="card"><h3 data-i18n="savings.title">💰 Save Money</h3></div>
+                <div class="card"><h4>🍽️ Too Good To Go</h4><a href="https://toogoodtogo.com" target="_blank" class="save-btn" style="background:#00a896;text-decoration:none;display:inline-block;text-align:center;">Get the App</a></div>
+            </div>
+
+            <!-- ACCOUNT -->
+            <div id="page-account" class="page">
+                <div class="card"><h2 data-i18n="account.title">👤 Account</h2></div>
+                <div class="card"><div class="stat-lbl" data-i18n="account.signed_in">Signed in as</div><div id="account-email"></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="account.family_name">Family Name</div><div id="account-family-name"></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="account.family_id">Family ID</div><div id="account-family-id"></div></div>
+                <div class="card" id="family-invite-card">
+                    <div class="stat-lbl" data-i18n="account.invite_code">Invite Code</div>
+                    <div id="account-invite-code" style="font-size:26px;font-weight:bold;letter-spacing:4px;margin:8px 0;font-family:monospace;"></div>
+                    <button class="copy-code-btn" onclick="window.copyInviteCode()" data-i18n="account.copy_code">📋 Copy Code</button>
+                </div>
+                <div class="card"><div class="stat-lbl" data-i18n="account.members">Members</div><div id="account-members"></div></div>
+                <div class="card" id="join-family-card" style="display:none;">
+                    <h3 data-i18n="account.join_family">🔗 Join a Family</h3>
+                    <p style="font-size:14px;opacity:0.8;">Enter the invite code shared with you.</p>
+                    <div class="input-group"><input type="text" id="join-invite-code" placeholder="6‑digit code"></div>
+                    <button class="save-btn" onclick="window.joinFamilyFromAccount()">Join Family</button>
+                </div>
+                <div class="card">
+                    <h3 data-i18n="account.privacy">🔒 Privacy Policy</h3>
+                    <p>Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p>
+                    <p><a href="https://github.com/unicorn5843/Eco-Family-Flow/blob/main/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
+                </div>
+                <div class="card">
+                    <button class="secondary-btn" style="border-color:var(--delete);color:var(--delete);" onclick="if(confirm('Log out of Eco Family Flow?')) window.logout()">🚪 Log Out</button>
+                </div>
+            </div>
+        </main>
+    </div><!-- /#main-app -->
+</div><!-- /#app-interface -->
+
+<div id="report-container"></div>
+
+<footer id="fixed-bottom">
+    <div class="footer-action" onclick="window.toggleNight()"><span>🌗</span><span data-i18n="footer.night">Night</span></div>
+    <div class="footer-action" onclick="window.toggleUnits()"><span id="flag-emoji">🇬🇧</span><span id="unit-label" data-i18n="footer.units">UK Units</span></div>
+    <div class="footer-action" onclick="window.switchTab('account')"><span>👤</span><span data-i18n="footer.account">Account</span></div>
+</footer>
+
+<script>
+(function () {
+    'use strict';
+
+    // ── Debug ─────────────────────────────────────────────────────────────────
+    const DEBUG_MODE = true;
+    function debugLog(msg, data) { if (DEBUG_MODE) console.log('[ECO]', msg, data || ''); }
+    const isLowMem = (typeof navigator.deviceMemory === 'number' && navigator.deviceMemory < 3);
+
+    // ── i18n ──────────────────────────────────────────────────────────────────
+    const defaultTranslations = {
+        welcome: {
+            cta: "🌿 Get Started",
+            subtitle: "The parenting companion you didn't know you needed",
+            intro: "The early years are magical—but they're also exhausting. Between feeds, nappies, medications and endless worries, it's easy to lose track.",
+            whatitdoes: "Here's what Eco Family Flow does:",
+            point1title: "Track Every Feed", point1desc: "Log breastfeeding, pumping, and formula in seconds.",
+            point2title: "Monitor Health Markers", point2desc: "Track nappies, medications, skin health, and tummy time.",
+            point3title: "Build Your Medical Timeline", point3desc: "Keep notes from hospital visits and appointments.",
+            point4title: "Save Money Where It Counts", point4desc: "Compare nappy and formula prices to find the best value.",
+            point5title: "Share With Your Partner", point5desc: "Sync data with your partner or other caregivers in real time.",
+            privacy_title: "Peace of Mind Built In",
+            privacy_desc: "Your data is private, stored securely, and never shared. No ads. No selling your information."
+        },
+        family: {
+            setup_title: "Set Up Your Family", setup_desc: "Link your account with a partner to share and sync data in real time.",
+            create_title: "Create a New Family", name_placeholder: "Family name (optional)", create_btn: "Create Family",
+            join_title: "Join an Existing Family", join_desc: "Ask your partner for the 6‑digit invite code from their Account page.",
+            code_placeholder: "Invite code (e.g., AB3X9K)", join_btn: "Join Family",
+            skip: "Skip for now – I'll set it up later"
+        },
+        dashboard: {
+            milk: "Milk", pump: "Pump", feed: "Feed", nappy: "Nappy",
+            medication: "Medication", next_appt: "Next Appt", none: "—"
+        },
+        fridge: {
+            title: "🧊 Kitchen Fridge Note",
+            no_note: "No note yet. Tap ✏️ to add."
+        },
+        footer: { night: "Night", units: "UK Units", account: "Account" },
+        tabs: {
+            info: "Your Guide", milk: "Milk", formula: "Formula", nappy: "Nappy",
+            skin: "Skin/Tummy", meds: "Meds", hospital: "Hospital", trending: "Trending",
+            stash: "Stash", appointments: "Appts", savings: "Savings",
+            notes: "Private Notes", emergency: "Emergency"
+        },
+        guide: {
+            title: "📘 Your Guide",
+            milk_title: "Milk", milk_desc: "Track breastfeeding / pumping sessions. Shows a supply vs demand chart.",
+            formula_title: "Formula", formula_desc: "Log bottle feeds (ml) with 7‑day average.",
+            nappy_title: "Nappy", nappy_desc: "Record wet, dirty, or both. Graphs trends separately.",
+            skin_title: "Skin/Tummy", skin_desc: "Log skin‑to‑skin and tummy time with 7‑day averages.",
+            meds_title: "Meds", meds_desc: "Log medications. Live timer shows time since last dose. Set native reminders.",
+            hospital_title: "Hospital", hospital_desc: "Notes from any medical visit.",
+            trending_title: "Trending", trending_desc: "7-day patterns, monthly charts, forecasts, and PDF report export.",
+            stash_title: "Stash", stash_desc: "Manually track frozen breastmilk inventory.",
+            appts_title: "Appts", appts_desc: "Schedule, edit and manage appointments. Past appointments are archived for reference.",
+            savings_title: "Savings", savings_desc: "Quick links to money‑saving offers.",
+            notes_title: "Private Notes", notes_desc: "Stored only on this device, never synced.",
+            emergency_title: "Emergency", emergency_desc: "One‑tap search for nearby pharmacies, A&E, or GPs.",
+            privacy_why: "👶 Why \"Child A\", \"Child B\" …?", privacy_explanation: "Generic labels protect your family's privacy.",
+            report_title: "📋 Full Child Report PDF", report_desc: "Found on the Trending page – generates a medical‑style PDF covering every month of data."
+        },
+        milk: {
+            supply_title: "📊 Supply Status (7-Day Trend)",
+            pump: "Pump", feed: "Feed", left: "Left", right: "Right", both: "Both",
+            amt_placeholder: "Amount (ml)", save: "Save Milk Log",
+            pumped_label: "Pumped", feed_label: "Feed", avg_label: "7‑Day Avg"
+        },
+        formula: { amt_placeholder: "Amount (ml)", save: "Save Formula Log" },
+        nappy: { wee: "💧 Wee", poo: "💩 Poo", both: "♻️ Both", save: "Log Nappy" },
+        skin: {
+            skin_title: "🤱 Skin‑to‑Skin", tummy_title: "👶 Tummy Time",
+            save_skin: "Save Skin‑to‑Skin", save_tummy: "Save Tummy Time"
+        },
+        meds: {
+            name: "Medication name", dosage: "Dosage (e.g., 5ml)", save: "Log Medication",
+            reminder_label: "⏰ Set reminder?", no_reminder: "No reminder",
+            in_4h: "In 4 hours", in_6h: "In 6 hours", in_8h: "In 8 hours", in_12h: "In 12 hours",
+            time_since_label: "💊 Time Since Last Dose", recent_history: "Recent Medication History"
+        },
+        hospital: {
+            hospital_name: "Hospital name", notes: "Notes…", save: "Save Note",
+            recent_notes: "📋 Recent Hospital Notes"
+        },
+        trending: {
+            title: "📈 Trending Data",
+            combined_feeding: "🍽️ Combined Feeding (Last 7 Days)",
+            nappies: "🧻 Nappies (Last 7 Days)",
+            skin_tummy: "💖 Skin‑to‑Skin & Tummy Time (Last 14 Days)",
+            recent_feed_log: "📋 Recent Feed Log", recent_nappy_log: "📋 Recent Nappy Log",
+            monthly_milk: "🥛 Monthly Milk", monthly_formula: "🍼 Monthly Formula",
+            monthly_nappies: "🧻 Monthly Nappies",
+            download_csv: "📥 Download All Data (CSV)", download_pdf: "📋 Full Child Report (PDF)"
+        },
+        stash: { title: "❄️ Milk Stash", add: "➕ Add", remove: "➖ Remove", manual: "Manual updates only" },
+        appointments: {
+            new: "📅 New Appointment", edit: "✏️ Edit Appointment", update: "💾 Update Appointment",
+            save: "Save Appointment", title_placeholder: "Title", location_placeholder: "Location",
+            notes_placeholder: "Notes", upcoming: "📌 Upcoming", past: "🗂️ Past Appointments"
+        },
+        savings: { title: "💰 Save Money" },
+        notes: {
+            new_note: "✍️ New Note", save: "💾 Save Note",
+            placeholder_title: "Title", placeholder_content: "Write your note here…", your_notes: "📋 Your Notes"
+        },
+        emergency: { title: "🚨 Quick Access", pharmacy: "💊 Pharmacies", ae: "🏥 A&E", gp: "👨‍⚕️ GP" },
+        account: {
+            title: "👤 Account", signed_in: "Signed in as", family_name: "Family Name",
+            family_id: "Family ID", invite_code: "Invite Code", members: "Members",
+            join_family: "🔗 Join a Family", copy_code: "📋 Copy Code", privacy: "🔒 Privacy Policy"
+        },
+        general: {
+            share: "Share", recent_history: "Recent History", start: "Start", end: "End",
+            no_data: "No entries yet", delete_confirm: "Delete this entry?",
+            no_notes: "No private notes yet. Create one above ✍️", empty_note: "(empty)",
+            enter_valid_amount: "Please enter a valid amount",
+            select_datetime: "Please select a date/time.",
+            saved: "Saved! ✓", saving: "Saving…",
+            product_loading: "Loading products…", product_error: "Error loading products.",
+            child_a: "Child A", child_b: "Child B", child_c: "Child C", child_d: "Child D", child_e: "Child E"
+        },
+        supply: {
+            surplus: "Surplus", balanced: "Balanced", deficit: "Slight Deficit", critical: "Critical Deficit"
+        }
+    };
+
+    let translations = JSON.parse(JSON.stringify(defaultTranslations));
+    let currentLang  = localStorage.getItem('eco-lang') || 'en';
+
+    async function loadTranslation(lang) {
+        if (lang === 'en') {
+            translations = JSON.parse(JSON.stringify(defaultTranslations));
+            return;
+        }
+        try {
+            // FIX: fetch from the 'locales/' subfolder
+            const response = await fetch(`./locales/${lang}.json`);
+            if (!response.ok) throw new Error('File not found');
+            const data = await response.json();
+            function deepMerge(target, source) {
+                for (const key in source) {
+                    if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+                        if (!target[key]) target[key] = {};
+                        deepMerge(target[key], source[key]);
+                    } else {
+                        target[key] = source[key];
+                    }
+                }
+            }
+            translations = JSON.parse(JSON.stringify(defaultTranslations));
+            deepMerge(translations, data);
+        } catch (err) {
+            console.warn(`Could not load translations for ${lang}, falling back to English.`, err);
+            translations = JSON.parse(JSON.stringify(defaultTranslations));
+        }
+    }
+
+    function t(path, fallback = '') {
+        const keys = path.split('.');
+        let result = translations;
+        for (const key of keys) {
+            if (result && result[key] !== undefined) result = result[key];
+            else return fallback || path;
+        }
+        return result || fallback || path;
+    }
+
+    async function applyLanguage(lang) {
+        currentLang = lang;
+        localStorage.setItem('eco-lang', lang);
+        const select = document.getElementById('lang-select');
+        if (select) select.value = lang;
+        await loadTranslation(lang);
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            el.textContent = t(key, el.textContent);
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            el.placeholder = t(key, el.placeholder);
+        });
+        renderUI();
+    }
+
+    window.t = t;
+    window.applyLanguage = applyLanguage;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const select = document.getElementById('lang-select');
+        if (select) {
+            select.value = currentLang;
+            select.addEventListener('change', (e) => applyLanguage(e.target.value));
+        }
+        applyLanguage(currentLang);
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    function escapeHTML(s) {
+        return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+    }
+    function parseDetail(d) {
+        try { return JSON.parse(d); } catch {
+            const p = d.split('|');
+            if (p.length === 2) return { name:p[0], dosage:p[1] };
+            if (p.length === 3) return { title:p[0], loc:p[1], notes:p[2] };
+            return { raw: d };
+        }
+    }
+    function generateInviteCode() { return Math.random().toString(36).substring(2, 8).toUpperCase(); }
+
+    // ── App state ─────────────────────────────────────────────────────────────
+    let state = {
+        units: 'UK', tab: 'milk', currentChild: 'Child A',
+        logs: [],
+        trialStatus: { isPro: true, daysLeft: 9999 },
+        children: [
+            { name:'Child A', color:'#8fbca0' },
+            { name:'Child B', color:'#4a90e2' },
+            { name:'Child C', color:'#e74c3c' },
+            { name:'Child D', color:'#9C27B0' },
+            { name:'Child E', color:'#ff9800' }
+        ],
+        stashBalance: 0,
+        editingApptTimestamp: null,
+        milkMode: 'Pump',
+        milkSide: 'Left',
+        nappyType: 'Wee'
+    };
+
+    let privateNotes  = JSON.parse(localStorage.getItem('ecoPrivateNotes') || '[]');
+    let fridgeNotes   = JSON.parse(localStorage.getItem('ecoFridgeNotes')  || '{}');
+    let charts        = {};
+    let timerInterval = null;
+
+    // ── UI feedback ───────────────────────────────────────────────────────────
+    function showError(msg) {
+        const b = document.getElementById('error-banner');
+        if (!b) return;
+        b.textContent = '⚠️ ' + msg; b.style.display = 'block';
+        setTimeout(() => { b.style.display = 'none'; }, 5000);
+    }
+    function showBanner(text, type) {
+        const b = document.getElementById('sync-banner');
+        if (!b) return;
+        b.textContent = text; b.className = 'sync-banner banner-' + type; b.style.display = 'block';
+        if (type === 'synced') setTimeout(() => { b.style.display = 'none'; }, 3000);
+    }
+
+    // ── Navigation ────────────────────────────────────────────────────────────
+    window.goToWelcome = function () {
+        localStorage.removeItem('welcomeSeen');
+        document.getElementById('main-app').style.display          = 'none';
+        document.getElementById('page-family-setup').style.display = 'none';
+        const pw = document.getElementById('page-welcome');
+        pw.style.display = 'block'; pw.classList.add('active');
+        document.getElementById('welcome-fixed-cta').style.display = 'block';
+        document.getElementById('fixed-bottom').style.display      = 'none';
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    };
+
+    window.finishWelcome = function () {
+        localStorage.setItem('welcomeSeen', 'true');
+        const pw = document.getElementById('page-welcome');
+        pw.classList.remove('active'); pw.style.display = 'none';
+        document.getElementById('welcome-fixed-cta').style.display = 'none';
+        document.getElementById('fixed-bottom').style.display      = 'flex';
+        window.initApp();
+    };
+
+    window.initApp = async function () {
+        if (!localStorage.getItem('welcomeSeen')) {
+            const pw = document.getElementById('page-welcome');
+            pw.style.display = 'block'; pw.classList.add('active');
+            document.getElementById('welcome-fixed-cta').style.display = 'block';
+            document.getElementById('fixed-bottom').style.display      = 'none';
+            document.getElementById('main-app').style.display          = 'none';
+            document.getElementById('page-family-setup').style.display = 'none';
+            return;
+        }
+        document.getElementById('welcome-fixed-cta').style.display = 'none';
+        document.getElementById('fixed-bottom').style.display      = 'flex';
+
+        if (!localStorage.getItem('familySetupComplete')) {
+            document.getElementById('page-family-setup').style.display = 'block';
+            document.getElementById('main-app').style.display          = 'none';
+            document.getElementById('page-welcome').style.display      = 'none';
+            return;
+        }
+
+        document.getElementById('page-family-setup').style.display = 'none';
+        document.getElementById('page-welcome').style.display      = 'none';
+        document.getElementById('main-app').style.display          = 'block';
+
+        buildChildSelector();
+        window.resetTimeInputs();
+
+        await window.refreshData();
+        if (state.tab === 'stash')   fetchStashBalance();
+        if (state.tab === 'account') loadAccountDetails();
+        renderUI();
+    };
+
+    // ── Family setup ──────────────────────────────────────────────────────────
+    window.skipFamilySetup = () => {
+        localStorage.setItem('familySetupComplete', 'true');
+        window.initApp();
+    };
+
+    window.createFamily = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
+        const familyName = document.getElementById('family-name').value.trim() || 'My Family';
+        try {
+            const { setDoc: fsSetDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const inviteCode  = generateInviteCode();
+            const familyDocId = `family_${window.auth.currentUser.uid}`;
+            await fsSetDoc(fsDoc(window.db, 'families', familyDocId), {
+                inviteCode, familyName,
+                createdBy: window.auth.currentUser.email,
+                members:   [window.auth.currentUser.email],
+                createdAt: new Date().toISOString()
+            });
+            localStorage.setItem('familySetupComplete', 'true');
+            localStorage.setItem('myInviteCode', inviteCode);
+            alert(`Family created!\n\nYour invite code: ${inviteCode}\n\nShare this with your partner so they can join.`);
+            window.initApp();
+        } catch(e) {
+            console.error(e);
+            showError('Could not create family. ' + e.message);
+        }
+    };
+
+    window.joinFamily = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
+        const code = document.getElementById('invite-code').value.trim().toUpperCase();
+        if (!code) return alert('Please enter the 6‑digit invite code.');
+        try {
+            const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl,
+                    updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(fsQuery(fsColl(window.db, 'families'), fsWhere('inviteCode', '==', code)));
+            if (snap.empty) return alert('Invalid invite code. Please check and try again.');
+            await fsUpdateDoc(snap.docs[0].ref, { members: arrayUnion(window.auth.currentUser.email) });
+            localStorage.setItem('familySetupComplete', 'true');
+            localStorage.setItem('myInviteCode', code);
+            alert('Successfully joined the family!');
+            window.initApp();
+        } catch(e) {
+            console.error(e);
+            showError('Could not join family. ' + e.message);
+        }
+    };
+
+    window.joinFamilyFromAccount = async () => {
+        if (!window.auth?.currentUser) return alert('Not signed in');
+        const code = document.getElementById('join-invite-code').value.trim().toUpperCase();
+        if (!code) return alert('Enter the invite code.');
+        try {
+            const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl,
+                    updateDoc: fsUpdateDoc, arrayUnion } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(fsQuery(fsColl(window.db, 'families'), fsWhere('inviteCode', '==', code)));
+            if (snap.empty) return alert('Invalid code.');
+            const fam = snap.docs[0];
+            if (!fam.data().members.includes(window.auth.currentUser.email)) {
+                await fsUpdateDoc(fam.ref, { members: arrayUnion(window.auth.currentUser.email) });
+            }
+            localStorage.setItem('myInviteCode', code);
+            alert('Joined!');
+            loadAccountDetails();
+        } catch(e) {
+            console.error(e);
+            showError('Network error');
+        }
+    };
+
+    // ── Child selector ────────────────────────────────────────────────────────
+    function buildChildSelector() {
+        const container = document.getElementById('child-selector-container');
+        if (!container) return;
+        container.innerHTML = state.children.map(c =>
+            `<button class="child-btn ${c.name === state.currentChild ? 'active' : ''}" data-child="${c.name}" style="border-color:${c.color};">👶 ${c.name.slice(-1)}</button>`
+        ).join('');
+        applyChildTheme(state.currentChild);
+        container.querySelectorAll('.child-btn').forEach(b =>
+            b.addEventListener('click', e => window.setChild(e.currentTarget.dataset.child))
+        );
+        document.getElementById('current-child-display').textContent = `👤 ${state.currentChild}`;
+        renderFridgeNote();
+    }
+
+    window.setChild = (name) => {
+        state.currentChild = name;
+        document.querySelectorAll('.child-btn').forEach(b => {
+            b.classList.remove('active');
+            if (b.dataset.child === name) b.classList.add('active');
+        });
+        applyChildTheme(name);
+        document.getElementById('current-child-display').textContent = `👤 ${name}`;
+        renderFridgeNote();
+        renderUI();
+        if (state.tab === 'stash') fetchStashBalance();
+    };
+
+    function applyChildTheme(name) {
+        const c = state.children.find(x => x.name === name);
+        if (c) {
+            document.documentElement.style.setProperty('--accent', c.color);
+            document.documentElement.style.setProperty('--accent-dark', shiftColor(c.color, -20));
+        }
+    }
+
+    function shiftColor(hex, d) {
+        const r = Math.min(255, Math.max(0, parseInt(hex.slice(1,3),16)+d));
+        const g = Math.min(255, Math.max(0, parseInt(hex.slice(3,5),16)+d));
+        const b = Math.min(255, Math.max(0, parseInt(hex.slice(5,7),16)+d));
+        return '#' + [r,g,b].map(v => v.toString(16).padStart(2,'0')).join('');
+    }
+
+    function renderFridgeNote() {
+        const el = document.getElementById('fridge-note-container');
+        if (!el) return;
+        const note = escapeHTML(fridgeNotes[state.currentChild] || '');
+        el.innerHTML = `<div style="display:flex;justify-content:space-between;"><strong>${t('fridge.title')}</strong><span style="cursor:pointer;" onclick="window.editFridgeNote()">✏️</span></div><div style="margin-top:5px;">${note || t('fridge.no_note')}</div>`;
+    }
+
+    window.editFridgeNote = () => {
+        const n = prompt('Enter kitchen fridge note for caregivers:', fridgeNotes[state.currentChild] || '');
+        if (n !== null) {
+            fridgeNotes[state.currentChild] = n;
+            localStorage.setItem('ecoFridgeNotes', JSON.stringify(fridgeNotes));
+            renderFridgeNote();
+        }
+    };
+
+    window.toggleNight = () => { document.body.classList.toggle('night'); };
+
+    // ── Firestore data ────────────────────────────────────────────────────────
+    window.refreshData = async () => {
+        if (!window.auth?.currentUser) return;
+        const li = document.getElementById('loading-indicator');
+        if (li) li.style.display = 'block';
+        try {
+            const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(fsQuery(fsColl(window.db, 'logs'), fsWhere('email', '==', window.auth.currentUser.email)));
+            state.logs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            debugLog('Loaded logs:', state.logs.length);
+        } catch(e) {
+            console.error(e);
+            showError('Could not load data. Check your connection.');
+        } finally {
+            if (li) li.style.display = 'none';
+            renderUI();
+        }
+    };
+
+    window.deleteEntry = async (docId) => {
+        if (!confirm(t('general.delete_confirm') || 'Delete this entry?')) return;
+        try {
+            const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            await fsDeleteDoc(fsDoc(window.db, 'logs', docId));
+            state.logs = state.logs.filter(l => l.id !== docId);
+            renderUI();
+        } catch(e) {
+            console.error(e);
+            showError('Network error during delete');
+        }
+    };
+
+    // ── Save helpers ──────────────────────────────────────────────────────────
+    window.saveData = (category) => {
+        const isMilk = category === 'Milk';
+        const amtEl  = document.getElementById(isMilk ? 'milkAmt' : 'formulaAmt');
+        let val = parseFloat(amtEl.value);
+        if (isNaN(val) || val <= 0) return alert(t('general.enter_valid_amount') || 'Please enter a valid amount');
+        if (state.units === 'US') val *= 29.5735;
+        const timeEl = document.getElementById(isMilk ? 'milkTime' : 'formulaTime');
+        if (!timeEl.value) return alert(t('general.select_datetime') || 'Please select a date/time.');
+        const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
+        amtEl.value = '';
+        saveToFirestore(
+            { timestamp: new Date(timeEl.value).toISOString(), category, value: Math.round(val), detail, email: window.auth.currentUser.email, child: state.currentChild },
+            `btn-save-${category.toLowerCase()}`,
+            isMilk ? t('milk.save') : t('formula.save')
+        );
+    };
+
+    async function saveToFirestore(payload, btnId, defaultText) {
+        const btn = btnId ? document.getElementById(btnId) : null;
+        if (btn) btn.innerText = t('general.saving') || 'Saving…';
+        try {
+            const { addDoc: fsAddDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const ref = await fsAddDoc(fsColl(window.db, 'logs'), payload);
+            state.logs.push({ id: ref.id, ...payload });
+            if (btn) btn.innerText = t('general.saved') || 'Saved! ✓';
+            showBanner('Saved to cloud ✓', 'synced');
+            setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
+        } catch(e) {
+            console.error(e);
+            showError('Save failed: ' + e.message);
+            if (btn && defaultText) btn.innerText = defaultText;
+        }
+    }
+
+    window.saveNappy = async () => {
+        const tv = document.getElementById('nappyTime').value;
+        if (!tv) return alert(t('general.select_datetime') || 'Please select a date/time.');
+        const ts   = new Date(tv).toISOString();
+        const base = { category:'Nappy', value:1, email:window.auth.currentUser.email, child:state.currentChild };
+        if (state.nappyType === 'Both') {
+            await saveToFirestore({ ...base, timestamp:ts, detail:'Wee' }, null, null);
+            await saveToFirestore({ ...base, timestamp:new Date(new Date(ts).getTime()+1).toISOString(), detail:'Poo' }, null, null);
+            const b = document.getElementById('btn-save-nappy');
+            if (b) { b.innerText = 'Saved!'; setTimeout(() => { b.innerText = t('nappy.save') || 'Log Nappy'; renderUI(); }, 1000); }
+        } else {
+            await saveToFirestore({ ...base, timestamp:ts, detail:state.nappyType }, 'btn-save-nappy', t('nappy.save') || 'Log Nappy');
+        }
+    };
+
+    window.saveSkin = () => {
+        const s = document.getElementById('skinStart').value, e = document.getElementById('skinEnd').value;
+        if (!s || !e) return alert('Please set both start and end times');
+        const mins = Math.round((new Date(e) - new Date(s)) / 60000);
+        if (mins <= 0) return alert('End time must be after start time');
+        saveToFirestore(
+            { timestamp:new Date(s).toISOString(), category:'SkinToSkin', value:mins, detail:'Session', email:window.auth.currentUser.email, child:state.currentChild },
+            'btn-save-skin', t('skin.save_skin') || 'Save Skin‑to‑Skin'
+        );
+        window.resetTimeInputs();
+    };
+
+    window.saveTummyTime = () => {
+        const s = document.getElementById('tummyStart').value, e = document.getElementById('tummyEnd').value;
+        if (!s || !e) return alert('Please set both start and end times');
+        const mins = Math.round((new Date(e) - new Date(s)) / 60000);
+        if (mins <= 0) return alert('End time must be after start time');
+        saveToFirestore(
+            { timestamp:new Date(s).toISOString(), category:'TummyTime', value:mins, detail:'Tummy Time', email:window.auth.currentUser.email, child:state.currentChild },
+            'btn-save-tummy', t('skin.save_tummy') || 'Save Tummy Time'
+        );
+        window.resetTimeInputs();
+    };
+
+    window.saveMedication = () => {
+        const name = document.getElementById('medName').value.trim();
+        if (!name) return alert('Please enter medication name');
+        const dosage    = document.getElementById('medDosage').value.trim();
+        const tv        = document.getElementById('medTime').value;
+        if (!tv) return alert(t('general.select_datetime') || 'Please select a date/time.');
+        const reminderH = parseInt(document.getElementById('med-reminder-hours').value, 10);
+        document.getElementById('medName').value            = '';
+        document.getElementById('medDosage').value          = '';
+        document.getElementById('med-reminder-hours').value = '0';
+        saveToFirestore(
+            { timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), email:window.auth.currentUser.email, child:state.currentChild },
+            'btn-save-med', t('meds.save') || 'Log Medication'
+        );
+        if (reminderH > 0) scheduleAlarm(name, dosage, reminderH);
+        window.resetTimeInputs();
+    };
+
+    function scheduleAlarm(medName, dosage, hours) {
+        const label = `💊 ${medName}${dosage ? ' – ' + dosage : ''} for ${state.currentChild}`;
+        if ('Notification' in window) {
+            Notification.requestPermission().then(p => {
+                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'/icon-192.png' }), hours * 3600000);
+            });
+        }
+    }
+
+    window.saveHospitalNote = () => {
+        const hospital = document.getElementById('hospitalName').value.trim();
+        if (!hospital) return alert('Please enter hospital name');
+        const notes = document.getElementById('hospitalNotes').value.trim();
+        const tv    = document.getElementById('hospitalTime').value;
+        if (!tv) return alert(t('general.select_datetime') || 'Please select a date/time.');
+        document.getElementById('hospitalName').value  = '';
+        document.getElementById('hospitalNotes').value = '';
+        saveToFirestore(
+            { timestamp:new Date(tv).toISOString(), category:'HospitalNote', value:0, detail:JSON.stringify({ hospital, notes }), email:window.auth.currentUser.email, child:state.currentChild },
+            'btn-save-hospital', t('hospital.save') || 'Save Note'
+        );
+        window.resetTimeInputs();
+    };
+
+    // ── Appointments ──────────────────────────────────────────────────────────
+    window.saveAppointment = async () => {
+        const dt = document.getElementById('apptDateTime').value;
+        if (!dt) return alert('Select date/time');
+        const title = document.getElementById('apptTitle').value.trim();
+        if (!title) return alert('Enter title');
+        const loc   = document.getElementById('apptLocation').value.trim();
+        const notes = document.getElementById('apptNotes').value.trim();
+
+        if (state.editingApptTimestamp) {
+            try {
+                const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                await fsDeleteDoc(fsDoc(window.db, 'logs', state.editingApptTimestamp));
+                state.logs = state.logs.filter(l => l.id !== state.editingApptTimestamp);
+            } catch(e) {
+                console.error(e);
+                showError('Could not delete old appointment. Please try again.');
+                return;
+            }
+            state.editingApptTimestamp = null;
+        }
+
+        document.getElementById('apptTitle').value    = '';
+        document.getElementById('apptLocation').value = '';
+        document.getElementById('apptNotes').value    = '';
+        resetApptFormUI();
+
+        saveToFirestore(
+            { timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), email:window.auth.currentUser.email, child:state.currentChild },
+            'btn-save-appointment', t('appointments.save') || 'Save Appointment'
+        );
+        window.resetTimeInputs();
+    };
+
+    window.editAppointment = (docId) => {
+        const log = state.logs.find(l => l.id === docId && l.category === 'Appointment');
+        if (!log) return;
+        const d     = parseDetail(log.detail);
+        const dtLocal = new Date(new Date(log.timestamp).getTime() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0,16);
+        document.getElementById('apptDateTime').value  = dtLocal;
+        document.getElementById('apptTitle').value     = d.title || '';
+        document.getElementById('apptLocation').value  = d.loc   || '';
+        document.getElementById('apptNotes').value     = d.notes || '';
+        state.editingApptTimestamp = docId;
+        document.getElementById('appt-editing-banner').style.display  = 'block';
+        document.getElementById('appt-cancel-edit-btn').style.display = 'block';
+        document.getElementById('appt-form-heading').textContent       = t('appointments.edit') || '✏️ Edit Appointment';
+        document.getElementById('btn-save-appointment').textContent    = t('appointments.update') || '💾 Update Appointment';
+        document.getElementById('page-appointments').scrollIntoView({ behavior:'smooth', block:'start' });
+    };
+
+    window.cancelEditAppointment = () => {
+        state.editingApptTimestamp = null;
+        document.getElementById('apptTitle').value    = '';
+        document.getElementById('apptLocation').value = '';
+        document.getElementById('apptNotes').value    = '';
+        resetApptFormUI();
+        window.resetTimeInputs();
+    };
+
+    function resetApptFormUI() {
+        document.getElementById('appt-editing-banner').style.display  = 'none';
+        document.getElementById('appt-cancel-edit-btn').style.display = 'none';
+        document.getElementById('appt-form-heading').textContent       = t('appointments.new') || '📅 New Appointment';
+        document.getElementById('btn-save-appointment').textContent    = t('appointments.save') || 'Save Appointment';
+    }
+
+    window.toggleApptArchive = () => {
+        const list   = document.getElementById('appt-archive-list');
+        const toggle = document.getElementById('appt-archive-toggle');
+        const isOpen = list.classList.contains('open');
+        list.classList.toggle('open', !isOpen);
+        toggle.classList.toggle('open', !isOpen);
+    };
+
+    function buildApptCard(log, isPast) {
+        const d     = parseDetail(log.detail);
+        const docId = log.id;
+        const when  = new Date(log.timestamp).toLocaleString(undefined, { weekday:'short', day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        let html    = `<div class="appt-card${isPast ? ' past' : ''}">`;
+        html += `<div class="appt-title">${escapeHTML(d.title || '—')}</div>`;
+        html += `<div class="appt-datetime">📆 ${when}</div>`;
+        if (d.loc)   html += `<div class="appt-detail-row">📍 <span>Location:</span> ${escapeHTML(d.loc)}</div>`;
+        if (d.notes) html += `<div class="appt-detail-row" style="white-space:pre-wrap;">📝 <span>Notes:</span> ${escapeHTML(d.notes)}</div>`;
+        html += `<div class="appt-actions">`;
+        if (!isPast) {
+            html += `<button class="appt-edit-btn" onclick="window.editAppointment('${docId}')">✏️ Edit</button>`;
+            html += `<button class="appt-cal-btn" onclick="window.addToCalendar('${escapeHTML(d.title||'')}','${log.timestamp}','${escapeHTML(d.loc||'')}','${escapeHTML(d.notes||'')}')">📅 Add to Calendar</button>`;
+        }
+        html += `<button class="appt-del-btn" onclick="window.deleteEntry('${docId}')">🗑️</button>`;
+        html += `</div></div>`;
+        return html;
+    }
+
+    // ── Private notes ─────────────────────────────────────────────────────────
+    window.savePrivateNote = () => {
+        const title   = document.getElementById('note-title').value.trim();
+        const content = document.getElementById('note-content').value.trim();
+        if (!title) return alert('Please enter a title');
+        privateNotes.push({ id:Date.now(), title, content, updated:new Date().toISOString() });
+        localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+        document.getElementById('note-title').value   = '';
+        document.getElementById('note-content').value = '';
+        renderPrivateNotes();
+    };
+
+    window.deletePrivateNote = (id) => {
+        if (!confirm('Delete this note?')) return;
+        privateNotes = privateNotes.filter(n => n.id !== id);
+        localStorage.setItem('ecoPrivateNotes', JSON.stringify(privateNotes));
+        renderPrivateNotes();
+    };
+
+    function renderPrivateNotes() {
+        const el = document.getElementById('private-notes-list');
+        if (!el) return;
+        if (!privateNotes.length) {
+            el.innerHTML = `<div style="text-align:center;padding:20px;opacity:0.6;">${t('general.no_notes') || 'No private notes yet. Create one above ✍️'}</div>`;
+            return;
+        }
+        el.innerHTML = [...privateNotes].sort((a,b) => new Date(b.updated) - new Date(a.updated)).map(n =>
+            `<div class="note-card">
+                <div class="note-card-title">${escapeHTML(n.title)}</div>
+                <div class="note-card-text">${escapeHTML(n.content).replace(/\n/g,'<br>') || `<span style="opacity:0.5;">${t('general.empty_note') || '(empty)'}</span>`}</div>
+                <div class="note-card-time">🗓 ${new Date(n.updated).toLocaleString()}</div>
+                <div class="note-card-footer"><span class="delete-btn" onclick="window.deletePrivateNote(${n.id})">🗑️</span></div>
+            </div>`
+        ).join('');
+    }
+
+    // ── Chart / data helpers ──────────────────────────────────────────────────
+    const groupByDay = (logs, key='value') => {
+        const d = {};
+        logs.forEach(l => { const k = l.timestamp.slice(0,10); d[k] = (d[k]||0) + Number(l[key]); });
+        return d;
+    };
+    const groupByMonth = (logs, key='value') => {
+        const m = {};
+        logs.forEach(l => { const k = l.timestamp.slice(0,7); m[k] = (m[k]||0) + Number(l[key]); });
+        return m;
+    };
+    const projectNext30 = (logs, key='value') => {
+        const cutoff = new Date(Date.now() - 30*864e5);
+        const recent = logs.filter(l => new Date(l.timestamp) >= cutoff);
+        if (!recent.length) return 0;
+        const total = recent.reduce((s,l) => s + Number(l[key]), 0);
+        const days  = new Set(recent.map(l => l.timestamp.slice(0,10))).size || 1;
+        return Math.round(total / days * 30);
+    };
+    const movingAvg = (obj, n=7) => {
+        const keys = Object.keys(obj).sort(), vals = keys.map(k => obj[k]), map = new Map();
+        for (let i=0; i<keys.length; i++) {
+            map.set(keys[i], i < n-1 ? null : vals.slice(i-n+1, i+1).reduce((a,b) => a+b, 0) / n);
+        }
+        return map;
+    };
+    const supplyStatus = (pump, feed) => {
+        const w = new Date(); w.setDate(w.getDate()-6);
+        const f      = l => new Date(l.timestamp) >= w;
+        const p      = pump.filter(f).reduce((s,l) => s + +l.value, 0);
+        const fd     = feed.filter(f).reduce((s,l) => s + +l.value, 0);
+        const diff   = p - fd;
+        const ratio  = p ? Math.min(fd / p * 100, 100) : 0;
+        let st, cl;
+        if      (diff >  100) { st = t('supply.surplus')  || 'Surplus';         cl = 'status-surplus';  }
+        else if (diff >    0) { st = t('supply.balanced') || 'Balanced';         cl = 'status-balanced'; }
+        else if (diff >  -50) { st = t('supply.deficit')  || 'Slight Deficit';  cl = 'status-deficit';  }
+        else                  { st = t('supply.critical') || 'Critical Deficit'; cl = 'status-critical'; }
+        return { pumpTotal:p, feedTotal:fd, diff, ratio, status:st, statusClass:cl };
+    };
+
+    function drawChart(id, datasets, opts={}) {
+        const canvas = document.getElementById(id);
+        if (!canvas) return;
+        if (charts[id]) { charts[id].destroy(); delete charts[id]; }
+        const ds = isLowMem ? datasets.filter(d => !d.borderDash) : datasets;
+        if (!opts.labels?.length || ds.every(d => !d.data?.length)) {
+            charts[id] = new Chart(canvas.getContext('2d'), { type:'line', data:{ labels:['No data'], datasets:[] }, options:{ plugins:{ title:{ display:true, text:'Add entries to see chart' } } } });
+            return;
+        }
+        charts[id] = new Chart(canvas.getContext('2d'), {
+            type: opts.type || 'line',
+            data: { labels:opts.labels, datasets:ds },
+            options: { responsive:true, maintainAspectRatio:false, animation:{ duration: isLowMem ? 0 : 400 }, plugins:{ legend:{ display:false } }, scales:{ y:{ beginAtZero:true } } }
+        });
+    }
+
+    // ── Dashboard ─────────────────────────────────────────────────────────────
+    function renderDashboard() {
+        const dash = document.getElementById('dashboard');
+        if (!dash) return;
+        const cl  = state.logs.filter(l => l.child === state.currentChild);
+        const cv  = v => state.units === 'US' ? (v/29.5735).toFixed(1)+'oz' : v+'ml';
+        const lat = cat => cl.filter(l => l.category === cat).sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+        const lm  = lat('Milk'), ln = lat('Nappy'), lmed = lat('Medication');
+        const na  = cl.filter(l => l.category === 'Appointment' && new Date(l.timestamp) > new Date()).sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp))[0];
+
+        const item = (ic, lb, val, ts) => `<div class="dash-item"><div class="dash-label">${ic} ${lb}</div><div class="dash-value">${val||t('dashboard.none')}</div><div class="dash-time">${ts ? new Date(ts).toLocaleString() : t('dashboard.none')}</div></div>`;
+
+        let h = '';
+        if (lm) {
+            const mode = lm.detail.includes('Pump') ? t('dashboard.pump') : t('dashboard.feed');
+            h += item('🤱', `${t('dashboard.milk')} (${mode})`, cv(lm.value), lm.timestamp);
+        } else {
+            h += item('🤱', t('dashboard.milk'), t('dashboard.none'), null);
+        }
+
+        if (ln) {
+            h += item('🧻', t('dashboard.nappy'), ln.detail, ln.timestamp);
+        } else {
+            h += item('🧻', t('dashboard.nappy'), t('dashboard.none'), null);
+        }
+
+        if (lmed) {
+            const d = parseDetail(lmed.detail);
+            h += item('💊', t('dashboard.medication'), `${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}`, lmed.timestamp);
+        } else {
+            h += item('💊', t('dashboard.medication'), t('dashboard.none'), null);
+        }
+
+        if (na) {
+            const d = parseDetail(na.detail);
+            h += item('📅', t('dashboard.next_appt'), escapeHTML(d.title||'—'), na.timestamp);
+        } else {
+            h += item('📅', t('dashboard.next_appt'), t('dashboard.none'), null);
+        }
+
+        dash.innerHTML = h;
+    }
+
+    function renderMedicationTimers() {
+        const el = document.getElementById('med-timers-container');
+        if (!el) return;
+        const meds   = state.logs.filter(l => l.child === state.currentChild && l.category === 'Medication').sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+        const latest = {};
+        meds.forEach(l => { const d = parseDetail(l.detail), k = (d.name||l.detail).toLowerCase(); if (!latest[k]) latest[k] = l; });
+        el.innerHTML = Object.values(latest).map(l => {
+            const d = parseDetail(l.detail), name = d.name||l.detail, dos = d.dosage ? ` (${escapeHTML(d.dosage)})` : '';
+            return `<div class="med-timer-card"><div class="med-name">${escapeHTML(name)}${dos}</div><div class="med-time">⏱️ ${timeAgo(l.timestamp)}</div></div>`;
+        }).join('') || '<div style="padding:10px;opacity:0.6;">No medications logged yet</div>';
+    }
+
+    function timeAgo(ts) {
+        const s = (new Date() - new Date(ts)) / 1000;
+        if (s < 60)    return 'Just now';
+        if (s < 3600)  return `${Math.floor(s/60)} min ago`;
+        if (s < 86400) return `${Math.floor(s/3600)}h ago`;
+        return `${Math.floor(s/86400)}d ago`;
+    }
+
+    window.addToCalendar = (title, start, loc, notes) => {
+        const s = new Date(start).toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+        const e = new Date(new Date(start).getTime()+3600000).toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+        window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${s}/${e}&details=${encodeURIComponent(notes||'')}&location=${encodeURIComponent(loc||'')}`, '_blank');
+    };
+
+    // ── Main render ───────────────────────────────────────────────────────────
+    const renderUI = () => {
+        try {
+            const child  = state.logs.filter(l => l.child === state.currentChild);
+            const isUS   = state.units === 'US';
+            const cv     = v => isUS ? (v/29.5735).toFixed(1) : Math.round(v);
+            const unit   = isUS ? 'oz' : 'ml';
+            const c14    = new Date(Date.now() - 14*864e5);
+            const c14iso = c14.toISOString().slice(0,10);
+            const f14    = logs => logs.filter(l => new Date(l.timestamp) >= c14);
+            const ge     = id  => document.getElementById(id);
+
+            if (ge('milkAmt'))    ge('milkAmt').placeholder    = `Amount (${unit})`;
+            if (ge('formulaAmt')) ge('formulaAmt').placeholder = `Amount (${unit})`;
+
+            const milk     = child.filter(l => l.category === 'Milk');
+            const formula  = child.filter(l => l.category === 'Formula');
+            const nappy    = child.filter(l => l.category === 'Nappy');
+            const pump     = milk.filter(l => l.detail.includes('Pump'));
+            const feedMilk = milk.filter(l => l.detail.includes('Feed'));
+            const allFeed  = child.filter(l => (l.category==='Milk'&&l.detail.includes('Feed')) || l.category==='Formula');
+
+            // Supply status card
+            const sc = ge('supply-status-content');
+            if (sc) {
+                const st = supplyStatus(pump, allFeed);
+                sc.innerHTML = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+                    <div><strong>Pumped:</strong> ${cv(st.pumpTotal)}${unit}</div>
+                    <div><strong>Fed:</strong> ${cv(st.feedTotal)}${unit}</div></div>
+                    <div class="supply-indicator">
+                        <span>${Math.round(st.ratio)}% used</span>
+                        <div class="supply-bar"><div class="supply-bar-fill" style="width:${st.ratio}%"></div></div>
+                        <span class="supply-status ${st.statusClass}">${st.status}</span>
+                    </div>`;
+            }
+
+            // Generic section renderer (milk / formula)
+            const section = (logs, pref, fmt) => {
+                const fl  = f14(logs), tot = fl.reduce((s,l) => s + +l.value, 0);
+                const se  = ge(`stats-${pref}`);
+                if (se) se.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total (14d)</div></div><div class="stat-box"><div class="stat-val">${fl.length}</div><div class="stat-lbl">Entries</div></div>`;
+                const he  = ge(`history-${pref}`);
+                if (he) he.innerHTML = fl.sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
+                    `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(l.detail)} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+                ).join('') || `<div style="padding:10px;opacity:0.6;">${t('general.no_data') || 'No entries yet'}</div>`;
+            };
+            section(milk,    'milk',    v => `${cv(v)}${unit}`);
+            section(formula, 'formula', v => `${cv(v)}${unit}`);
+
+            // Milk chart
+            const pd    = groupByDay(f14(pump)), fd = groupByDay(f14(feedMilk));
+            const md    = [...new Set([...Object.keys(pd),...Object.keys(fd)])].sort().filter(d => d >= c14iso);
+            const ml    = md.map(d => new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+            const pma   = movingAvg(pd), fma = movingAvg(fd);
+            drawChart('chart-milk', [
+                {label:'Pumped',   data:md.map(d=>pd[d]||0),        borderColor:'#9C27B0', tension:0.3},
+                {label:'Feed',     data:md.map(d=>fd[d]||0),         borderColor:'#f44336', tension:0.3},
+                {label:'Avg Pump', data:md.map(d=>pma.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'Avg Feed', data:md.map(d=>fma.get(d)??null), borderColor:'#ff5722', borderDash:[3,3]}
+            ], {labels:ml});
+
+            // Formula chart
+            const fmd  = groupByDay(f14(formula));
+            const fmdd = Object.keys(fmd).sort().filter(d => d >= c14iso);
+            const fml  = fmdd.map(d => new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+            const fmma = movingAvg(fmd);
+            drawChart('chart-formula', [
+                {label:'Daily',  data:fmdd.map(d=>fmd[d]||0),         borderColor:'#6a9c7d', tension:0.3},
+                {label:'7d Avg', data:fmdd.map(d=>fmma.get(d)??null), borderColor:'#ff9800', borderDash:[5,5]}
+            ], {labels:fml});
+
+            // Nappy chart
+            const wee14 = f14(nappy).filter(l => l.detail==='Wee'||l.detail==='Both');
+            const poo14 = f14(nappy).filter(l => l.detail==='Poo'||l.detail==='Both');
+            const wd    = groupByDay(wee14), pod = groupByDay(poo14);
+            const ndd   = [...new Set([...Object.keys(wd),...Object.keys(pod)])].sort().filter(d => d >= c14iso);
+            const ndl   = ndd.map(d => new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+            const wma   = movingAvg(wd), poma = movingAvg(pod);
+            const sne   = ge('stats-nappy');
+            if (sne) sne.innerHTML = `<div class="stat-box"><div class="stat-val">${wee14.length}</div><div class="stat-lbl">Wee (14d)</div></div><div class="stat-box"><div class="stat-val">${poo14.length}</div><div class="stat-lbl">Poo (14d)</div></div>`;
+            drawChart('chart-nappy', [
+                {label:'Wee',    data:ndd.map(d=>wd[d]||0),          borderColor:'#4a90e2', tension:0.3},
+                {label:'Poo',    data:ndd.map(d=>pod[d]||0),          borderColor:'#8B4513', tension:0.3},
+                {label:'Avg Wee',data:ndd.map(d=>wma.get(d)??null),   borderColor:'#ff9800', borderDash:[5,5]},
+                {label:'Avg Poo',data:ndd.map(d=>poma.get(d)??null),  borderColor:'#ff9800', borderDash:[2,2]}
+            ], {labels:ndl});
+            const nh = ge('history-nappy');
+            if (nh) nh.innerHTML = f14(nappy).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
+                `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+            ).join('') || `<div style="padding:10px;opacity:0.6;">${t('general.no_data') || 'No entries yet'}</div>`;
+
+            // Skin / Tummy chart
+            const skinL = child.filter(l => l.category==='SkinToSkin'), tumL = child.filter(l => l.category==='TummyTime');
+            const skd   = groupByDay(skinL), tmd2 = groupByDay(tumL);
+            const sdd   = [...new Set([...Object.keys(skd),...Object.keys(tmd2)])].sort().filter(d => d >= c14iso);
+            const sdl   = sdd.map(d => new Date(d+'T00:00:00').toLocaleDateString(undefined,{month:'short',day:'numeric'}));
+            const sma   = movingAvg(skd), tma2 = movingAvg(tmd2);
+            drawChart('chart-skin', [
+                {label:'Skin',      data:sdd.map(d=>skd[d]||0),          backgroundColor:'#b30000', type:'bar'},
+                {label:'Tummy',     data:sdd.map(d=>tmd2[d]||0),          backgroundColor:'#00bcd4', type:'bar'},
+                {label:'Avg Skin',  data:sdd.map(d=>sma.get(d)??null),   borderColor:'#ff9800', borderDash:[5,5], type:'line', fill:false},
+                {label:'Avg Tummy', data:sdd.map(d=>tma2.get(d)??null),  borderColor:'#ff9800', borderDash:[2,2], type:'line', fill:false}
+            ], {labels:sdl, type:'bar'});
+            const sse = ge('stats-skin');
+            if (sse) sse.innerHTML = `<div class="stat-box"><div class="stat-val">${skinL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Skin total</div></div><div class="stat-box"><div class="stat-val">${tumL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Tummy total</div></div>`;
+            const sh = ge('history-skin');
+            if (sh) sh.innerHTML = [...skinL,...tumL].sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
+                `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail} (${l.value} min)</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+            ).join('') || '<div>No entries</div>';
+
+            // Meds
+            renderMedicationTimers();
+            const mh = ge('history-meds');
+            if (mh) mh.innerHTML = f14(child.filter(l => l.category==='Medication')).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l => {
+                const d = parseDetail(l.detail);
+                return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`;
+            }).join('');
+
+            // Hospital notes
+            const hh = ge('history-hospital');
+            if (hh) hh.innerHTML = f14(child.filter(l => l.category==='HospitalNote')).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => {
+                const d = parseDetail(l.detail);
+                return `<div class="hospital-note-item"><div class="hospital-name">🏥 ${escapeHTML(d.hospital||d.raw||'—')}</div><div class="hospital-note-text">${escapeHTML(d.notes||'').replace(/\n/g,'<br>')}</div><div class="hospital-timestamp">${new Date(l.timestamp).toLocaleString()}</div><div style="text-align:right"><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div></div>`;
+            }).join('') || '<div>No hospital notes yet</div>';
+
+            // Appointments
+            const now      = new Date();
+            const allAppts = child.filter(l => l.category === 'Appointment');
+            const upcoming = allAppts.filter(l => new Date(l.timestamp) >= now).sort((a,b) => new Date(a.timestamp)-new Date(b.timestamp));
+            const past     = allAppts.filter(l => new Date(l.timestamp) <  now).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp));
+
+            const ae = ge('appointments-list');
+            if (ae) ae.innerHTML = upcoming.length ? upcoming.map(l => buildApptCard(l, false)).join('') : '<div style="padding:10px;opacity:0.6;">No upcoming appointments</div>';
+
+            const archiveList   = ge('appt-archive-list');
+            const archiveToggle = ge('appt-archive-toggle');
+            if (archiveList) {
+                if (archiveToggle) archiveToggle.querySelector('span:first-child').textContent = `🗂️ Past Appointments (${past.length})`;
+                archiveList.innerHTML = past.length ? past.map(l => buildApptCard(l, true)).join('') : '<div style="padding:10px;opacity:0.6;">No past appointments yet</div>';
+            }
+
+            // Trending page
+            if (state.tab === 'trending') {
+                const c7    = new Date(Date.now() - 7*864e5);
+                const c7iso = c7.toISOString().slice(0,10);
+                const l7    = logs => logs.filter(l => new Date(l.timestamp) >= c7);
+                const mf    = child.filter(l => l.category==='Milk'&&l.detail.includes('Feed'));
+                const ff    = child.filter(l => l.category==='Formula');
+                const af    = [...mf,...ff];
+                const nps   = child.filter(l => l.category==='Nappy');
+                const sov   = ge('stats-overview');
+                if (sov) sov.innerHTML = `
+                    <div class="stat-box"><div class="stat-val">${af.length}</div><div class="stat-lbl">Total Feeds</div></div>
+                    <div class="stat-box"><div class="stat-val">${nps.length}</div><div class="stat-lbl">Nappies</div></div>
+                    <div class="stat-box"><div class="stat-val">${l7(af).length}</div><div class="stat-lbl">Feeds (7d)</div></div>
+                    <div class="stat-box"><div class="stat-val">${l7(nps).length}</div><div class="stat-lbl">Nappies (7d)</div></div>`;
+
+                const mfd7 = groupByDay(l7(mf)), ffd7 = groupByDay(l7(ff));
+                const fd7d = [...new Set([...Object.keys(mfd7),...Object.keys(ffd7)])].sort().filter(d => d >= c7iso);
+                drawChart('chart-trending-feeding', [
+                    {label:'Milk (fed)', data:fd7d.map(d=>mfd7[d]||0), backgroundColor:'#9C27B0', type:'bar'},
+                    {label:'Formula',   data:fd7d.map(d=>ffd7[d]||0),  backgroundColor:'#6a9c7d', type:'bar'}
+                ], {labels:fd7d.map(d=>new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric'})), type:'bar'});
+                const tfs = ge('trending-feeding-summary');
+                if (tfs) tfs.textContent = `Total past 7 days: ${fd7d.reduce((s,d)=>s+(mfd7[d]||0)+(ffd7[d]||0),0)}ml from breastmilk and formula combined.`;
+
+                const wd7  = groupByDay(l7(nps.filter(l=>l.detail==='Wee'||l.detail==='Both'))), pd7 = groupByDay(l7(nps.filter(l=>l.detail==='Poo'||l.detail==='Both')));
+                const nd7d = [...new Set([...Object.keys(wd7),...Object.keys(pd7)])].sort().filter(d => d >= c7iso);
+                const tot7 = {}; nd7d.forEach(d => { tot7[d] = (wd7[d]||0) + (pd7[d]||0); });
+                drawChart('chart-trending-nappy', [
+                    {label:'Wee',  data:nd7d.map(d=>wd7[d]||0),   backgroundColor:'#4a90e2', type:'bar'},
+                    {label:'Poo',  data:nd7d.map(d=>pd7[d]||0),   backgroundColor:'#8B4513', type:'bar'},
+                    {label:'Total',data:nd7d.map(d=>tot7[d]||0),  borderColor:'#ff9800', borderWidth:3, type:'line', fill:false, pointRadius:4}
+                ], {labels:nd7d.map(d=>new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric'})), type:'bar'});
+                const tns = ge('trending-nappy-summary');
+                if (tns) { const tn7 = nd7d.reduce((s,d)=>s+(tot7[d]||0),0); tns.textContent = `${tn7} nappy changes in the last 7 days – avg ${(tn7/7).toFixed(1)}/day.`; }
+
+                const tsd = [...new Set([...Object.keys(skd),...Object.keys(tmd2)])].sort().filter(d => d >= c14iso);
+                drawChart('chart-trending-skin', [
+                    {label:'Skin',      data:tsd.map(d=>skd[d]||0),        borderColor:'#b30000', fill:false, tension:0.4, pointRadius:3},
+                    {label:'Tummy',     data:tsd.map(d=>tmd2[d]||0),        borderColor:'#00bcd4', fill:false, tension:0.4, pointRadius:3},
+                    {label:'Avg Skin',  data:tsd.map(d=>sma.get(d)??null),  borderColor:'#ff9800', borderDash:[5,5], fill:false, pointRadius:0},
+                    {label:'Avg Tummy', data:tsd.map(d=>tma2.get(d)??null), borderColor:'#ff9800', borderDash:[2,2], fill:false, pointRadius:0}
+                ], {labels:tsd.map(d=>new Date(d+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',day:'numeric'}))});
+                const tss = ge('trending-skin-summary');
+                if (tss) tss.textContent = `14-day total: ${skinL.reduce((s,l)=>s+Number(l.value),0)} min skin‑to‑skin, ${tumL.reduce((s,l)=>s+Number(l.value),0)} min tummy time.`;
+
+                const fl2 = ge('trending-feed-log');
+                if (fl2) fl2.innerHTML = af.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.category} (${l.value}ml)</span></div>`).join('') || '<div>No feeds yet</div>';
+                const nl2 = ge('trending-nappy-log');
+                if (nl2) nl2.innerHTML = nps.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.detail}</span></div>`).join('') || '<div>No nappies yet</div>';
+
+                const pm  = groupByMonth(pump), fm2 = groupByMonth(feedMilk);
+                const mm  = [...new Set([...Object.keys(pm),...Object.keys(fm2)])].sort();
+                drawChart('chart-monthly-milk', [
+                    {label:'Pumped',  data:mm.map(m=>pm[m]||0),   backgroundColor:'#9C27B0', type:'bar'},
+                    {label:'Fed',     data:mm.map(m=>fm2[m]||0),  backgroundColor:'#f44336', type:'bar'},
+                    {label:'Forecast',data:[...Array(mm.length).fill(null), projectNext30(feedMilk)], borderColor:'#f44336', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...mm, new Date().toISOString().slice(0,7)+' (est.)'], type:'bar'});
+
+                const fom  = groupByMonth(formula), fomk = Object.keys(fom).sort();
+                drawChart('chart-monthly-formula', [
+                    {label:'Total',   data:fomk.map(m=>fom[m]||0), backgroundColor:'#6a9c7d', type:'bar'},
+                    {label:'Forecast',data:[...Array(fomk.length).fill(null), projectNext30(formula)], borderColor:'#6a9c7d', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...fomk, new Date().toISOString().slice(0,7)+' (est.)'], type:'bar'});
+
+                const awee = nappy.filter(l=>l.detail==='Wee'||l.detail==='Both'), apoo = nappy.filter(l=>l.detail==='Poo'||l.detail==='Both');
+                const wm   = groupByMonth(awee), pom = groupByMonth(apoo), tom = {};
+                [...new Set([...Object.keys(wm),...Object.keys(pom)])].forEach(m => { tom[m] = (wm[m]||0) + (pom[m]||0); });
+                const nmk  = Object.keys(tom).sort();
+                drawChart('chart-monthly-nappy', [
+                    {label:'Wee',     data:nmk.map(m=>wm[m]||0),  backgroundColor:'#4a90e2', type:'bar'},
+                    {label:'Poo',     data:nmk.map(m=>pom[m]||0), backgroundColor:'#8B4513', type:'bar'},
+                    {label:'Total',   data:nmk.map(m=>tom[m]||0), borderColor:'#ff9800', borderWidth:2, type:'line', fill:false},
+                    {label:'Forecast',data:[...Array(nmk.length).fill(null), projectNext30(nappy,'value')], borderColor:'#ff9800', borderDash:[5,5], type:'line', fill:false}
+                ], {labels:[...nmk, new Date().toISOString().slice(0,7)+' (est.)'], type:'bar'});
+            }
+
+            renderPrivateNotes();
+            renderDashboard();
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(renderMedicationTimers, 60000);
+        } catch(e) { console.error(e); showError('UI error: ' + e.message); }
+    };
+
+    // ── Stash ─────────────────────────────────────────────────────────────────
+    window.adjustStash = async (change) => {
+        if (!window.auth?.currentUser) return;
+        try {
+            const { doc: fsDoc, getDoc, setDoc: fsSetDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.uid}_${state.currentChild}`);
+            const snap     = await getDoc(stashRef);
+            const cur      = snap.exists() ? snap.data().balance || 0 : 0;
+            const newBal   = Math.max(0, cur + change);
+            await fsSetDoc(stashRef, { balance:newBal, email:window.auth.currentUser.email, child:state.currentChild, lastUpdated:new Date().toISOString() });
+            state.stashBalance = newBal;
+            const el = document.getElementById('stash-balance');
+            if (el) el.textContent = state.stashBalance;
+            showBanner('Stash updated ✓', 'synced');
+        } catch(e) {
+            console.error(e);
+            if (e.code === 'permission-denied' || e.message.includes('permission')) {
+                alert('❌ Permission denied by Firestore.\n\n' +
+                    '👉 Add this rule to your Firebase Firestore Rules:\n\n' +
+                    'match /stash/{documentId} {\n' +
+                    '  allow read, write: if request.auth != null;\n' +
+                    '}\n\nThen try again.');
+            } else {
+                showError('Could not update stash: ' + e.message);
+            }
+        }
+    };
+
+    async function fetchStashBalance() {
+        if (!window.auth?.currentUser) return;
+        try {
+            const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const stashRef = fsDoc(window.db, 'stash', `${window.auth.currentUser.uid}_${state.currentChild}`);
+            const snap     = await getDoc(stashRef);
+            state.stashBalance = snap.exists() ? snap.data().balance || 0 : 0;
+            const el = document.getElementById('stash-balance');
+            if (el) el.textContent = state.stashBalance;
+        } catch(e) { console.error(e); }
+    }
+
+    // ── Export ────────────────────────────────────────────────────────────────
+    window.exportData = () => {
+        const rows = ['Timestamp,Category,Value,Detail,Child',
+            ...state.logs.filter(l => l.child === state.currentChild).map(l =>
+                [l.timestamp, l.category, l.value, (l.detail||'').replace(/,/g,';'), l.child].join(',')
+            )
+        ].join('\n');
+        const fname = `ecofamilyflow_${state.currentChild}_${new Date().toISOString().slice(0,10)}.csv`;
+        const a = document.createElement('a');
+        a.href     = URL.createObjectURL(new Blob([rows], {type:'text/csv'}));
+        a.download = fname; a.click();
+    };
+
+    // ── PDF Report ────────────────────────────────────────────────────────────
+    window.downloadFullChildReportPDF = async function () {
+        const li = document.getElementById('loading-indicator');
+        try {
+            const cl = state.logs.filter(l => l.child === state.currentChild);
+            if (!cl.length) { alert('No data to generate a report.'); return; }
+            if (li) { li.style.display = 'block'; li.textContent = 'Generating PDF…'; }
+
+            const months = [...new Set(cl.map(l => l.timestamp.slice(0,7)))].sort();
+            const ct     = document.getElementById('report-container');
+            ct.innerHTML = ''; ct.style.display = 'block';
+
+            const cover = document.createElement('div');
+            cover.style.cssText = 'text-align:center;padding-top:80px;';
+            cover.innerHTML = `<h1>Eco Family Flow</h1><h2>Full Child Report</h2><p><strong>Child:</strong> ${escapeHTML(state.currentChild)}</p><p><strong>Period:</strong> ${months[0]||'—'} to ${months[months.length-1]||'—'}</p><p><strong>Generated:</strong> ${new Date().toLocaleDateString()}</p>`;
+            ct.appendChild(cover);
+
+            const chartInst = [];
+            for (const month of months) {
+                const [yr,mn] = month.split('-');
+                const sd = new Date(`${month}-01`), ed = new Date(+yr,+mn,0);
+                const ml2 = cl.filter(l => { const d = new Date(l.timestamp); return d >= sd && d <= ed; });
+                const mmi = ml2.filter(l=>l.category==='Milk'), mfo = ml2.filter(l=>l.category==='Formula'),
+                      mna = ml2.filter(l=>l.category==='Nappy'), mme = ml2.filter(l=>l.category==='Medication'),
+                      mho = ml2.filter(l=>l.category==='HospitalNote'), map2 = ml2.filter(l=>l.category==='Appointment');
+                const div = document.createElement('div');
+                div.className = 'report-month';
+                div.innerHTML = `<h2>${new Date(+yr,+mn-1).toLocaleString('default',{month:'long',year:'numeric'})}</h2>
+                <div class="report-stats">
+                    <div class="report-stat"><strong>${mmi.filter(l=>l.detail.includes('Feed')).reduce((s,l)=>s+Number(l.value),0)} ml</strong><br>Milk Fed</div>
+                    <div class="report-stat"><strong>${mmi.filter(l=>l.detail.includes('Pump')).reduce((s,l)=>s+Number(l.value),0)} ml</strong><br>Milk Pumped</div>
+                    <div class="report-stat"><strong>${mfo.reduce((s,l)=>s+Number(l.value),0)} ml</strong><br>Formula</div>
+                    <div class="report-stat"><strong>${mna.filter(l=>l.detail==='Wee'||l.detail==='Both').length}</strong><br>Wee</div>
+                    <div class="report-stat"><strong>${mna.filter(l=>l.detail==='Poo'||l.detail==='Both').length}</strong><br>Poo</div>
+                </div>
+                <canvas id="rfc${month.replace('-','')}" width="700" height="200"></canvas>
+                <canvas id="rnc${month.replace('-','')}" width="700" height="200"></canvas>
+                <h4>Medications</h4>${mme.length ? `<ul>${mme.map(m=>{const d=parseDetail(m.detail);return`<li>${new Date(m.timestamp).toLocaleDateString()} – ${escapeHTML(d.name||'')} ${d.dosage?`(${escapeHTML(d.dosage)})`:''}</li>`;}).join('')}</ul>` : '<p>None</p>'}
+                <h4>Hospital Notes</h4>${mho.length ? `<ul>${mho.map(h=>{const d=parseDetail(h.detail);return`<li>${new Date(h.timestamp).toLocaleDateString()} – ${escapeHTML(d.hospital||'')}${d.notes?': '+escapeHTML(d.notes):''}</li>`;}).join('')}</ul>` : '<p>None</p>'}
+                <h4>Appointments</h4>${map2.length ? `<ul>${map2.map(a=>{const d=parseDetail(a.detail);return`<li>${new Date(a.timestamp).toLocaleDateString()} – ${escapeHTML(d.title||'')} (${escapeHTML(d.loc||'')})</li>`;}).join('')}</ul>` : '<p>None</p>'}`;
+                ct.appendChild(div);
+
+                const days = ed.getDate(), lbs = Array.from({length:days},(_,i)=>i+1);
+                const mfbd = Array(days).fill(0), ffbd = Array(days).fill(0);
+                mmi.filter(l=>l.detail.includes('Feed')).forEach(l => { mfbd[new Date(l.timestamp).getDate()-1] += Number(l.value); });
+                mfo.forEach(l => { ffbd[new Date(l.timestamp).getDate()-1] += Number(l.value); });
+                const wbd = Array(days).fill(0), pbd = Array(days).fill(0);
+                mna.forEach(l => { const d = new Date(l.timestamp).getDate()-1; if(l.detail==='Wee'||l.detail==='Both') wbd[d]++; if(l.detail==='Poo'||l.detail==='Both') pbd[d]++; });
+
+                const fc = document.getElementById(`rfc${month.replace('-','')}`);
+                if (fc) chartInst.push(new Chart(fc.getContext('2d'), {type:'line', data:{labels:lbs,datasets:[{label:'Milk Fed',data:mfbd,borderColor:'#9C27B0',fill:false,tension:0.3},{label:'Formula',data:ffbd,borderColor:'#6a9c7d',fill:false,tension:0.3}]}, options:{responsive:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}}));
+                const nc = document.getElementById(`rnc${month.replace('-','')}`);
+                if (nc) chartInst.push(new Chart(nc.getContext('2d'), {type:'line', data:{labels:lbs,datasets:[{label:'Wee',data:wbd,borderColor:'#4a90e2',fill:false,tension:0.3},{label:'Poo',data:pbd,borderColor:'#8B4513',fill:false,tension:0.3}]}, options:{responsive:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true}}}}));
+            }
+
+            await new Promise(r => setTimeout(r, 400));
+            const {jsPDF} = window.jspdf;
+            const pdf     = new jsPDF('p','mm','a4');
+            let first     = true;
+            const scale   = isLowMem ? 1 : 2;
+
+            for (const md of ct.querySelectorAll('.report-month')) {
+                const c  = await html2canvas(md, {scale, useCORS:true, backgroundColor:'#ffffff', logging:false});
+                const iw = 190, ih = (c.height*iw)/c.width;
+                if (!first) pdf.addPage(); else first = false;
+                pdf.addImage(c.toDataURL('image/png'), 'PNG', 10, 10, iw, ih);
+            }
+            chartInst.forEach(c => c.destroy());
+            ct.innerHTML = ''; ct.style.display = 'none';
+            if (li) li.style.display = 'none';
+            pdf.save(`eco-family-flow-${state.currentChild}-${new Date().toISOString().slice(0,10)}.pdf`);
+        } catch(e) {
+            if (li) li.style.display = 'none';
+            console.error(e);
+            showError('PDF generation failed: ' + e.message);
+        }
+    };
+
+    // ── Account ───────────────────────────────────────────────────────────────
+    async function loadAccountDetails() {
+        try {
+            document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            const myCode = localStorage.getItem('myInviteCode') || generateInviteCode();
+            localStorage.setItem('myInviteCode', myCode);
+            document.getElementById('account-family-name').textContent  = 'Connected';
+            document.getElementById('account-family-id').textContent    = window.auth.currentUser.uid.slice(0,8);
+            document.getElementById('account-invite-code').textContent  = myCode;
+            document.getElementById('family-invite-card').style.display = 'block';
+            document.getElementById('join-family-card').style.display   = 'none';
+            try {
+                const { query: fsQuery, where: fsWhere, getDocs, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const snap = await getDocs(fsQuery(fsColl(window.db,'families'), fsWhere('inviteCode','==',myCode)));
+                if (!snap.empty) {
+                    const fam = snap.docs[0].data();
+                    document.getElementById('account-family-name').textContent = fam.familyName || 'Connected';
+                    document.getElementById('account-members').innerHTML = (fam.members||[]).map(m => `<div class="history-item">${escapeHTML(m)}</div>`).join('') || 'Just you';
+                }
+            } catch(e) { console.warn('Could not load family members:', e); }
+        } catch(e) { console.error(e); }
+    }
+
+    window.copyInviteCode = () => {
+        const c = document.getElementById('account-invite-code').textContent;
+        if (c) navigator.clipboard?.writeText(c).then(() => alert('Copied!')).catch(() => prompt('Copy manually:', c));
+    };
+
+    window.deleteAccount = async () => {
+        if (!confirm('Permanently delete all your data? This cannot be undone.')) return;
+        try {
+            const { query: fsQuery, where: fsWhere, getDocs, deleteDoc: fsDeleteDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const snap = await getDocs(fsQuery(fsColl(window.db,'logs'), fsWhere('email','==',window.auth.currentUser.email)));
+            snap.docs.forEach(doc => fsDeleteDoc(doc.ref));
+            alert('Account deleted.');
+            window.logout();
+        } catch(e) { console.error(e); showError('Could not delete account'); }
+    };
+
+    // ── Share ─────────────────────────────────────────────────────────────────
+    window.shareApp = async () => {
+        const title = 'Eco Family Flow', text = 'Track feeds, nappies, meds & more for your baby 🌿', url = 'https://unicorn5843.github.io/Eco-Family-Flow/';
+        if (navigator.share) {
+            try { await navigator.share({title, text, url}); } catch(e) { if (e.name !== 'AbortError') console.warn(e); }
+        } else if (navigator.clipboard) {
+            try { await navigator.clipboard.writeText(url); alert('Link copied to clipboard 📋'); } catch { prompt('Copy this link:', url); }
+        } else {
+            prompt('Copy this link:', url);
+        }
+    };
+
+    // ── Utilities ─────────────────────────────────────────────────────────────
+    window.resetTimeInputs = () => {
+        const now = new Date(); now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const v   = now.toISOString().slice(0,16);
+        ['milkTime','formulaTime','nappyTime','medTime','hospitalTime','apptDateTime','skinStart','skinEnd','tummyStart','tummyEnd'].forEach(id => {
+            const e = document.getElementById(id); if (e) e.value = v;
+        });
+    };
+
+    window.toggleUnits = () => {
+        state.units = state.units === 'UK' ? 'US' : 'UK';
+        document.getElementById('flag-emoji').innerText  = state.units === 'UK' ? '🇬🇧' : '🇺🇸';
+        document.getElementById('unit-label').innerText  = state.units === 'UK' ? 'UK Units' : 'US Units';
+        renderUI();
+    };
+
+    window.switchTab = (tabId) => {
+        state.tab = tabId;
+        document.querySelectorAll('.page,.nav-tile').forEach(e => e.classList.remove('active'));
+        document.getElementById(`page-${tabId}`)?.classList.add('active');
+        document.getElementById(`tab-${tabId}`)?.classList.add('active');
+        if (tabId === 'stash')   fetchStashBalance();
+        if (tabId === 'account') loadAccountDetails();
+        renderUI();
+        setTimeout(() => { const m = document.querySelector('main'); if (m) m.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
+    };
+
+    window.setParam = (param, value) => {
+        state[param] = value;
+        const btnId = `${param.replace(/([A-Z])/g,'-$1').toLowerCase()}-${value.toLowerCase()}`;
+        const btn   = document.getElementById(btnId);
+        if (!btn) return;
+        btn.parentElement.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+    };
+
+})();
+</script>
+<script>
+    // Register the service worker so the app works offline and installs reliably
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('[App] Service worker registered:', reg.scope))
+                .catch(err => console.warn('[App] Service worker registration failed:', err));
+        });
+    }
+</script>
+</body>
+</html>
