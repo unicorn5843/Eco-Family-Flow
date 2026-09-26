@@ -1,5 +1,5 @@
 // ─── Eco Family Flow – Service Worker ───────────────────────────────────────
-const CACHE_NAME = 'eco-family-flow-v3'; // bump this whenever cached assets change
+const CACHE_NAME = 'eco-family-flow-v4'; // bump this whenever cached assets change
 
 const ASSETS = [
   './',
@@ -32,7 +32,8 @@ self.addEventListener('activate', event => {
   );
 });
 
-// ── Fetch: cache-first for the app shell, network for everything else ──────
+// ── Fetch: network-first for pages/data (so updates show right away),
+//    cache-first for static assets like icons ──────────────────────────────
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
@@ -43,10 +44,45 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  const url = new URL(event.request.url);
+  const isPageOrData =
+    event.request.mode === 'navigate' ||
+    url.pathname.endsWith('.html') ||
+    url.pathname.endsWith('.json');
+
+  if (isPageOrData) {
+    // Network-first: always try to get the freshest copy when online.
+    event.respondWith(
+      fetch(event.request)
+        .then(networkResponse => {
+          if (networkResponse && networkResponse.status === 200) {
+            caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
+          }
+          return networkResponse;
+        })
+        .catch(() =>
+          caches.match(event.request).then(cachedResponse => {
+            if (cachedResponse) return cachedResponse;
+            if (event.request.mode === 'navigate') {
+              return caches.match('./index.html').then(shell =>
+                shell || new Response(
+                  '<h1>You are offline</h1><p>Please check your connection.</p>',
+                  { headers: { 'Content-Type': 'text/html' } }
+                )
+              );
+            }
+            return new Response('Offline', { status: 503 });
+          })
+        )
+    );
+    return;
+  }
+
+  // Cache-first for everything else (icons, manifest, etc.), quietly
+  // refreshing the cache in the background for next time.
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) {
-        // Serve from cache, then quietly refresh the cache in the background
         const fetchPromise = fetch(event.request).then(networkResponse => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
@@ -58,17 +94,7 @@ self.addEventListener('fetch', event => {
       }
 
       // Not cached — go to the network
-      return fetch(event.request).catch(() => {
-        if (event.request.mode === 'navigate') {
-          return caches.match('./index.html').then(shell =>
-            shell || new Response(
-              '<h1>You are offline</h1><p>Please check your connection.</p>',
-              { headers: { 'Content-Type': 'text/html' } }
-            )
-          );
-        }
-        return new Response('Offline', { status: 503 });
-      });
+      return fetch(event.request).catch(() => new Response('Offline', { status: 503 }));
     })
   );
 });
