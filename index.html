@@ -52,8 +52,9 @@
     <style>
         :root { --bg:#f2f7f4; --card:#ffffff; --text:#2f4f2f; --accent:#8fbca0; --accent-dark:#6a9c7d; --border:#e0ebe3; --btn-text:#ffffff; --delete:#ff6b6b; --warning:#ff9800; --success:#4caf50; --safe-bottom:env(safe-area-inset-bottom,0px); --safe-top:env(safe-area-inset-top,0px); }
         body.night { --bg:#1a1a1a; --card:#2a2a2a; --text:#e0d7c6; --accent:#b33a3a; --accent-dark:#8b1a1a; --border:#3a3a3a; --btn-text:#f0e6d3; --delete:#cc0000; --warning:#e67e22; --success:#27ae60; }
-        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; margin:0; background:var(--bg); color:var(--text); padding-bottom:calc(90px + var(--safe-bottom)); transition:background-color 0.4s,color 0.4s; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased; overflow-x: hidden; }
-        #app-interface { display:block; max-width:500px; margin:0 auto; padding:15px; }
+        html, body { width: 100%; max-width: 100vw; overflow-x: hidden; }
+        body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif; margin:0; background:var(--bg); color:var(--text); padding-bottom:calc(90px + var(--safe-bottom)); transition:background-color 0.4s,color 0.4s; -webkit-tap-highlight-color:transparent; -webkit-font-smoothing:antialiased; }
+        #app-interface { display:block; max-width:500px; width: 100%; margin:0 auto; padding:15px; box-sizing: border-box; }
         .app-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:15px; }
         .header-left,.header-right { display:flex; align-items:center; gap:8px; width:70px; }
         .header-left { justify-content:flex-start; } .header-right { justify-content:flex-end; }
@@ -72,16 +73,16 @@
         #dashboard { background:var(--card); border-radius:16px; padding:15px; margin-bottom:20px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.04); display:grid; grid-template-columns:1fr 1fr; gap:12px; }
         .dash-item { display:flex; flex-direction:column; padding:8px; border-radius:12px; background:var(--bg); }
         .dash-label { font-size:11px; opacity:0.8; text-transform:uppercase; font-weight:600; margin-bottom:4px; }
-        .dash-value { font-size:15px; font-weight:bold; }
+        .dash-value { font-size:15px; font-weight:bold; word-break: break-word; }
         .dash-time  { font-size:12px; opacity:0.7; }
         #nav-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px; }
         .nav-tile { background:var(--card); border-radius:12px; aspect-ratio:1/1; display:flex; flex-direction:column; align-items:center; justify-content:center; border:2px solid var(--border); cursor:pointer; transition:0.3s; box-shadow:0 4px 6px rgba(0,0,0,0.03); padding:4px; }
         .nav-tile.wide { grid-column:span 4; aspect-ratio:auto; height:50px; margin-bottom:8px; }
         .nav-tile.active { border-color:var(--accent); background:rgba(143,188,160,0.1); }
-        .nav-emoji { font-size:24px; margin-bottom:2px; } .nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; text-align:center; }
+        .nav-emoji { font-size:24px; margin-bottom:2px; } .nav-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.3px; text-align:center; word-break: break-word; width: 100%; padding: 0 2px; box-sizing: border-box;}
         .page { display:none; animation:fadeIn 0.3s; } .page.active { display:block; }
         @keyframes fadeIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
-        .card { background:var(--card); padding:18px; border-radius:16px; margin-bottom:15px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.04); }
+        .card { background:var(--card); padding:18px; border-radius:16px; margin-bottom:15px; border:1px solid var(--border); box-shadow:0 4px 10px rgba(0,0,0,0.04); width: 100%; box-sizing: border-box; overflow: hidden; }
         .input-group { margin-bottom:12px; display:flex; flex-wrap:wrap; gap:8px; }
         .input-group input,.input-group select,.input-group textarea { background:var(--bg); color:var(--text); border:1px solid var(--border); padding:14px; border-radius:10px; box-sizing:border-box; font-size:16px; outline:none; font-family:inherit; width:100%; }
         .input-group input { flex:1; min-width:80px; } textarea { min-height:80px; resize:vertical; }
@@ -102,36 +103,37 @@
         .status-surplus{background:var(--success);color:white} .status-balanced{background:var(--accent);color:white} .status-deficit{background:var(--warning);color:white} .status-critical{background:var(--delete);color:white}
         .history-list { margin-top:5px; }
         .history-item { display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--border); font-size:14px; }
-        .history-item:last-child { border-bottom:none; } .delete-btn { cursor:pointer; opacity:0.6; font-size:18px; margin-left:10px; }
-        #fixed-bottom { position:fixed; bottom:0; left:0; width:100%; height:calc(70px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:var(--card); display:none; align-items:center; justify-content:space-around; border-top:1px solid var(--border); z-index:100; }
+        .history-item:last-child { border-bottom:none; } .delete-btn { cursor:pointer; opacity:0.6; font-size:18px; flex-shrink: 0; padding-left: 10px; }
+        #fixed-bottom { position:fixed; bottom:0; left:0; width:100%; height:calc(70px + var(--safe-bottom)); padding-bottom:var(--safe-bottom); background:var(--card); display:none; align-items:center; justify-content:space-around; border-top:1px solid var(--border); z-index:100; box-sizing: border-box; }
         .footer-action { display:flex; flex-direction:column; align-items:center; cursor:pointer; font-size:12px; font-weight:600; opacity:0.8; }
         .loading { text-align:center; padding:20px; font-weight:bold; color:var(--accent); display:none; }
         .chart-legend { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; margin-top:10px; font-size:11px; }
         .legend-item { display:flex; align-items:center; gap:5px; } .legend-color { width:12px; height:12px; border-radius:3px; }
         .error-banner { background:#ff6b6b; color:white; padding:12px; border-radius:10px; margin-bottom:15px; display:none; font-size:14px; }
         .med-timer-card { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; border-left:4px solid var(--accent); }
-        .med-name { font-weight:bold; font-size:16px; margin-bottom:4px; } .med-time { font-size:13px; font-weight:600; color:var(--accent-dark); }
+        .med-name { font-weight:bold; font-size:16px; margin-bottom:4px; word-break: break-word; } .med-time { font-size:13px; font-weight:600; color:var(--accent-dark); }
         .hospital-note-item { background:var(--card); border-radius:12px; padding:12px; margin-bottom:10px; border:1px solid var(--border); }
-        .hospital-name { font-weight:bold; font-size:15px; margin-bottom:4px; } .hospital-note-text { font-size:14px; margin:8px 0; white-space:pre-wrap; } .hospital-timestamp { font-size:12px; opacity:0.7; }
-        .fridge-note { background:#fef9c3; padding:10px; border-radius:8px; margin-bottom:15px; color:#1f2937; }
+        .hospital-name { font-weight:bold; font-size:15px; margin-bottom:4px; word-break: break-word; } .hospital-note-text { font-size:14px; margin:8px 0; white-space:pre-wrap; word-break: break-word; } .hospital-timestamp { font-size:12px; opacity:0.7; }
+        .fridge-note { background:#fef9c3; padding:10px; border-radius:8px; margin-bottom:15px; color:#1f2937; word-break: break-word; }
         .pro-only { display:flex; }
         .calendar-btn { background:none; border:1px solid var(--accent); color:var(--accent-dark); padding:4px 8px; border-radius:6px; font-size:12px; cursor:pointer; margin-left:10px; }
         .paywall-overlay { display:none; }
-        #report-container { display:none; position:absolute; top:0; left:0; width:800px; background:white; color:black; font-family:Arial,sans-serif; padding:20px; box-sizing:border-box; z-index:-9999; }
+        /* Absolutely hide the report container so it NEVER forces the viewport to widen */
+        #report-container { display:none; position:fixed; top:0; left:-9999px; width:800px; background:white; color:black; font-family:Arial,sans-serif; padding:20px; box-sizing:border-box; z-index:-9999; }
         .report-month { margin-bottom:30px; page-break-after:always; }
         .report-month h2 { color:#2f4f2f; border-bottom:2px solid #8fbca0; padding-bottom:5px; }
         .report-stats { display:flex; justify-content:space-around; margin:10px 0; }
         .report-stat { text-align:center; } .report-stat strong { font-size:1.2em; }
-        .guide-table { width:100%; border-collapse:collapse; margin-top:10px; }
-        .guide-table td,.guide-table th { padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; font-size:14px; vertical-align:top; }
+        .guide-table { width:100%; border-collapse:collapse; margin-top:10px; table-layout: fixed; }
+        .guide-table td,.guide-table th { padding:10px 8px; border-bottom:1px solid var(--border); text-align:left; font-size:14px; vertical-align:top; word-wrap: break-word; }
         .guide-table th { font-weight:600; color:var(--accent-dark); background:rgba(143,188,160,0.1); }
         .guide-table td:first-child { font-size:20px; text-align:center; width:40px; }
         .note-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:14px; margin-bottom:10px; }
-        .note-card-title { font-weight:700; font-size:16px; margin-bottom:4px; }
-        .note-card-text  { font-size:14px; margin:8px 0; white-space:pre-wrap; line-height:1.4; }
+        .note-card-title { font-weight:700; font-size:16px; margin-bottom:4px; word-break: break-word; }
+        .note-card-text  { font-size:14px; margin:8px 0; white-space:pre-wrap; line-height:1.4; word-break: break-word; }
         .note-card-time  { font-size:12px; color:var(--accent-dark); margin-top:5px; }
         .note-card-footer{ display:flex; justify-content:flex-end; }
-        #welcome-fixed-cta { position:fixed; top:0; top:var(--safe-top,0px); left:0; right:0; background:var(--bg); padding:12px 15px; z-index:110; box-shadow:0 4px 12px rgba(0,0,0,0.08); display:block; }
+        #welcome-fixed-cta { position:fixed; top:0; top:var(--safe-top,0px); left:0; right:0; background:var(--bg); padding:12px 15px; z-index:110; box-shadow:0 4px 12px rgba(0,0,0,0.08); display:block; box-sizing: border-box; }
         #welcome-fixed-cta .save-btn { font-size:17px; padding:16px; border-radius:12px; }
         #page-welcome { padding-top:150px; padding-bottom:20px; }
         .reminder-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
@@ -139,9 +141,9 @@
         .reminder-row select { flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
         .appt-card { background: var(--card); border: 1px solid var(--border); border-left: 4px solid var(--accent); border-radius: 14px; padding: 14px; margin-bottom: 10px; }
         .appt-card.past { border-left-color: #aaa; opacity: 0.85; }
-        .appt-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; }
+        .appt-title { font-weight: 700; font-size: 16px; margin-bottom: 4px; word-break: break-word; }
         .appt-datetime { font-size: 13px; color: var(--accent-dark); margin-bottom: 6px; font-weight: 600; }
-        .appt-detail-row { font-size: 13px; margin-bottom: 3px; opacity: 0.85; }
+        .appt-detail-row { font-size: 13px; margin-bottom: 3px; opacity: 0.85; word-break: break-word; }
         .appt-detail-row span { font-weight: 600; }
         .appt-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
         .appt-edit-btn { background: var(--accent); color: white; border: none; padding: 7px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; flex-shrink: 0; }
@@ -149,7 +151,7 @@
         .appt-del-btn { background: none; border: 1px solid var(--delete); color: var(--delete); padding: 7px 12px; border-radius: 8px; font-size: 13px; cursor: pointer; flex-shrink: 0; margin-left: auto; }
         #appt-editing-banner { display: none; background: #fef3c7; color: #92400e; border: 1px solid #fde68a; border-radius: 10px; padding: 10px 14px; font-size: 14px; font-weight: 600; margin-bottom: 12px; }
         #appt-cancel-edit-btn { display: none; width: 100%; margin-top: 8px; background: var(--card); color: var(--delete); border: 1px solid var(--delete); padding: 12px; border-radius: 10px; font-size: 14px; cursor: pointer; }
-        .archive-toggle { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px 16px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+        .archive-toggle { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 14px 16px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 8px; box-sizing: border-box; }
         .archive-toggle .chevron { transition: transform 0.3s; display: inline-block; }
         .archive-toggle.open .chevron { transform: rotate(180deg); }
         #appt-archive-list { display: none; margin-top: 10px; }
@@ -283,7 +285,7 @@
                     <button class="save-btn" id="btn-save-milk" onclick="window.saveData('Milk')" data-i18n="milk.save">Save Milk Log</button>
                 </div>
                 <div id="stats-milk" class="stat-container"></div>
-                <div class="card"><div style="height:280px;"><canvas id="chart-milk"></canvas></div>
+                <div class="card"><div style="height:280px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-milk"></canvas></div>
                     <div class="chart-legend">
                         <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #9C27B0;"></span> <span data-i18n="milk.pumped_label">Pumped</span></div>
                         <div class="legend-item"><span class="legend-color" style="border-bottom:3px solid #f44336;"></span> <span data-i18n="milk.feed_label">Feed</span></div>
@@ -301,7 +303,7 @@
                     <button class="save-btn" id="btn-save-formula" onclick="window.saveData('Formula')" data-i18n="formula.save">Save Formula Log</button>
                 </div>
                 <div id="stats-formula" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-formula"></canvas></div></div>
+                <div class="card"><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-formula"></canvas></div></div>
                 <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-formula" class="history-list"></div></div>
             </div>
 
@@ -313,7 +315,7 @@
                     <button class="save-btn" id="btn-save-nappy" onclick="window.saveNappy()" data-i18n="nappy.save">Log Nappy</button>
                 </div>
                 <div id="stats-nappy" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-nappy"></canvas></div></div>
+                <div class="card"><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-nappy"></canvas></div></div>
                 <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-nappy" class="history-list"></div></div>
             </div>
 
@@ -330,7 +332,7 @@
                     <button class="save-btn" id="btn-save-tummy" onclick="window.saveTummyTime()" data-i18n="skin.save_tummy">Save Tummy Time</button>
                 </div>
                 <div id="stats-skin" class="stat-container"></div>
-                <div class="card"><div style="height:250px;"><canvas id="chart-skin"></canvas></div></div>
+                <div class="card"><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-skin"></canvas></div></div>
                 <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-skin" class="history-list"></div></div>
             </div>
 
@@ -374,14 +376,14 @@
             <div id="page-trending" class="page">
                 <div class="card"><h3 data-i18n="trending.title">📈 Trending Data</h3></div>
                 <div id="stats-overview" class="stat-container"></div>
-                <div class="card"><h4 data-i18n="trending.combined_feeding">🍽️ Combined Feeding (Last 7 Days)</h4><p id="trending-feeding-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-feeding"></canvas></div></div>
-                <div class="card"><h4 data-i18n="trending.nappies">🧻 Nappies (Last 7 Days)</h4><p id="trending-nappy-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-nappy"></canvas></div></div>
-                <div class="card"><h4 data-i18n="trending.skin_tummy">💖 Skin‑to‑Skin &amp; Tummy Time (Last 14 Days)</h4><p id="trending-skin-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px;"><canvas id="chart-trending-skin"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.combined_feeding">🍽️ Combined Feeding (Last 7 Days)</h4><p id="trending-feeding-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-trending-feeding"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.nappies">🧻 Nappies (Last 7 Days)</h4><p id="trending-nappy-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-trending-nappy"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.skin_tummy">💖 Skin‑to‑Skin &amp; Tummy Time (Last 14 Days)</h4><p id="trending-skin-summary" style="font-size:13px;opacity:0.8;"></p><div style="height:200px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-trending-skin"></canvas></div></div>
                 <div class="card"><h4 data-i18n="trending.recent_feed_log">📋 Recent Feed Log</h4><div id="trending-feed-log" class="history-list"></div></div>
                 <div class="card"><h4 data-i18n="trending.recent_nappy_log">📋 Recent Nappy Log</h4><div id="trending-nappy-log" class="history-list"></div></div>
-                <div class="card"><h4 data-i18n="trending.monthly_milk">🥛 Monthly Milk</h4><div style="height:250px;"><canvas id="chart-monthly-milk"></canvas></div></div>
-                <div class="card"><h4 data-i18n="trending.monthly_formula">🍼 Monthly Formula</h4><div style="height:250px;"><canvas id="chart-monthly-formula"></canvas></div></div>
-                <div class="card"><h4 data-i18n="trending.monthly_nappies">🧻 Monthly Nappies</h4><div style="height:250px;"><canvas id="chart-monthly-nappy"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_milk">🥛 Monthly Milk</h4><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-monthly-milk"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_formula">🍼 Monthly Formula</h4><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-monthly-formula"></canvas></div></div>
+                <div class="card"><h4 data-i18n="trending.monthly_nappies">🧻 Monthly Nappies</h4><div style="height:250px; position:relative; overflow:hidden; width:100%;"><canvas id="chart-monthly-nappy"></canvas></div></div>
                 <div class="card">
                     <button class="save-btn" onclick="window.exportData()" data-i18n="trending.download_csv">📥 Download All Data (CSV)</button>
                     <button class="save-btn" onclick="window.downloadFullChildReportPDF()" style="margin-top:10px;" data-i18n="trending.download_pdf">📋 Full Child Report (PDF)</button>
@@ -1558,7 +1560,7 @@
                 if (se) se.innerHTML = `<div class="stat-box"><div class="stat-val">${fmt(tot)}</div><div class="stat-lbl">Total (14d)</div></div><div class="stat-box"><div class="stat-val">${fl.length}</div><div class="stat-lbl">Entries</div></div>`;
                 const he  = ge(`history-${pref}`);
                 if (he) he.innerHTML = fl.sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
-                    `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(l.detail)} (${fmt(l.value)})</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+                    `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(l.detail)} (${fmt(l.value)})</span><span class="delete-btn" style="flex-shrink:0;" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
                 ).join('') || `<div style="padding:10px;opacity:0.6;">${t('general.no_data') || 'No entries yet'}</div>`;
             };
             section(milk,    'milk',    v => `${cv(v)}${unit}`);
@@ -1603,7 +1605,7 @@
             ], {labels:ndl});
             const nh = ge('history-nappy');
             if (nh) nh.innerHTML = f14(nappy).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
-                `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+                `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} — ${l.detail}</span><span class="delete-btn" style="flex-shrink:0;" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
             ).join('') || `<div style="padding:10px;opacity:0.6;">${t('general.no_data') || 'No entries yet'}</div>`;
 
             // Skin / Tummy chart
@@ -1622,7 +1624,7 @@
             if (sse) sse.innerHTML = `<div class="stat-box"><div class="stat-val">${skinL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Skin total</div></div><div class="stat-box"><div class="stat-val">${tumL.reduce((s,l)=>s+Number(l.value),0)} min</div><div class="stat-lbl">Tummy total</div></div>`;
             const sh = ge('history-skin');
             if (sh) sh.innerHTML = [...skinL,...tumL].sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l =>
-                `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${l.detail} (${l.value} min)</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
+                `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} — ${l.detail} (${l.value} min)</span><span class="delete-btn" style="flex-shrink:0;" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`
             ).join('') || '<div>No entries</div>';
 
             // Meds
@@ -1630,7 +1632,7 @@
             const mh = ge('history-meds');
             if (mh) mh.innerHTML = f14(child.filter(l => l.category==='Medication')).sort((a,b) => new Date(b.timestamp)-new Date(a.timestamp)).slice(0,5).map(l => {
                 const d = parseDetail(l.detail);
-                return `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}</span><span class="delete-btn" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`;
+                return `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} — ${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}</span><span class="delete-btn" style="flex-shrink:0;" onclick="window.deleteEntry('${l.id}')">🗑️</span></div>`;
             }).join('');
 
             // Hospital notes
@@ -1703,9 +1705,9 @@
                 if (tss) tss.textContent = `14-day total: ${skinL.reduce((s,l)=>s+Number(l.value),0)} min skin‑to‑skin, ${tumL.reduce((s,l)=>s+Number(l.value),0)} min tummy time.`;
 
                 const fl2 = ge('trending-feed-log');
-                if (fl2) fl2.innerHTML = af.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.category} (${l.value}ml)</span></div>`).join('') || '<div>No feeds yet</div>';
+                if (fl2) fl2.innerHTML = af.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} – ${l.category} (${l.value}ml)</span></div>`).join('') || '<div>No feeds yet</div>';
                 const nl2 = ge('trending-nappy-log');
-                if (nl2) nl2.innerHTML = nps.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span>${new Date(l.timestamp).toLocaleString()} – ${l.detail}</span></div>`).join('') || '<div>No nappies yet</div>';
+                if (nl2) nl2.innerHTML = nps.sort((a,b)=>new Date(b.timestamp)-new Date(a.timestamp)).slice(0,10).map(l => `<div class="history-item"><span style="flex:1; word-break:break-word; padding-right:10px;">${new Date(l.timestamp).toLocaleString()} – ${l.detail}</span></div>`).join('') || '<div>No nappies yet</div>';
 
                 const pm  = groupByMonth(pump), fm2 = groupByMonth(feedMilk);
                 const mm  = [...new Set([...Object.keys(pm),...Object.keys(fm2)])].sort();
