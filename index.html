@@ -133,7 +133,7 @@
         .note-card-footer{ display:flex; justify-content:flex-end; }
         #welcome-fixed-cta { position:fixed; top:0; top:var(--safe-top,0px); left:0; right:0; background:var(--bg); padding:12px 15px; z-index:110; box-shadow:0 4px 12px rgba(0,0,0,0.08); display:block; }
         #welcome-fixed-cta .save-btn { font-size:17px; padding:16px; border-radius:12px; }
-        #page-welcome { padding-top:80px; padding-bottom:20px; }
+        #page-welcome { padding-top:150px; padding-bottom:20px; }
         .reminder-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
         .reminder-row label { font-size:14px; font-weight:600; flex-shrink:0; }
         .reminder-row select { flex:1; padding:10px; border-radius:8px; border:1px solid var(--border); background:var(--bg); color:var(--text); font-size:14px; }
@@ -155,6 +155,13 @@
         #appt-archive-list { display: none; margin-top: 10px; }
         #appt-archive-list.open { display: block; }
         .copy-code-btn { background: var(--accent); color: white; border: none; padding: 10px 16px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-top: 8px; }
+        /* Skip-login button + on-device warning */
+        #welcome-skip-btn { display:none; width:100%; margin-top:8px; background:transparent; color:var(--accent-dark); border:1px solid var(--accent); border-radius:10px; padding:11px; font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+        #skip-modal, #import-modal { display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.55); z-index:1000; align-items:center; justify-content:center; padding:20px; box-sizing:border-box; }
+        #skip-modal.open, #import-modal.open { display:flex; }
+        .skip-modal-card { background:var(--card); color:var(--text); border-radius:16px; padding:22px; max-width:420px; width:100%; max-height:100%; overflow-y:auto; box-sizing:border-box; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
+        .skip-modal-card h3 { margin:0 0 12px; color:var(--accent-dark); font-size:20px; }
+        .skip-modal-card p { margin:0 0 12px; font-size:15px; line-height:1.5; }
     </style>
 </head>
 <body>
@@ -164,6 +171,7 @@
 
     <div id="welcome-fixed-cta">
         <button class="save-btn" id="welcome-cta-btn" onclick="window.handleWelcomeCTA()">🔑 Sign in with Google</button>
+        <button id="welcome-skip-btn" onclick="window.handleSkip()">Skip login — use on this device only</button>
     </div>
 
     <!-- WELCOME PAGE -->
@@ -395,11 +403,11 @@
             <!-- EMERGENCY -->
             <div id="page-emergency" class="page">
                 <div class="card"><h3 data-i18n="emergency.title">🚨 Quick Access</h3></div>
-                <div class="card" style="background:#fef9c3;"><p>⚠️ Allow location access when prompted.</p></div>
+                <div class="card" style="background:#fef9c3;color:#1f2937;"><p style="margin:0;" data-i18n="emergency.location_note">📍 Opens Maps with results near you. Make sure location is switched on for Maps.</p></div>
                 <div>
                     <button class="save-btn" style="background:#4a90e2;margin-bottom:8px;" onclick="window.findNearby('pharmacy')" data-i18n="emergency.pharmacy">💊 Pharmacies</button>
-                    <button class="save-btn" style="background:#e74c3c;margin-bottom:8px;" onclick="window.findNearby('hospital emergency room')" data-i18n="emergency.ae">🏥 A&amp;E</button>
-                    <button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP')" data-i18n="emergency.gp">👨‍⚕️ GP</button>
+                    <button class="save-btn" style="background:#e74c3c;margin-bottom:8px;" onclick="window.findNearby('A&E hospital')" data-i18n="emergency.ae">🏥 A&amp;E</button>
+                    <button class="save-btn" style="background:#2ecc71;" onclick="window.findNearby('GP surgery')" data-i18n="emergency.gp">👨‍⚕️ GP</button>
                 </div>
                 <div id="emergency-fallback"></div>
             </div>
@@ -443,19 +451,55 @@
             <!-- ACCOUNT -->
             <div id="page-account" class="page">
                 <div class="card"><h2 data-i18n="account.title">👤 Account</h2></div>
-                <div class="card"><div class="stat-lbl" data-i18n="account.signed_in">Signed in as</div><div id="account-email"></div></div>
-                <div class="card">
-                    <h3 data-i18n="account.privacy">🔒 Privacy Policy</h3>
-                    <p>Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p>
-                    <p><a href="https://github.com/unicorn5843/Eco-Family-Flow/blob/main/privacy-policy.html" target="_blank" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
+                <div class="card" id="account-signed-in-card"><div class="stat-lbl" data-i18n="account.signed_in">Signed in as</div><div id="account-email"></div></div>
+                <div class="card" id="guest-account-card" style="display:none;">
+                    <h3 style="margin-top:0;" data-i18n="account.guest_title">💾 Stored on this device only</h3>
+                    <p data-i18n="account.guest_desc">You're using Eco Family Flow without an account. Your data is not backed up and can't be recovered if it is erased. Sign in with Google to back it up and share with a partner — you'll be offered the chance to copy the data on this device into your account.</p>
+                    <button class="save-btn" onclick="window.signInFromGuest()" data-i18n="account.guest_signin">🔑 Sign in with Google</button>
+                    <button class="secondary-btn" style="border-color:var(--delete);color:var(--delete);" onclick="window.eraseGuestData()" data-i18n="account.guest_erase">🗑️ Erase all data on this device</button>
+                </div>
+                <div class="card" id="device-data-card" style="display:none;">
+                    <h3 style="margin-top:0;" data-i18n="account.device_title">💾 Data saved on this device</h3>
+                    <p data-i18n="account.device_desc">You have data saved on this device from before you signed in. Copy it to your account to back it up.</p>
+                    <button class="save-btn" onclick="window.showImportModal()" data-i18n="account.device_btn">📥 Copy to my account</button>
                 </div>
                 <div class="card">
+                    <h3 data-i18n="account.privacy">🔒 Privacy Policy</h3>
+                    <p id="account-privacy-cloud">Your data is stored securely in Firebase. We do not share or sell your information. You can delete your account at any time.</p>
+                    <p id="account-privacy-guest" style="display:none;" data-i18n="account.guest_privacy">Your data is stored only on this device. We can't see it and can't recover it if it is erased. We do not share or sell your information.</p>
+                    <p><a href="https://unicorn5843.github.io/Eco-Family-Flow/privacy-policy.html" target="_blank" rel="noopener noreferrer" style="color:var(--accent-dark);font-weight:bold;">Read our full Privacy Policy →</a></p>
+                </div>
+                <div class="card" id="account-logout-card">
                     <button class="secondary-btn" style="border-color:var(--delete);color:var(--delete);" onclick="if(confirm('Log out of Eco Family Flow?')) window.logout()">🚪 Log Out</button>
                 </div>
             </div>
         </main>
     </div><!-- /#main-app -->
 </div><!-- /#app-interface -->
+
+<!-- Skip-login warning -->
+<div id="skip-modal" role="dialog" aria-modal="true" aria-labelledby="skip-modal-title" onclick="if(event.target===this) window.hideSkipWarning()">
+    <div class="skip-modal-card">
+        <h3 id="skip-modal-title" data-i18n="welcome.skip_title">⚠️ Continue without an account?</h3>
+        <p data-i18n="welcome.skip_body1">Everything you log will be saved only on this device. If it is erased — for example by clearing your browser or app data, uninstalling the app, or losing or changing your phone — your data will be gone and there is no way to recover it.</p>
+        <p data-i18n="welcome.skip_body2">Nothing is backed up, and nothing syncs with a partner or another device. You can sign in later from the Account page and choose to copy the data on this device into your account.</p>
+        <button class="save-btn" onclick="window.confirmSkipLogin()" data-i18n="welcome.skip_confirm">I understand — continue</button>
+        <button class="secondary-btn" onclick="window.hideSkipWarning()" data-i18n="welcome.skip_cancel">Go back</button>
+    </div>
+</div>
+
+<!-- Copy-device-data prompt (after signing in, when data was saved on this device) -->
+<div id="import-modal" role="dialog" aria-modal="true" aria-labelledby="import-modal-title" onclick="if(event.target===this) window.hideImportModal()">
+    <div class="skip-modal-card">
+        <h3 id="import-modal-title" data-i18n="import.title">📥 Copy your data to your account?</h3>
+        <p data-i18n="import.body">You have data saved on this device from before you signed in. Copy it to your account so it's backed up and can be shared with a partner. Once it has been copied, it is removed from this device.</p>
+        <p id="import-count" style="font-weight:bold;"></p>
+        <p data-i18n="import.note">Private notes and fridge notes always stay on this device and are never copied.</p>
+        <p id="import-error" style="display:none;color:var(--delete);font-weight:bold;"></p>
+        <button class="save-btn" id="import-confirm-btn" onclick="window.importDeviceData()" data-i18n="import.confirm">Copy to my account</button>
+        <button class="secondary-btn" id="import-later-btn" onclick="window.declineImport()" data-i18n="import.later">Not now</button>
+    </div>
+</div>
 
 <div id="report-container"></div>
 
@@ -486,6 +530,12 @@
             point3title: "Build Your Medical Timeline", point3desc: "Keep notes from hospital visits and appointments.",
             point4title: "Save Money Where It Counts", point4desc: "Compare nappy and formula prices to find the best value.",
             point5title: "Share With Your Partner", point5desc: "Sync data with your partner or other caregivers in real time.",
+            signin: "🔑 Sign in with Google",
+            skip: "Skip login — use on this device only", skip_continue: "Continue without an account",
+            skip_title: "⚠️ Continue without an account?",
+            skip_body1: "Everything you log will be saved only on this device. If it is erased — for example by clearing your browser or app data, uninstalling the app, or losing or changing your phone — your data will be gone and there is no way to recover it.",
+            skip_body2: "Nothing is backed up, and nothing syncs with a partner or another device. You can sign in later from the Account page and choose to copy the data on this device into your account.",
+            skip_confirm: "I understand — continue", skip_cancel: "Go back",
             privacy_title: "Peace of Mind Built In",
             privacy_desc: "Your data is private, stored securely, and never shared. No ads. No selling your information."
         },
@@ -564,11 +614,32 @@
             new_note: "✍️ New Note", save: "💾 Save Note",
             placeholder_title: "Title", placeholder_content: "Write your note here…", your_notes: "📋 Your Notes"
         },
-        emergency: { title: "🚨 Quick Access", pharmacy: "💊 Pharmacies", ae: "🏥 A&E", gp: "👨‍⚕️ GP" },
+        emergency: { location_note: "📍 Opens Maps with results near you. Make sure location is switched on for Maps.", not_opening: "Maps didn't open? Tap here to try again →", title: "🚨 Quick Access", pharmacy: "💊 Pharmacies", ae: "🏥 A&E", gp: "👨‍⚕️ GP" },
         account: {
-            title: "👤 Account", signed_in: "Signed in as", privacy: "🔒 Privacy Policy"
+            title: "👤 Account", signed_in: "Signed in as",
+            guest_title: "💾 Stored on this device only",
+            guest_desc: "You're using Eco Family Flow without an account. Your data is not backed up and can't be recovered if it is erased. Sign in with Google to back it up and share with a partner — you'll be offered the chance to copy the data on this device into your account.",
+            device_title: "💾 Data saved on this device",
+            device_desc: "You have data saved on this device from before you signed in. Copy it to your account to back it up.",
+            device_btn: "📥 Copy to my account",
+            guest_signin: "🔑 Sign in with Google", guest_erase: "🗑️ Erase all data on this device",
+            guest_erase_confirm: "Erase everything saved on this device? This cannot be undone and there is no way to recover it.",
+            guest_privacy: "Your data is stored only on this device. We can't see it and can't recover it if it is erased. We do not share or sell your information.",
+            privacy: "🔒 Privacy Policy"
+        },
+        import: {
+            title: "📥 Copy your data to your account?",
+            body: "You have data saved on this device from before you signed in. Copy it to your account so it's backed up and can be shared with a partner. Once it has been copied, it is removed from this device.",
+            count: "Entries to copy: {n}",
+            note: "Private notes and fridge notes always stay on this device and are never copied.",
+            confirm: "Copy to my account", later: "Not now", copying: "Copying…",
+            error: "Couldn't copy your data. Check your connection and try again. Nothing has been lost.",
+            done: "Copied to your account ✓"
         },
         general: {
+            saved_device: "Saved on this device ✓",
+            signin_unavailable: "Sign-in is unavailable right now. Check your internet connection, or choose Skip login to use the app on this device only.",
+            storage_blocked: "This browser is blocking on-device storage, so the app cannot be used without signing in.",
             share: "Share", recent_history: "Recent History", start: "Start", end: "End",
             no_data: "No entries yet", delete_confirm: "Delete this entry?",
             no_notes: "No private notes yet. Create one above ✍️", empty_note: "(empty)",
@@ -638,6 +709,7 @@
             const key = el.getAttribute('data-i18n-placeholder');
             el.placeholder = t(key, el.placeholder);
         });
+        if (window.isSignedIn !== undefined) updateWelcomeCTA();
         renderUI();
     }
 
@@ -689,6 +761,27 @@
     let charts        = {};
     let timerInterval = null;
 
+    // ── Guest mode (no account — everything stays on this device) ─────────────
+    const GUEST_KEY       = 'ecoGuestMode';
+    const GUEST_LOGS_KEY  = 'ecoGuestLogs';
+    const GUEST_STASH_KEY = 'ecoGuestStash';
+    const IMPORT_DECLINED_KEY = 'ecoImportDeclined';   // set when someone taps "Not now" on the copy-data prompt
+    const IMPORT_BATCH    = 400;                       // Firestore allows up to 500 writes per batch
+
+    function isGuest()    { return localStorage.getItem(GUEST_KEY) === 'true' && !window.auth?.currentUser; }
+    function hasSession() { return !!window.auth?.currentUser || isGuest(); }
+    function userEmail()  { return window.auth?.currentUser?.email || 'guest@local'; }
+    function newLocalId() { return 'local_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+    function readGuestLogs() {
+        try { const a = JSON.parse(localStorage.getItem(GUEST_LOGS_KEY) || '[]'); return Array.isArray(a) ? a : []; }
+        catch (e) { return []; }
+    }
+    function writeGuestLogs(arr) { localStorage.setItem(GUEST_LOGS_KEY, JSON.stringify(arr)); }
+    function readGuestStash() {
+        try { const o = JSON.parse(localStorage.getItem(GUEST_STASH_KEY) || '{}'); return (o && typeof o === 'object') ? o : {}; }
+        catch (e) { return {}; }
+    }
+
     // ── UI feedback ───────────────────────────────────────────────────────────
     function showError(msg) {
         const b = document.getElementById('error-banner');
@@ -714,13 +807,34 @@
     }
 
     function updateWelcomeCTA() {
-        const btn = document.getElementById('welcome-cta-btn');
-        if (!btn) return;
-        if (window.auth?.currentUser) {
-            btn.textContent = t('welcome.cta') || '🌿 Get Started';
-        } else {
-            btn.textContent = '🔑 Sign in with Google';
+        const btn  = document.getElementById('welcome-cta-btn');
+        const skip = document.getElementById('welcome-skip-btn');
+        const signedIn = !!window.auth?.currentUser;
+        if (btn) {
+            btn.textContent = signedIn ? (t('welcome.cta') || '🌿 Get Started') : t('welcome.signin', '🔑 Sign in with Google');
         }
+        if (skip) {
+            skip.style.display = signedIn ? 'none' : 'block';
+            skip.textContent = isGuest()
+                ? t('welcome.skip_continue', 'Continue without an account')
+                : t('welcome.skip', 'Skip login — use on this device only');
+        }
+        adjustWelcomePadding();
+    }
+
+    // Keep the welcome content clear of the fixed button bar, whatever its height
+    function adjustWelcomePadding() {
+        const cta = document.getElementById('welcome-fixed-cta');
+        const pw  = document.getElementById('page-welcome');
+        if (!cta || !pw || cta.style.display === 'none') return;
+        pw.style.paddingTop = (cta.offsetHeight + 4) + 'px';
+    }
+    window.addEventListener('resize', adjustWelcomePadding);
+
+    function signInPossible() {
+        if (typeof window.login === 'function') return true;
+        alert(t('general.signin_unavailable', 'Sign-in is unavailable right now. Check your internet connection, or choose Skip login to use the app on this device only.'));
+        return false;
     }
 
     // The one fixed top button on the welcome page does double duty:
@@ -728,9 +842,154 @@
     window.handleWelcomeCTA = function () {
         if (window.auth?.currentUser) {
             window.finishWelcome();
-        } else {
+        } else if (signInPossible()) {
             window.login();
         }
+    };
+
+    window.signInFromGuest = function () {
+        if (signInPossible()) window.login();
+    };
+
+    // ── Skip login ──
+    window.handleSkip = function () {
+        if (isGuest()) { window.finishWelcome(); return; }   // already acknowledged the warning
+        window.showSkipWarning();
+    };
+    window.showSkipWarning = function () {
+        const m = document.getElementById('skip-modal');
+        if (m) m.classList.add('open');
+    };
+    window.hideSkipWarning = function () {
+        const m = document.getElementById('skip-modal');
+        if (m) m.classList.remove('open');
+    };
+    window.confirmSkipLogin = function () {
+        try {
+            localStorage.setItem(GUEST_KEY, 'true');
+            localStorage.removeItem(IMPORT_DECLINED_KEY);
+        } catch (e) {
+            alert(t('general.storage_blocked', 'This browser is blocking on-device storage, so the app cannot be used without signing in.'));
+            return;
+        }
+        // Ask the browser not to evict our data when storage is tight (best effort)
+        try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {}); } catch (e) {}
+        window.hideSkipWarning();
+        window.finishWelcome();
+    };
+
+    // ── Copy data saved on this device (guest mode) into the signed-in account ──
+    let importBusy = false;
+
+    function guestEntriesToCopy() {
+        return readGuestLogs().filter(l => l && typeof l === 'object' && l.category && l.timestamp && l.id);
+    }
+    function guestStashToCopy() {
+        return Object.entries(readGuestStash()).filter(([child, bal]) => child && Number(bal) > 0);
+    }
+    function hasGuestData() { return guestEntriesToCopy().length > 0 || guestStashToCopy().length > 0; }
+
+    function setImportBusy(busy) {
+        importBusy = busy;
+        const ok = document.getElementById('import-confirm-btn');
+        const later = document.getElementById('import-later-btn');
+        if (ok) { ok.disabled = busy; ok.textContent = busy ? t('import.copying', 'Copying…') : t('import.confirm', 'Copy to my account'); }
+        if (later) later.disabled = busy;
+    }
+
+    // Offer to copy once, right after signing in (unless they already said "Not now")
+    function maybeOfferImport() {
+        if (!window.auth?.currentUser || !hasGuestData()) return;
+        if (localStorage.getItem(IMPORT_DECLINED_KEY) === 'true') return;
+        window.showImportModal();
+    }
+
+    window.showImportModal = function () {
+        const m = document.getElementById('import-modal');
+        if (!m) return;
+        const n = guestEntriesToCopy().length;
+        const c = document.getElementById('import-count');
+        if (c) {
+            c.style.display = n ? 'block' : 'none';
+            c.textContent = t('import.count', 'Entries to copy: {n}').replace('{n}', n);
+        }
+        const err = document.getElementById('import-error');
+        if (err) err.style.display = 'none';
+        setImportBusy(false);
+        m.classList.add('open');
+    };
+    window.hideImportModal = function () {
+        if (importBusy) return;
+        const m = document.getElementById('import-modal');
+        if (m) m.classList.remove('open');
+    };
+    window.declineImport = function () {
+        try { localStorage.setItem(IMPORT_DECLINED_KEY, 'true'); } catch (e) {}
+        window.hideImportModal();
+    };
+
+    window.importDeviceData = async function () {
+        if (importBusy) return;
+        const user = window.auth?.currentUser;
+        if (!user) return;
+        const logs  = guestEntriesToCopy();
+        const stash = guestStashToCopy();
+        if (!logs.length && !stash.length) { window.hideImportModal(); loadAccountDetails(); return; }
+
+        setImportBusy(true);
+        const err = document.getElementById('import-error');
+        if (err) err.style.display = 'none';
+        try {
+            const fs = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+
+            // 1) Entries — copied in batches. Each batch is removed from the device only after it has
+            //    been saved to the account, so a failure part-way never loses anything or makes duplicates.
+            for (let i = 0; i < logs.length; i += IMPORT_BATCH) {
+                const chunk = logs.slice(i, i + IMPORT_BATCH);
+                const batch = fs.writeBatch(window.db);
+                chunk.forEach(l => {
+                    const { id, ...data } = l;
+                    batch.set(fs.doc(fs.collection(window.db, 'logs')), { ...data, email: user.email });
+                });
+                await batch.commit();
+                const copied = new Set(chunk.map(l => l.id));
+                writeGuestLogs(readGuestLogs().filter(l => !copied.has(l.id)));
+            }
+
+            // 2) Milk stash — added on top of whatever the account already holds for that child
+            for (const [child, bal] of stash) {
+                const ref  = fs.doc(window.db, 'stash', `${user.uid}_${child}`);
+                const snap = await fs.getDoc(ref);
+                const cur  = snap.exists() ? (Number(snap.data().balance) || 0) : 0;
+                await fs.setDoc(ref, { balance: cur + Number(bal), email: user.email, child: child, lastUpdated: new Date().toISOString() });
+                const left = readGuestStash();
+                delete left[child];
+                localStorage.setItem(GUEST_STASH_KEY, JSON.stringify(left));
+            }
+
+            importBusy = false;
+            setImportBusy(false);
+            window.hideImportModal();
+            try { localStorage.removeItem(IMPORT_DECLINED_KEY); } catch (e) {}
+            showBanner(t('import.done', 'Copied to your account ✓'), 'synced');
+            await window.refreshData();
+            if (state.tab === 'stash') fetchStashBalance();
+            loadAccountDetails();
+        } catch (e) {
+            console.error(e);
+            setImportBusy(false);
+            if (err) { err.textContent = t('import.error', "Couldn't copy your data. Check your connection and try again. Nothing has been lost."); err.style.display = 'block'; }
+            const m = document.getElementById('import-modal');
+            if (m) m.classList.add('open');
+            loadAccountDetails();
+        }
+    };
+
+    window.eraseGuestData = function () {
+        if (!confirm(t('account.guest_erase_confirm', 'Erase everything saved on this device? This cannot be undone and there is no way to recover it.'))) return;
+        [GUEST_LOGS_KEY, GUEST_STASH_KEY, 'ecoPrivateNotes', 'ecoFridgeNotes', GUEST_KEY, IMPORT_DECLINED_KEY, 'welcomeSeen']
+            .forEach(k => { try { localStorage.removeItem(k); } catch (e) {} });
+        location.reload();
     };
 
     window.goToWelcome = function () {
@@ -751,7 +1010,10 @@
     window.initApp = async function () {
         // Show the welcome page (with its fixed sign-in / get-started button)
         // until the person has both seen it and signed in.
-        if (!localStorage.getItem('welcomeSeen') || !window.auth?.currentUser) {
+        // Once someone signs in with Google they're no longer a guest
+        if (window.auth?.currentUser && localStorage.getItem(GUEST_KEY)) localStorage.removeItem(GUEST_KEY);
+
+        if (!localStorage.getItem('welcomeSeen') || !hasSession()) {
             showWelcomePage();
             return;
         }
@@ -768,6 +1030,7 @@
         if (state.tab === 'stash')   fetchStashBalance();
         if (state.tab === 'account') loadAccountDetails();
         renderUI();
+        maybeOfferImport();
     };
 
     // ── Child selector ────────────────────────────────────────────────────────
@@ -833,6 +1096,7 @@
 
     // ── Firestore data ────────────────────────────────────────────────────────
     window.refreshData = async () => {
+        if (isGuest()) { state.logs = readGuestLogs(); renderUI(); return; }
         if (!window.auth?.currentUser) return;
         const li = document.getElementById('loading-indicator');
         if (li) li.style.display = 'block';
@@ -853,8 +1117,12 @@
     window.deleteEntry = async (docId) => {
         if (!confirm(t('general.delete_confirm') || 'Delete this entry?')) return;
         try {
-            const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            await fsDeleteDoc(fsDoc(window.db, 'logs', docId));
+            if (isGuest()) {
+                writeGuestLogs(readGuestLogs().filter(l => l.id !== docId));
+            } else {
+                const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                await fsDeleteDoc(fsDoc(window.db, 'logs', docId));
+            }
             state.logs = state.logs.filter(l => l.id !== docId);
             renderUI();
         } catch(e) {
@@ -875,7 +1143,7 @@
         const detail = isMilk ? `${state.milkMode} (${state.milkSide})` : 'Bottle';
         amtEl.value = '';
         saveToFirestore(
-            { timestamp: new Date(timeEl.value).toISOString(), category, value: Math.round(val), detail, email: window.auth.currentUser.email, child: state.currentChild },
+            { timestamp: new Date(timeEl.value).toISOString(), category, value: Math.round(val), detail, email: userEmail(), child: state.currentChild },
             `btn-save-${category.toLowerCase()}`,
             isMilk ? t('milk.save') : t('formula.save')
         );
@@ -885,11 +1153,19 @@
         const btn = btnId ? document.getElementById(btnId) : null;
         if (btn) btn.innerText = t('general.saving') || 'Saving…';
         try {
-            const { addDoc: fsAddDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const ref = await fsAddDoc(fsColl(window.db, 'logs'), payload);
-            state.logs.push({ id: ref.id, ...payload });
+            let entry;
+            const guest = isGuest();
+            if (guest) {
+                entry = { id: newLocalId(), ...payload };
+                const logs = readGuestLogs(); logs.push(entry); writeGuestLogs(logs);
+            } else {
+                const { addDoc: fsAddDoc, collection: fsColl } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                const ref = await fsAddDoc(fsColl(window.db, 'logs'), payload);
+                entry = { id: ref.id, ...payload };
+            }
+            state.logs.push(entry);
             if (btn) btn.innerText = t('general.saved') || 'Saved! ✓';
-            showBanner('Saved to cloud ✓', 'synced');
+            showBanner(guest ? t('general.saved_device', 'Saved on this device ✓') : 'Saved to cloud ✓', 'synced');
             setTimeout(() => { if (btn && defaultText) btn.innerText = defaultText; renderUI(); }, 1000);
         } catch(e) {
             console.error(e);
@@ -902,7 +1178,7 @@
         const tv = document.getElementById('nappyTime').value;
         if (!tv) return alert(t('general.select_datetime') || 'Please select a date/time.');
         const ts   = new Date(tv).toISOString();
-        const base = { category:'Nappy', value:1, email:window.auth.currentUser.email, child:state.currentChild };
+        const base = { category:'Nappy', value:1, email:userEmail(), child:state.currentChild };
         if (state.nappyType === 'Both') {
             await saveToFirestore({ ...base, timestamp:ts, detail:'Wee' }, null, null);
             await saveToFirestore({ ...base, timestamp:new Date(new Date(ts).getTime()+1).toISOString(), detail:'Poo' }, null, null);
@@ -919,7 +1195,7 @@
         const mins = Math.round((new Date(e) - new Date(s)) / 60000);
         if (mins <= 0) return alert('End time must be after start time');
         saveToFirestore(
-            { timestamp:new Date(s).toISOString(), category:'SkinToSkin', value:mins, detail:'Session', email:window.auth.currentUser.email, child:state.currentChild },
+            { timestamp:new Date(s).toISOString(), category:'SkinToSkin', value:mins, detail:'Session', email:userEmail(), child:state.currentChild },
             'btn-save-skin', t('skin.save_skin') || 'Save Skin‑to‑Skin'
         );
         window.resetTimeInputs();
@@ -931,7 +1207,7 @@
         const mins = Math.round((new Date(e) - new Date(s)) / 60000);
         if (mins <= 0) return alert('End time must be after start time');
         saveToFirestore(
-            { timestamp:new Date(s).toISOString(), category:'TummyTime', value:mins, detail:'Tummy Time', email:window.auth.currentUser.email, child:state.currentChild },
+            { timestamp:new Date(s).toISOString(), category:'TummyTime', value:mins, detail:'Tummy Time', email:userEmail(), child:state.currentChild },
             'btn-save-tummy', t('skin.save_tummy') || 'Save Tummy Time'
         );
         window.resetTimeInputs();
@@ -948,7 +1224,7 @@
         document.getElementById('medDosage').value          = '';
         document.getElementById('med-reminder-hours').value = '0';
         saveToFirestore(
-            { timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), email:window.auth.currentUser.email, child:state.currentChild },
+            { timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), email:userEmail(), child:state.currentChild },
             'btn-save-med', t('meds.save') || 'Log Medication'
         );
         if (reminderH > 0) scheduleAlarm(name, dosage, reminderH);
@@ -973,7 +1249,7 @@
         document.getElementById('hospitalName').value  = '';
         document.getElementById('hospitalNotes').value = '';
         saveToFirestore(
-            { timestamp:new Date(tv).toISOString(), category:'HospitalNote', value:0, detail:JSON.stringify({ hospital, notes }), email:window.auth.currentUser.email, child:state.currentChild },
+            { timestamp:new Date(tv).toISOString(), category:'HospitalNote', value:0, detail:JSON.stringify({ hospital, notes }), email:userEmail(), child:state.currentChild },
             'btn-save-hospital', t('hospital.save') || 'Save Note'
         );
         window.resetTimeInputs();
@@ -990,8 +1266,12 @@
 
         if (state.editingApptTimestamp) {
             try {
-                const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-                await fsDeleteDoc(fsDoc(window.db, 'logs', state.editingApptTimestamp));
+                if (isGuest()) {
+                    writeGuestLogs(readGuestLogs().filter(l => l.id !== state.editingApptTimestamp));
+                } else {
+                    const { deleteDoc: fsDeleteDoc, doc: fsDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+                    await fsDeleteDoc(fsDoc(window.db, 'logs', state.editingApptTimestamp));
+                }
                 state.logs = state.logs.filter(l => l.id !== state.editingApptTimestamp);
             } catch(e) {
                 console.error(e);
@@ -1007,7 +1287,7 @@
         resetApptFormUI();
 
         saveToFirestore(
-            { timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), email:window.auth.currentUser.email, child:state.currentChild },
+            { timestamp:new Date(dt).toISOString(), category:'Appointment', value:0, detail:JSON.stringify({ title, loc, notes }), email:userEmail(), child:state.currentChild },
             'btn-save-appointment', t('appointments.save') || 'Save Appointment'
         );
         window.resetTimeInputs();
@@ -1462,6 +1742,22 @@
 
     // ── Stash ─────────────────────────────────────────────────────────────────
     window.adjustStash = async (change) => {
+        if (isGuest()) {
+            try {
+                const map    = readGuestStash();
+                const newBal = Math.max(0, (Number(map[state.currentChild]) || 0) + change);
+                map[state.currentChild] = newBal;
+                localStorage.setItem(GUEST_STASH_KEY, JSON.stringify(map));
+                state.stashBalance = newBal;
+                const el = document.getElementById('stash-balance');
+                if (el) el.textContent = state.stashBalance;
+                showBanner('Stash updated ✓', 'synced');
+            } catch (e) {
+                console.error(e);
+                showError('Could not update stash: ' + e.message);
+            }
+            return;
+        }
         if (!window.auth?.currentUser) return;
         try {
             const { doc: fsDoc, getDoc, setDoc: fsSetDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
@@ -1489,6 +1785,12 @@
     };
 
     async function fetchStashBalance() {
+        if (isGuest()) {
+            state.stashBalance = Number(readGuestStash()[state.currentChild]) || 0;
+            const gel = document.getElementById('stash-balance');
+            if (gel) gel.textContent = state.stashBalance;
+            return;
+        }
         if (!window.auth?.currentUser) return;
         try {
             const { doc: fsDoc, getDoc } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
@@ -1594,7 +1896,15 @@
     // ── Account ───────────────────────────────────────────────────────────────
     async function loadAccountDetails() {
         try {
-            document.getElementById('account-email').textContent = window.auth.currentUser.email;
+            const guest = isGuest();
+            const show  = (id, on) => { const el = document.getElementById(id); if (el) el.style.display = on ? 'block' : 'none'; };
+            show('account-signed-in-card', !guest);
+            show('account-logout-card',    !guest);
+            show('account-privacy-cloud',  !guest);
+            show('guest-account-card',      guest);
+            show('device-data-card',        !guest && hasGuestData());
+            show('account-privacy-guest',   guest);
+            if (!guest) document.getElementById('account-email').textContent = window.auth.currentUser.email;
         } catch(e) { console.error(e); }
     }
 
@@ -1607,6 +1917,28 @@
             alert('Account deleted.');
             window.logout();
         } catch(e) { console.error(e); showError('Could not delete account'); }
+    };
+
+    // ── Emergency: open Maps with a "near me" search ─────────────────────────
+    // (findNearby used to be missing entirely, which is why the buttons did nothing.)
+    window.findNearby = (query) => {
+        const q = String(query || '').trim();
+        if (!q) return;
+        const url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q + ' near me');
+
+        // Backup link in case the phone blocks the automatic open
+        const fb = document.getElementById('emergency-fallback');
+        if (fb) {
+            fb.innerHTML = '<div class="card" style="text-align:center;"><a href="' + escapeHTML(url) + '" target="_blank" rel="noopener noreferrer" style="color:var(--accent-dark);font-weight:bold;">'
+                         + escapeHTML(t('emergency.not_opening', "Maps didn't open? Tap here to try again →")) + '</a></div>';
+        }
+
+        // A real link click made straight from the tap is never treated as a blocked pop-up
+        const a = document.createElement('a');
+        a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
     };
 
     // ── Share ─────────────────────────────────────────────────────────────────
@@ -1647,6 +1979,16 @@
         renderUI();
         setTimeout(() => { const m = document.querySelector('main'); if (m) m.scrollIntoView({behavior:'smooth',block:'start'}); }, 100);
     };
+
+    // If Firebase hasn't answered after a few seconds (e.g. no signal), don't leave people stuck:
+    // returning guests go straight into the app, everyone else sees the welcome buttons.
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            if (window.isSignedIn !== undefined) return;
+            if (localStorage.getItem(GUEST_KEY) === 'true' && localStorage.getItem('welcomeSeen')) window.initApp();
+            else updateWelcomeCTA();
+        }, 3000);
+    });
 
     window.setParam = (param, value) => {
         state[param] = value;
