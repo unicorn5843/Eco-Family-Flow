@@ -15,7 +15,15 @@
     "point5title": "Partagez avec votre partenaire",
     "point5desc": "Synchronisez les données avec votre partenaire ou d'autres aidants en temps réel.",
     "privacy_title": "Tranquillité d'esprit intégrée",
-    "privacy_desc": "Vos données sont privées, stockées en toute sécurité et jamais partagées. Pas de publicités. Pas de vente de vos informations."
+    "privacy_desc": "Vos données sont privées, stockées en toute sécurité et jamais partagées. Pas de publicités. Pas de vente de vos informations.",
+    "signin": "🔑 Se connecter avec Google",
+    "skip": "Passer la connexion — utiliser sur cet appareil uniquement",
+    "skip_continue": "Continuer sans compte",
+    "skip_title": "⚠️ Continuer sans compte ?",
+    "skip_body1": "Tout ce que vous enregistrez sera conservé uniquement sur cet appareil. Si ces données sont effacées — par exemple en vidant les données de votre navigateur ou de l'application, en désinstallant l'application, ou en perdant ou en changeant de téléphone — elles seront définitivement perdues et il n'existe aucun moyen de les récupérer.",
+    "skip_body2": "Rien n'est sauvegardé et rien ne se synchronise avec un partenaire ou un autre appareil. Vous pourrez vous connecter plus tard depuis la page Compte et choisir de copier les données de cet appareil dans votre compte.",
+    "skip_confirm": "J'ai compris — continuer",
+    "skip_cancel": "Retour"
   },
   "family": {
     "setup_title": "Configurez votre famille",
@@ -96,14 +104,36 @@
     "new_note": "✍️ Nouvelle note", "save": "💾 Enregistrer", "placeholder_title": "Titre",
     "placeholder_content": "Écrivez votre note ici…", "your_notes": "📋 Vos notes"
   },
-  "emergency": { "title": "🚨 Accès rapide", "pharmacy": "💊 Pharmacies", "ae": "🏥 Urgences", "gp": "👨‍⚕️ Médecin" },
+  "emergency": { "title": "🚨 Accès rapide", "pharmacy": "💊 Pharmacies", "ae": "🏥 Urgences", "gp": "👨‍⚕️ Médecin",
+    "location_note": "📍 Ouvre Maps avec des résultats près de chez vous. Vérifiez que la localisation est activée pour Maps.",
+    "not_opening": "Maps ne s'est pas ouvert ? Appuyez ici pour réessayer →" },
   "account": {
     "title": "👤 Compte", "signed_in": "Connecté en tant que", "family_name": "Nom de la famille",
     "family_id": "ID Famille", "invite_code": "Code d'invitation", "members": "Membres",
     "join_family": "🔗 Rejoindre une famille", "copy_code": "📋 Copier le code", "privacy": "🔒 Politique de confidentialité",
     "delete_title": "🗑️ Supprimer le compte et les données",
     "delete_desc": "Cela supprime définitivement vos journaux, votre solde de réserve et votre appartenance à la famille de nos serveurs. Cette action est irréversible.",
-    "delete_btn": "Supprimer le compte et les données"
+    "delete_btn": "Supprimer le compte et les données",
+    "guest_title": "💾 Stocké sur cet appareil uniquement",
+    "guest_desc": "Vous utilisez Eco Family Flow sans compte. Vos données ne sont pas sauvegardées et ne pourront pas être récupérées si elles sont effacées. Connectez-vous avec Google pour les sauvegarder et les partager avec un partenaire — il vous sera proposé de copier les données de cet appareil dans votre compte.",
+    "guest_signin": "🔑 Se connecter avec Google",
+    "guest_erase": "🗑️ Effacer toutes les données de cet appareil",
+    "guest_erase_confirm": "Effacer tout ce qui est enregistré sur cet appareil ? Cette action est irréversible et il n'existe aucun moyen de récupérer ces données.",
+    "guest_privacy": "Vos données sont stockées uniquement sur cet appareil. Nous ne pouvons ni les voir ni les récupérer si elles sont effacées. Nous ne partageons ni ne vendons vos informations.",
+    "device_title": "💾 Données enregistrées sur cet appareil",
+    "device_desc": "Vous avez des données enregistrées sur cet appareil avant votre connexion. Copiez-les dans votre compte pour les sauvegarder.",
+    "device_btn": "📥 Copier dans mon compte"
+  },
+  "import": {
+    "title": "📥 Copier vos données dans votre compte ?",
+    "body": "Vous avez des données enregistrées sur cet appareil avant votre connexion. Copiez-les dans votre compte pour les sauvegarder et les partager avec un partenaire. Une fois copiées, elles sont supprimées de cet appareil.",
+    "count": "Entrées à copier : {n}",
+    "note": "Les notes privées et les notes du frigo restent toujours sur cet appareil et ne sont jamais copiées.",
+    "confirm": "Copier dans mon compte",
+    "later": "Pas maintenant",
+    "copying": "Copie en cours…",
+    "error": "Impossible de copier vos données. Vérifiez votre connexion et réessayez. Rien n'a été perdu.",
+    "done": "Copié dans votre compte ✓"
   },
   "general": {
     "share": "Partager", "recent_history": "Historique récent", "start": "Début", "end": "Fin",
@@ -113,7 +143,10 @@
     "select_datetime": "Veuillez sélectionner une date/heure.",
     "saved": "Enregistré ! ✓", "saving": "Enregistrement…",
     "product_loading": "Chargement des produits…", "product_error": "Erreur de chargement.",
-    "child_a": "Enfant A", "child_b": "Enfant B", "child_c": "Enfant C", "child_d": "Enfant D", "child_e": "Enfant E"
+    "child_a": "Enfant A", "child_b": "Enfant B", "child_c": "Enfant C", "child_d": "Enfant D", "child_e": "Enfant E",
+    "saved_device": "Enregistré sur cet appareil ✓",
+    "signin_unavailable": "La connexion est indisponible pour le moment. Vérifiez votre connexion Internet, ou choisissez Passer la connexion pour utiliser l'application sur cet appareil uniquement.",
+    "storage_blocked": "Ce navigateur bloque le stockage sur l'appareil ; l'application ne peut donc pas être utilisée sans connexion."
   },
   "supply": { "surplus": "Surplus", "balanced": "Équilibré", "deficit": "Légère déficience", "critical": "Déficience critique" }
 }

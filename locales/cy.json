@@ -15,7 +15,15 @@
     "point5title": "Rhannu Gyda'ch Partner",
     "point5desc": "Cydamseru data gyda'ch partner neu ofalwyr eraill mewn amser real.",
     "privacy_title": "Tawelwch Meddwl Wedi'i Adeiladu i Mewn",
-    "privacy_desc": "Mae eich data'n breifat, wedi'i storio'n ddiogel, a byth yn cael ei rannu. Dim hysbysebion. Dim gwerthu eich gwybodaeth."
+    "privacy_desc": "Mae eich data'n breifat, wedi'i storio'n ddiogel, a byth yn cael ei rannu. Dim hysbysebion. Dim gwerthu eich gwybodaeth.",
+    "signin": "🔑 Mewngofnodi gyda Google",
+    "skip": "Neidio mewngofnodi — defnyddio ar y ddyfais hon yn unig",
+    "skip_continue": "Parhau heb gyfrif",
+    "skip_title": "⚠️ Parhau heb gyfrif?",
+    "skip_body1": "Bydd popeth rydych chi'n ei gofnodi yn cael ei gadw ar y ddyfais hon yn unig. Os caiff ei ddileu — er enghraifft drwy glirio data eich porwr neu'ch ap, dadosod yr ap, neu golli neu newid eich ffôn — bydd eich data wedi mynd ac nid oes unrhyw ffordd i'w adfer.",
+    "skip_body2": "Nid oes copi wrth gefn o'ch data, ac nid yw'n cysoni â phartner na dyfais arall. Gallwch fewngofnodi'n nes ymlaen o'r dudalen Cyfrif a dewis copïo'r data sydd ar y ddyfais hon i'ch cyfrif.",
+    "skip_confirm": "Rwy'n deall — parhau",
+    "skip_cancel": "Yn ôl"
   },
   "family": {
     "setup_title": "Gosod Eich Teulu",
@@ -115,14 +123,36 @@
     "placeholder_title": "Teitl", "placeholder_content": "Ysgrifennwch eich nodyn yma…",
     "your_notes": "📋 Eich Nodiadau"
   },
-  "emergency": { "title": "🚨 Mynediad Cyflym", "pharmacy": "💊 Fferyllfeydd", "ae": "🏥 A&E", "gp": "👨‍⚕️ Meddyg Teulu" },
+  "emergency": { "title": "🚨 Mynediad Cyflym", "pharmacy": "💊 Fferyllfeydd", "ae": "🏥 A&E", "gp": "👨‍⚕️ Meddyg Teulu",
+    "location_note": "📍 Mae hyn yn agor Mapiau gyda chanlyniadau ger eich lleoliad. Gwnewch yn siŵr bod lleoliad wedi'i droi ymlaen ar gyfer Mapiau.",
+    "not_opening": "Wnaeth Mapiau ddim agor? Tapiwch yma i roi cynnig arall arni →" },
   "account": {
     "title": "👤 Cyfrif", "signed_in": "Mewngofnodi fel", "family_name": "Enw'r Teulu",
     "family_id": "ID Teulu", "invite_code": "Cod Gwahoddiad", "members": "Aelodau",
     "join_family": "🔗 Ymuno â Theulu", "copy_code": "📋 Copïo Cod", "privacy": "🔒 Polisi Preifatrwydd",
     "delete_title": "🗑️ Dileu Cyfrif a Data",
     "delete_desc": "Bydd hyn yn dileu eich cofnodion, balans storfa, ac aelodaeth deuluol o'n gweinyddion yn barhaol. Ni ellir dad-wneud hyn.",
-    "delete_btn": "Dileu Cyfrif a Data"
+    "delete_btn": "Dileu Cyfrif a Data",
+    "guest_title": "💾 Wedi'i storio ar y ddyfais hon yn unig",
+    "guest_desc": "Rydych chi'n defnyddio Eco Family Flow heb gyfrif. Nid oes copi wrth gefn o'ch data ac ni ellir ei adfer os caiff ei ddileu. Mewngofnodwch gyda Google i gadw copi wrth gefn a rhannu gyda phartner — cewch gynnig copïo'r data sydd ar y ddyfais hon i'ch cyfrif.",
+    "guest_signin": "🔑 Mewngofnodi gyda Google",
+    "guest_erase": "🗑️ Dileu'r holl ddata ar y ddyfais hon",
+    "guest_erase_confirm": "Dileu popeth sydd wedi'i gadw ar y ddyfais hon? Ni ellir dad-wneud hyn ac nid oes unrhyw ffordd i'w adfer.",
+    "guest_privacy": "Mae eich data'n cael ei storio ar y ddyfais hon yn unig. Ni allwn ei weld ac ni allwn ei adfer os caiff ei ddileu. Nid ydym yn rhannu nac yn gwerthu eich gwybodaeth.",
+    "device_title": "💾 Data wedi'i gadw ar y ddyfais hon",
+    "device_desc": "Mae gennych ddata wedi'i gadw ar y ddyfais hon o'r cyfnod cyn i chi fewngofnodi. Copïwch ef i'ch cyfrif i gadw copi wrth gefn ohono.",
+    "device_btn": "📥 Copïo i'ch cyfrif"
+  },
+  "import": {
+    "title": "📥 Copïo eich data i'ch cyfrif?",
+    "body": "Mae gennych ddata wedi'i gadw ar y ddyfais hon o'r cyfnod cyn i chi fewngofnodi. Copïwch ef i'ch cyfrif i gael copi wrth gefn a'i rannu â phartner. Unwaith y bydd wedi'i gopïo, caiff ei dynnu oddi ar y ddyfais hon.",
+    "count": "Cofnodion i'w copïo: {n}",
+    "note": "Mae nodiadau preifat a nodiadau'r oergell bob amser yn aros ar y ddyfais hon ac nid ydynt byth yn cael eu copïo.",
+    "confirm": "Copïo i'ch cyfrif",
+    "later": "Nid nawr",
+    "copying": "Yn copïo…",
+    "error": "Doedd dim modd copïo eich data. Gwiriwch eich cysylltiad rhyngrwyd a rhowch gynnig arall arni. Nid oes unrhyw beth wedi'i golli.",
+    "done": "Wedi copïo i'ch cyfrif ✓"
   },
   "general": {
     "share": "Rhannu", "recent_history": "Hanes Diweddar", "start": "Dechrau", "end": "Gorffen",
@@ -132,7 +162,10 @@
     "select_datetime": "Dewiswch ddyddiad/amser.",
     "saved": "Wedi'i gadw! ✓", "saving": "Yn cadw…",
     "product_loading": "Yn llwytho cynhyrchion…", "product_error": "Gwall wrth lwytho cynhyrchion.",
-    "child_a": "Plentyn A", "child_b": "Plentyn B", "child_c": "Plentyn C", "child_d": "Plentyn D", "child_e": "Plentyn E"
+    "child_a": "Plentyn A", "child_b": "Plentyn B", "child_c": "Plentyn C", "child_d": "Plentyn D", "child_e": "Plentyn E",
+    "saved_device": "Wedi'i gadw ar y ddyfais hon ✓",
+    "signin_unavailable": "Nid yw mewngofnodi ar gael ar hyn o bryd. Gwiriwch eich cysylltiad rhyngrwyd, neu dewiswch Neidio mewngofnodi i ddefnyddio'r ap ar y ddyfais hon yn unig.",
+    "storage_blocked": "Mae'r porwr hwn yn rhwystro storio ar y ddyfais, felly ni ellir defnyddio'r ap heb fewngofnodi."
   },
   "supply": {
     "surplus": "Gormodedd", "balanced": "Cytbwys", "deficit": "Diffyg Bychan", "critical": "Diffyg Critigol"
