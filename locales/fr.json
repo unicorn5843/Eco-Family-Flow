@@ -6,10 +6,10 @@
     "whatitdoes": "Voici ce que fait Eco Family Flow :",
     "point1title": "Suivez chaque tétée",
     "point1desc": "Enregistrez l'allaitement, le tire-lait et le lait maternisé en quelques secondes.",
-    "point2title": "Surveillez les indicateurs de santé",
-    "point2desc": "Suivez les couches, les médicaments, la santé de la peau et le temps sur le ventre.",
-    "point3title": "Construisez votre historique médical",
-    "point3desc": "Prenez des notes lors des visites à l'hôpital et des rendez-vous.",
+    "point2title": "Suivez les routines quotidiennes",
+    "point2desc": "Suivez les couches, le peau-à-peau et le temps sur le ventre.",
+    "point3title": "Gardez une chronologie familiale",
+    "point3desc": "Enregistrez moments, notes et rendez-vous au même endroit.",
     "point4title": "Économisez là où ça compte",
     "point4desc": "Comparez les prix des couches et du lait maternisé pour trouver la meilleure offre.",
     "point5title": "Partagez avec votre partenaire",
@@ -40,13 +40,13 @@
   "footer": { "night": "Nuit", "units": "Unités FR", "account": "Compte" },
   "tabs": {
     "info": "Votre guide", "milk": "Lait", "formula": "Lait maternisé", "nappy": "Couche",
-    "skin": "Peau/Ventre", "meds": "Médicaments", "hospital": "Hôpital", "trending": "Tendances",
+    "skin": "Peau/Ventre", "meds": "Moments", "trending": "Tendances",
     "stash": "Stock", "appointments": "Rendez-vous", "savings": "Économies",
     "notes": "Notes privées", "emergency": "Urgence"
   },
   "dashboard": {
     "milk": "Lait", "pump": "Tire-lait", "feed": "Tétée", "nappy": "Couche",
-    "medication": "Médicament", "next_appt": "Prochain RDV", "none": "—"
+    "medication": "Dernier moment", "next_appt": "Prochain RDV", "none": "—"
   },
   "fridge": { "title": "🧊 Note pour le frigo", "no_note": "Pas encore de note. Appuyez sur ✏️ pour ajouter." },
   "guide": {
@@ -55,8 +55,7 @@
     "formula_title": "Lait maternisé", "formula_desc": "Enregistrez les biberons (ml) avec une moyenne sur 7 jours.",
     "nappy_title": "Couche", "nappy_desc": "Enregistrez mouillée, sale, ou les deux. Graphiques de tendances séparés.",
     "skin_title": "Peau/Ventre", "skin_desc": "Enregistrez peau-à-peau et temps sur le ventre avec des moyennes sur 7 jours.",
-    "meds_title": "Médicaments", "meds_desc": "Enregistrez les médicaments. Minuteur en direct. Définissez des rappels natifs.",
-    "hospital_title": "Hôpital", "hospital_desc": "Notes de toute visite médicale.",
+    "meds_title": "Moments", "meds_desc": "Notez les petits moments à retenir — premiers sourires, nouvelles habitudes, tout ce que vous voulez.",
     "trending_title": "Tendances", "trending_desc": "Schémas sur 7 jours, graphiques mensuels, prévisions et export PDF.",
     "stash_title": "Stock", "stash_desc": "Suivez manuellement l'inventaire de lait maternel congelé.",
     "appts_title": "Rendez-vous", "appts_desc": "Planifiez, modifiez et gérez les rendez-vous. Archivage automatique.",
@@ -66,7 +65,7 @@
     "privacy_why": "👶 Pourquoi \"Enfant A\", \"Enfant B\" … ?",
     "privacy_explanation": "Des étiquettes génériques protègent la vie privée de votre famille.",
     "report_title": "📋 Rapport complet PDF",
-    "report_desc": "Disponible sur la page Tendances – génère un PDF de style médical couvrant tous les mois."
+    "report_desc": "Disponible sur la page Tendances – génère un PDF couvrant tous les mois."
   },
   "milk": {
     "supply_title": "📊 État de l'approvisionnement (tendance 7 jours)",
@@ -78,11 +77,8 @@
   "nappy": { "wee": "💧 Pipi", "poo": "💩 Caca", "both": "♻️ Les deux", "save": "Enregistrer la couche" },
   "skin": { "skin_title": "🤱 Peau-à-peau", "tummy_title": "👶 Temps sur le ventre", "save_skin": "Enregistrer peau-à-peau", "save_tummy": "Enregistrer temps sur le ventre" },
   "meds": {
-    "name": "Nom du médicament", "dosage": "Dosage (ex. 5ml)", "save": "Enregistrer le médicament",
-    "reminder_label": "⏰ Définir un rappel ?", "no_reminder": "Pas de rappel", "in_4h": "Dans 4 h", "in_6h": "Dans 6 h", "in_8h": "Dans 8 h", "in_12h": "Dans 12 h",
-    "time_since_label": "💊 Temps écoulé depuis la dernière dose", "recent_history": "Historique récent"
+    "name": "Que s'est-il passé ? (ex. premier sourire)", "save": "Enregistrer le moment", "recent_history": "Moments récents"
   },
-  "hospital": { "hospital_name": "Nom de l'hôpital", "notes": "Notes…", "save": "Enregistrer la note", "recent_notes": "📋 Notes récentes" },
   "trending": {
     "title": "📈 Données de tendances",
     "combined_feeding": "🍽️ Alimentation combinée (7 derniers jours)",

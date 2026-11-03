@@ -6,10 +6,10 @@
     "whatitdoes": "Dyma beth mae Eco Family Flow yn ei wneud:",
     "point1title": "Olrhain Pob Bwydo",
     "point1desc": "Cofnodi bwydo ar y fron, pwmpio, a fformiwla mewn eiliadau.",
-    "point2title": "Monitro Dangosyddion Iechyd",
-    "point2desc": "Olrhain cewynnau, meddyginiaethau, iechyd croen, ac amser bol.",
-    "point3title": "Adeiladu Eich Llinell Amser Feddygol",
-    "point3desc": "Cadw nodiadau o ymweliadau ysbyty ac apwyntiadau.",
+    "point2title": "Olrhain Arferion Dyddiol",
+    "point2desc": "Olrhain cewynnau, croen-i-groen ac amser bol.",
+    "point3title": "Cadw Llinell Amser y Teulu",
+    "point3desc": "Cadw eiliadau, nodiadau ac apwyntiadau mewn un lle.",
     "point4title": "Arbed Arian Lle Mae'n Cyfrif",
     "point4desc": "Cymharu prisiau cewynnau a fformiwla i ddod o hyd i'r gwerth gorau.",
     "point5title": "Rhannu Gyda'ch Partner",
@@ -40,7 +40,7 @@
   "footer": { "night": "Nos", "units": "Unedau DU", "account": "Cyfrif" },
   "tabs": {
     "info": "Eich Canllaw", "milk": "Llaeth", "formula": "Fformiwla", "nappy": "Cewyn",
-    "skin": "Croen/Bol", "meds": "Meddyginiaeth", "hospital": "Ysbyty", "trending": "Tueddiadau",
+    "skin": "Croen/Bol", "meds": "Eiliadau", "trending": "Tueddiadau",
     "stash": "Storfa", "appointments": "Apwyntiadau", "savings": "Cynilion",
     "notes": "Nodiadau Preifat", "emergency": "Argyfwng"
   },
@@ -49,7 +49,7 @@
     "pump": "Pwmpio",
     "feed": "Bwydo",
     "nappy": "Cewyn",
-    "medication": "Meddyginiaeth",
+    "medication": "Eiliad Ddiweddaraf",
     "next_appt": "Apwyntiad Nesaf",
     "none": "—"
   },
@@ -63,8 +63,7 @@
     "formula_title": "Fformiwla", "formula_desc": "Cofnodi bwydo potel (ml) gyda chyfartaledd 7‑diwrnod.",
     "nappy_title": "Cewyn", "nappy_desc": "Cofnodi gwlyb, baw, neu'r ddau. Graffiau tueddiadau ar wahân.",
     "skin_title": "Croen/Bol", "skin_desc": "Cofnodi croen-i-groen ac amser bol gyda chyfartaleddau 7‑diwrnod.",
-    "meds_title": "Meddyginiaeth", "meds_desc": "Cofnodi meddyginiaethau. Mae amserydd byw'n dangos yr amser ers y dos diwethaf. Gosod nodiadau atgoffa brodorol.",
-    "hospital_title": "Ysbyty", "hospital_desc": "Nodiadau o unrhyw ymweliad meddygol.",
+    "meds_title": "Eiliadau", "meds_desc": "Nodwch eiliadau bach sy'n werth eu cofio — gwenau cyntaf, arferion newydd, unrhyw beth yr hoffech.",
     "trending_title": "Tueddiadau", "trending_desc": "Patrymau 7‑diwrnod, siartiau misol, rhagolygon, ac allforio adroddiad PDF.",
     "stash_title": "Storfa", "stash_desc": "Olrhain rhestr llaeth y fron wedi'i rew â llaw.",
     "appts_title": "Apwyntiadau", "appts_desc": "Trefnu, golygu a rheoli apwyntiadau. Mae apwyntiadau blaenorol yn cael eu harchifo i gyfeirio atynt.",
@@ -74,7 +73,7 @@
     "privacy_why": "👶 Pam \"Plentyn A\", \"Plentyn B\" …?",
     "privacy_explanation": "Mae labeli generig yn diogelu preifatrwydd eich teulu.",
     "report_title": "📋 Adroddiad Plentyn Llawn PDF",
-    "report_desc": "I'w gael ar y dudalen Tueddiadau – yn cynhyrchu PDF ar ffurf feddygol sy'n cwmpasu pob mis o ddata."
+    "report_desc": "I'w gael ar y dudalen Tueddiadau – yn cynhyrchu PDF sy'n cwmpasu pob mis o ddata."
   },
   "milk": {
     "supply_title": "📊 Statws Cyflenwad (Tuedd 7 Diwrnod)",
@@ -89,14 +88,7 @@
     "save_skin": "Cadw Croen-i-Groen", "save_tummy": "Cadw Amser Bol"
   },
   "meds": {
-    "name": "Enw'r feddyginiaeth", "dosage": "Dos (e.e., 5ml)", "save": "Cofnodi Meddyginiaeth",
-    "reminder_label": "⏰ Gosod nodyn atgoffa?", "no_reminder": "Dim nodyn atgoffa",
-    "in_4h": "Mewn 4 awr", "in_6h": "Mewn 6 awr", "in_8h": "Mewn 8 awr", "in_12h": "Mewn 12 awr",
-    "time_since_label": "💊 Amser Ers y Dos Diwethaf", "recent_history": "Hanes Meddyginiaeth Diweddar"
-  },
-  "hospital": {
-    "hospital_name": "Enw'r ysbyty", "notes": "Nodiadau…", "save": "Cadw Nodyn",
-    "recent_notes": "📋 Nodiadau Ysbyty Diweddar"
+    "name": "Beth ddigwyddodd? (e.e. y wên gyntaf)", "save": "Cadw Eiliad", "recent_history": "Eiliadau Diweddar"
   },
   "trending": {
     "title": "📈 Data Tueddiadau",
