@@ -185,9 +185,56 @@
         .skip-modal-card { background:var(--card); color:var(--text); border-radius:16px; padding:22px; max-width:420px; width:100%; max-height:100%; overflow-y:auto; box-sizing:border-box; box-shadow:0 10px 30px rgba(0,0,0,0.3); }
         .skip-modal-card h3 { margin:0 0 12px; color:var(--accent-dark); font-size:20px; }
         .skip-modal-card p { margin:0 0 12px; font-size:15px; line-height:1.5; }
+        /* Icons (these replace the emoji) */
+        .ico { width:1.1em; height:1.1em; vertical-align:-0.2em; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+        .nav-emoji .ico { display:block; width:24px; height:24px; margin:0 auto; }
     </style>
 </head>
 <body>
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
+<symbol id="ic-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="M11 12l9-9M17 6l3 3M14 9l2.5 2.5"/></symbol>
+<symbol id="ic-leaf" viewBox="0 0 24 24"><path d="M5 19C5 10 10 4 20 4c0 10-6 15-15 15z"/><path d="M5 19c3-5 6-8 11-11"/></symbol>
+<symbol id="ic-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+<symbol id="ic-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.5a2.5 2.5 0 1 1 3.4 2.3c-.7.4-1 .9-1 1.7M12 17h.01"/></symbol>
+<symbol id="ic-care" viewBox="0 0 24 24"><path d="M12 12.5c-2.4-1.5-4-3-4-4.8a2.2 2.2 0 0 1 4-1.3 2.2 2.2 0 0 1 4 1.3c0 1.8-1.6 3.3-4 4.8z"/><path d="M3 15.5h2.5l3 1.5h5a1.5 1.5 0 0 0 0-3h-3M8.5 17l4 .5 5.5-3.5a1.6 1.6 0 0 1 2 2.3L15 20.5l-6.5 1L3 20"/></symbol>
+<symbol id="ic-bottle" viewBox="0 0 24 24"><path d="M12 2c1 0 2 .8 2 2v2h-4V4c0-1.2 1-2 2-2z"/><path d="M8.5 6h7v3h-7zM9 9h6l1 2v9a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-9z"/><path d="M9 14h2.5M9 17.5h2.5"/></symbol>
+<symbol id="ic-nappy" viewBox="0 0 24 24"><path d="M3 6h18v4c0 4.5-4 8.5-9 8.5S3 14.5 3 10z"/><path d="M3 11.5c3.5 0 5.5 1.8 6.5 4.5M21 11.5c-3.5 0-5.5 1.8-6.5 4.5"/></symbol>
+<symbol id="ic-heart" viewBox="0 0 24 24"><path d="M12 20s-8-4.7-8-10.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15.3 12 20 12 20z"/></symbol>
+<symbol id="ic-trend" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></symbol>
+<symbol id="ic-bars" viewBox="0 0 24 24"><path d="M5 20v-7M12 20V5M19 20v-10"/></symbol>
+<symbol id="ic-snow" viewBox="0 0 24 24"><path d="M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2 3-2M9 20l3-2 3 2"/></symbol>
+<symbol id="ic-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+<symbol id="ic-coins" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M14.8 8.8a3 3 0 0 0-5.4 1.7V15c0 1-.6 1.8-1.6 2h7.2M8 12.5h5.5"/></symbol>
+<symbol id="ic-clipboard" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><rect x="9" y="2" width="6" height="4" rx="1"/><path d="M9 11h6M9 15h6"/></symbol>
+<symbol id="ic-pin" viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11.5a7 7 0 0 0-14 0C5 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+<symbol id="ic-book" viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h11"/></symbol>
+<symbol id="ic-baby" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 11h.01M15 11h.01M9.5 15a3.5 3.5 0 0 0 5 0M12 3c1.5 0 2.5 1 2 2.5"/></symbol>
+<symbol id="ic-pencil" viewBox="0 0 24 24"><path d="M4 20l1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/><path d="M14.5 6.5l3 3"/></symbol>
+<symbol id="ic-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="ic-save" viewBox="0 0 24 24"><path d="M5 3h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M7 3v5h8V3M7 21v-7h10v7"/></symbol>
+<symbol id="ic-download" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></symbol>
+<symbol id="ic-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+<symbol id="ic-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+<symbol id="ic-logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M15 8l4 4-4 4M19 12H9"/></symbol>
+<symbol id="ic-warning" viewBox="0 0 24 24"><path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/></symbol>
+<symbol id="ic-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+<symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></symbol>
+<symbol id="ic-poo" viewBox="0 0 24 24"><path d="M12 3c1.6.9 2 2.4 1.2 3.8H14a3 3 0 0 1 2.6 4A3.5 3.5 0 0 1 20 14.5c0 1.3-.8 2.3-1.8 2.8C19.3 17.8 20 18.8 20 19.8c0 1.2-1 2-2.5 2h-11C5 21.8 4 21 4 19.8c0-1 .7-2 1.8-2.5C4.8 16.8 4 15.8 4 14.5A3.5 3.5 0 0 1 7.4 10.8 3 3 0 0 1 10 6.8h.8C10.3 5.4 10.6 3.9 12 3z"/></symbol>
+<symbol id="ic-both" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4M3 11V9a3 3 0 0 1 3-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 0 1-3 3H3"/></symbol>
+<symbol id="ic-utensils" viewBox="0 0 24 24"><path d="M5 3v6a3 3 0 0 0 3 3v9M8 3v6M11 3v6a3 3 0 0 1-3 3M17 21V3c-2 2-3 5-3 8h3"/></symbol>
+<symbol id="ic-milk" viewBox="0 0 24 24"><path d="M6 3h12l-1.5 18h-9z"/><path d="M6.6 9.5h10.8"/></symbol>
+<symbol id="ic-siren" viewBox="0 0 24 24"><path d="M7 18v-6a5 5 0 0 1 10 0v6M5 18h14v3H5zM12 2v2M4 6l1.5 1.5M20 6l-1.5 1.5"/></symbol>
+<symbol id="ic-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+<symbol id="ic-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+<symbol id="ic-link" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+<symbol id="ic-pill" viewBox="0 0 24 24"><rect x="2.5" y="8.5" width="19" height="7" rx="3.5" transform="rotate(-45 12 12)"/><path d="M9.5 9.5l5 5"/></symbol>
+<symbol id="ic-hospital" viewBox="0 0 24 24"><path d="M4 21V7l8-4 8 4v14M2 21h20M12 9v6M9 12h6"/></symbol>
+<symbol id="ic-stetho" viewBox="0 0 24 24"><path d="M5 3h2M13 3h2M6 3v6a4 4 0 0 0 8 0V3M10 13v1.5a5.5 5.5 0 0 0 11 0V12"/><circle cx="21" cy="10.5" r="1.8"/></symbol>
+<symbol id="ic-ruler" viewBox="0 0 24 24"><rect x="2" y="8" width="20" height="8" rx="1.5"/><path d="M6 8v3M10 8v4M14 8v3M18 8v4"/></symbol>
+<symbol id="ic-cart" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.5"/><circle cx="18" cy="20" r="1.5"/><path d="M2 3h3l2.5 12h11L21 7H6"/></symbol>
+<symbol id="ic-folder" viewBox="0 0 24 24"><path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+<symbol id="ic-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</svg>
 
 <div id="app-interface">
     <div id="sync-banner" class="sync-banner" style="display:none;"></div>
@@ -206,11 +253,11 @@
                 <p style="margin:0;font-size:18px;font-weight:500;opacity:0.9;" data-i18n="welcome.subtitle">The parenting companion you didn't know you needed</p>
             </div>
             <div class="card" style="background:transparent;border:none;text-align:center;margin-bottom:20px;">
-                <p style="font-size:16px;line-height:1.6;" data-i18n="welcome.intro">The early years are magical—but they're also exhausting. Between feeds, nappies, medications and endless worries, it's easy to lose track.</p>
+                <p style="font-size:16px;line-height:1.6;" data-i18n="welcome.intro">The early years are magical—but they're also exhausting. Between feeds, nappies, appointments and endless worries, it's easy to lose track.</p>
                 <div style="margin-top:15px;padding:15px;background:var(--bg);border-radius:12px;border-left:4px solid var(--accent);">
                     <p style="margin:5px 0;font-size:14px;">⏰ <em>"When was the last feed? How much did they eat?"</em></p>
-                    <p style="margin:5px 0;font-size:14px;">💊 <em>"What time did I give the medication?"</em></p>
-                    <p style="margin:5px 0;font-size:14px;">🏥 <em>"What did the health visitor say at the last appointment?"</em></p>
+                    <p style="margin:5px 0;font-size:14px;">🧻 <em>"When was the last nappy change?"</em></p>
+                    <p style="margin:5px 0;font-size:14px;">📅 <em>"When is the next appointment?"</em></p>
                     <p style="margin:5px 0;font-size:14px;">😰 <em>"Is this normal? Am I keeping up?"</em></p>
                 </div>
             </div>
@@ -218,8 +265,8 @@
                 <h3 style="color:var(--accent-dark);margin-top:0;" data-i18n="welcome.whatitdoes">Here's what Eco Family Flow does:</h3>
                 <div style="display:flex;flex-direction:column;gap:12px;">
                     <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🤱</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point1title">Track Every Feed</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point1desc">Log breastfeeding, pumping, and formula in seconds.</span></div></div>
-                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🧻</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point2title">Monitor Health Markers</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point2desc">Track nappies, medications, skin health, and tummy time.</span></div></div>
-                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🏥</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point3title">Build Your Medical Timeline</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point3desc">Keep notes from hospital visits and appointments.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🧻</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point2title">Track Daily Routines</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point2desc">Track nappies, skin-to-skin and tummy time.</span></div></div>
+                    <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">📅</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point3title">Keep a Family Timeline</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point3desc">Save moments, notes and appointments in one place.</span></div></div>
                     <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">🛒</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point4title">Save Money Where It Counts</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point4desc">Compare nappy and formula prices to find the best value.</span></div></div>
                     <div style="display:flex;gap:12px;align-items:flex-start;"><span style="font-size:24px;flex-shrink:0;">📋</span><div><strong style="display:block;margin-bottom:2px;" data-i18n="welcome.point5title">Share With Your Partner</strong><span style="font-size:14px;opacity:0.8;" data-i18n="welcome.point5desc">Sync data with your partner or other caregivers in real time.</span></div></div>
                 </div>
@@ -242,9 +289,9 @@
             <div class="header-title" onclick="window.goToWelcome()" title="Back to welcome">Eco Family Flow</div>
             <div class="header-right">
                 <select id="lang-select">
-                    <option value="en">🇬🇧 EN</option>
-                    <option value="cy">🏴󠁧󠁢󠁷󠁬󠁳󠁿 CY</option>
-                    <option value="fr">🇫🇷 FR</option>
+                    <option value="en">EN</option>
+                    <option value="cy">CY</option>
+                    <option value="fr">FR</option>
                 </select>
             </div>
         </div>
@@ -261,8 +308,7 @@
             <div id="tab-formula"      class="nav-tile"        onclick="window.switchTab('formula')">     <span class="nav-emoji">🍼</span><span class="nav-label" data-i18n="tabs.formula">Formula</span></div>
             <div id="tab-nappy"        class="nav-tile"        onclick="window.switchTab('nappy')">       <span class="nav-emoji">🧻</span><span class="nav-label" data-i18n="tabs.nappy">Nappy</span></div>
             <div id="tab-skin"         class="nav-tile"        onclick="window.switchTab('skin')">        <span class="nav-emoji">❤️</span><span class="nav-label" data-i18n="tabs.skin">Skin/Tummy</span></div>
-            <div id="tab-meds"         class="nav-tile"        onclick="window.switchTab('meds')">        <span class="nav-emoji">💊</span><span class="nav-label" data-i18n="tabs.meds">Meds</span></div>
-            <div id="tab-hospital"     class="nav-tile"        onclick="window.switchTab('hospital')">    <span class="nav-emoji">🏥</span><span class="nav-label" data-i18n="tabs.hospital">Hospital</span></div>
+            <div id="tab-meds"         class="nav-tile"        onclick="window.switchTab('meds')">        <span class="nav-emoji">📝</span><span class="nav-label" data-i18n="tabs.meds">Moments</span></div>
             <div id="tab-trending"     class="nav-tile"        onclick="window.switchTab('trending')">    <span class="nav-emoji">📈</span><span class="nav-label" data-i18n="tabs.trending">Trending</span></div>
             <div id="tab-stash"        class="nav-tile"        onclick="window.switchTab('stash')">       <span class="nav-emoji">❄️</span><span class="nav-label" data-i18n="tabs.stash">Stash</span></div>
             <div id="tab-appointments" class="nav-tile"        onclick="window.switchTab('appointments')"><span class="nav-emoji">📅</span><span class="nav-label" data-i18n="tabs.appointments">Appts</span></div>
@@ -282,8 +328,7 @@
                     <tr><td>🍼</td><td><strong data-i18n="guide.formula_title">Formula</strong> – <span data-i18n="guide.formula_desc">Log bottle feeds (ml) with 7‑day average.</span></td></tr>
                     <tr><td>🧻</td><td><strong data-i18n="guide.nappy_title">Nappy</strong> – <span data-i18n="guide.nappy_desc">Record wet, dirty, or both. Graphs trends separately.</span></td></tr>
                     <tr><td>❤️</td><td><strong data-i18n="guide.skin_title">Skin/Tummy</strong> – <span data-i18n="guide.skin_desc">Log skin‑to‑skin and tummy time with 7‑day averages.</span></td></tr>
-                    <tr><td>💊</td><td><strong data-i18n="guide.meds_title">Meds</strong> – <span data-i18n="guide.meds_desc">Log medications. Live timer shows time since last dose. Set native reminders.</span></td></tr>
-                    <tr><td>🏥</td><td><strong data-i18n="guide.hospital_title">Hospital</strong> – <span data-i18n="guide.hospital_desc">Notes from any medical visit.</span></td></tr>
+                    <tr><td>📝</td><td><strong data-i18n="guide.meds_title">Moments</strong> – <span data-i18n="guide.meds_desc">Jot down little moments worth remembering – first smiles, new routines, anything you like.</span></td></tr>
                     <tr><td>📈</td><td><strong data-i18n="guide.trending_title">Trending</strong> – <span data-i18n="guide.trending_desc">7-day patterns, monthly charts, forecasts, and PDF report export.</span></td></tr>
                     <tr><td>❄️</td><td><strong data-i18n="guide.stash_title">Stash</strong> – <span data-i18n="guide.stash_desc">Manually track frozen breastmilk inventory.</span></td></tr>
                     <tr><td>📅</td><td><strong data-i18n="guide.appts_title">Appts</strong> – <span data-i18n="guide.appts_desc">Schedule, edit and manage appointments. Past appointments are archived for reference.</span></td></tr>
@@ -292,7 +337,7 @@
                     <tr><td>📍</td><td><strong data-i18n="guide.emergency_title">Emergency</strong> – <span data-i18n="guide.emergency_desc">One‑tap search for nearby pharmacies, A&amp;E, or GPs.</span></td></tr>
                 </table></div>
                 <div class="card"><h3 data-i18n="guide.privacy_why">👶 Why "Child A", "Child B" …?</h3><p data-i18n="guide.privacy_explanation">Generic labels protect your family's privacy.</p></div>
-                <div class="card"><h3 data-i18n="guide.report_title">📋 Full Child Report PDF</h3><p data-i18n="guide.report_desc">Found on the Trending page – generates a medical‑style PDF covering every month of data.</p></div>
+                <div class="card"><h3 data-i18n="guide.report_title">📋 Full Child Report PDF</h3><p data-i18n="guide.report_desc">Found on the Trending page – generates a PDF covering every month of data.</p></div>
             </div>
 
             <!-- MILK -->
@@ -357,40 +402,14 @@
                 <div class="card"><div class="stat-lbl" data-i18n="general.recent_history">Recent History</div><div id="history-skin" class="history-list"></div></div>
             </div>
 
-            <!-- MEDS -->
+            <!-- MOMENTS (the id stays "meds" so nothing else needs to change) -->
             <div id="page-meds" class="page">
                 <div class="card">
                     <div class="input-group"><input type="datetime-local" id="medTime"></div>
-                    <div class="input-group"><input type="text" id="medName" data-i18n-placeholder="meds.name" placeholder="Medication name"></div>
-                    <div class="input-group"><input type="text" id="medDosage" data-i18n-placeholder="meds.dosage" placeholder="Dosage (e.g., 5ml)"></div>
-                    <div class="reminder-row">
-                        <label data-i18n="meds.reminder_label">⏰ Set reminder?</label>
-                        <select id="med-reminder-hours">
-                            <option value="0" data-i18n="meds.no_reminder">No reminder</option>
-                            <option value="4" data-i18n="meds.in_4h">In 4 hours</option>
-                            <option value="6" data-i18n="meds.in_6h">In 6 hours</option>
-                            <option value="8" data-i18n="meds.in_8h">In 8 hours</option>
-                            <option value="12" data-i18n="meds.in_12h">In 12 hours</option>
-                        </select>
-                    </div>
-                    <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()" data-i18n="meds.save">Log Medication</button>
+                    <div class="input-group"><input type="text" id="medName" data-i18n-placeholder="meds.name" placeholder="What happened? (e.g. first smile)"></div>
+                    <button class="save-btn" id="btn-save-med" onclick="window.saveMedication()" data-i18n="meds.save">Save Moment</button>
                 </div>
-                <div id="med-notif-info" class="card" style="background:#fef3c7;border-color:#fde68a;display:none;">
-                    <p style="margin:0;font-size:13px;color:#92400e;">💡 For reliable reminders install the app on your device and allow notifications when prompted.</p>
-                </div>
-                <div class="card"><div class="stat-lbl" data-i18n="meds.time_since_label">💊 Time Since Last Dose</div><div id="med-timers-container"></div></div>
-                <div class="card"><div class="stat-lbl" data-i18n="meds.recent_history">Recent Medication History</div><div id="history-meds" class="history-list"></div></div>
-            </div>
-
-            <!-- HOSPITAL -->
-            <div id="page-hospital" class="page">
-                <div class="card">
-                    <div class="input-group"><input type="datetime-local" id="hospitalTime"></div>
-                    <div class="input-group"><input type="text" id="hospitalName" data-i18n-placeholder="hospital.hospital_name" placeholder="Hospital name"></div>
-                    <div class="input-group"><textarea id="hospitalNotes" data-i18n-placeholder="hospital.notes" placeholder="Notes…"></textarea></div>
-                    <button class="save-btn" id="btn-save-hospital" onclick="window.saveHospitalNote()" data-i18n="hospital.save">Save Note</button>
-                </div>
-                <div class="card"><div class="stat-lbl" data-i18n="hospital.recent_notes">📋 Recent Hospital Notes</div><div id="history-hospital" class="history-list"></div></div>
+                <div class="card"><div class="stat-lbl" data-i18n="meds.recent_history">Recent Moments</div><div id="history-meds" class="history-list"></div></div>
             </div>
 
             <!-- TRENDING -->
@@ -546,11 +565,11 @@
         welcome: {
             cta: "🌿 Get Started",
             subtitle: "The parenting companion you didn't know you needed",
-            intro: "The early years are magical—but they're also exhausting. Between feeds, nappies, medications and endless worries, it's easy to lose track.",
+            intro: "The early years are magical—but they're also exhausting. Between feeds, nappies, appointments and endless worries, it's easy to lose track.",
             whatitdoes: "Here's what Eco Family Flow does:",
             point1title: "Track Every Feed", point1desc: "Log breastfeeding, pumping, and formula in seconds.",
-            point2title: "Monitor Health Markers", point2desc: "Track nappies, medications, skin health, and tummy time.",
-            point3title: "Build Your Medical Timeline", point3desc: "Keep notes from hospital visits and appointments.",
+            point2title: "Track Daily Routines", point2desc: "Track nappies, skin-to-skin and tummy time.",
+            point3title: "Keep a Family Timeline", point3desc: "Save moments, notes and appointments in one place.",
             point4title: "Save Money Where It Counts", point4desc: "Compare nappy and formula prices to find the best value.",
             point5title: "Share With Your Partner", point5desc: "Sync data with your partner or other caregivers in real time.",
             signin: "🔑 Sign in with Google",
@@ -564,7 +583,7 @@
         },
         dashboard: {
             milk: "Milk", pump: "Pump", feed: "Feed", nappy: "Nappy",
-            medication: "Medication", next_appt: "Next Appt", none: "—"
+            medication: "Latest Moment", next_appt: "Next Appt", none: "—"
         },
         fridge: {
             title: "🧊 Kitchen Fridge Note",
@@ -573,7 +592,7 @@
         footer: { night: "Night", units: "UK Units", account: "Account" },
         tabs: {
             info: "Your Guide", milk: "Milk", formula: "Formula", nappy: "Nappy",
-            skin: "Skin/Tummy", meds: "Meds", hospital: "Hospital", trending: "Trending",
+            skin: "Skin/Tummy", meds: "Moments", trending: "Trending",
             stash: "Stash", appointments: "Appts", savings: "Savings",
             notes: "Private Notes", emergency: "Emergency"
         },
@@ -583,8 +602,7 @@
             formula_title: "Formula", formula_desc: "Log bottle feeds (ml) with 7‑day average.",
             nappy_title: "Nappy", nappy_desc: "Record wet, dirty, or both. Graphs trends separately.",
             skin_title: "Skin/Tummy", skin_desc: "Log skin‑to‑skin and tummy time with 7‑day averages.",
-            meds_title: "Meds", meds_desc: "Log medications. Live timer shows time since last dose. Set native reminders.",
-            hospital_title: "Hospital", hospital_desc: "Notes from any medical visit.",
+            meds_title: "Moments", meds_desc: "Jot down little moments worth remembering – first smiles, new routines, anything you like.",
             trending_title: "Trending", trending_desc: "7-day patterns, monthly charts, forecasts, and PDF report export.",
             stash_title: "Stash", stash_desc: "Manually track frozen breastmilk inventory.",
             appts_title: "Appts", appts_desc: "Schedule, edit and manage appointments. Past appointments are archived for reference.",
@@ -592,7 +610,7 @@
             notes_title: "Private Notes", notes_desc: "Stored only on this device, never synced.",
             emergency_title: "Emergency", emergency_desc: "One‑tap search for nearby pharmacies, A&E, or GPs.",
             privacy_why: "👶 Why \"Child A\", \"Child B\" …?", privacy_explanation: "Generic labels protect your family's privacy.",
-            report_title: "📋 Full Child Report PDF", report_desc: "Found on the Trending page – generates a medical‑style PDF covering every month of data."
+            report_title: "📋 Full Child Report PDF", report_desc: "Found on the Trending page – generates a PDF covering every month of data."
         },
         milk: {
             supply_title: "📊 Supply Status (7-Day Trend)",
@@ -607,14 +625,7 @@
             save_skin: "Save Skin‑to‑Skin", save_tummy: "Save Tummy Time"
         },
         meds: {
-            name: "Medication name", dosage: "Dosage (e.g., 5ml)", save: "Log Medication",
-            reminder_label: "⏰ Set reminder?", no_reminder: "No reminder",
-            in_4h: "In 4 hours", in_6h: "In 6 hours", in_8h: "In 8 hours", in_12h: "In 12 hours",
-            time_since_label: "💊 Time Since Last Dose", recent_history: "Recent Medication History"
-        },
-        hospital: {
-            hospital_name: "Hospital name", notes: "Notes…", save: "Save Note",
-            recent_notes: "📋 Recent Hospital Notes"
+            name: "What happened? (e.g. first smile)", save: "Save Moment", recent_history: "Recent Moments"
         },
         trending: {
             title: "📈 Trending Data",
@@ -1238,30 +1249,16 @@
 
     window.saveMedication = () => {
         const name = document.getElementById('medName').value.trim();
-        if (!name) return alert('Please enter medication name');
-        const dosage    = document.getElementById('medDosage').value.trim();
-        const tv        = document.getElementById('medTime').value;
+        if (!name) return alert('Please write what happened');
+        const tv = document.getElementById('medTime').value;
         if (!tv) return alert(t('general.select_datetime') || 'Please select a date/time.');
-        const reminderH = parseInt(document.getElementById('med-reminder-hours').value, 10);
-        document.getElementById('medName').value            = '';
-        document.getElementById('medDosage').value          = '';
-        document.getElementById('med-reminder-hours').value = '0';
+        document.getElementById('medName').value = '';
         saveToFirestore(
-            { timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name, dosage }), email:userEmail(), child:state.currentChild },
-            'btn-save-med', t('meds.save') || 'Log Medication'
+            { timestamp:new Date(tv).toISOString(), category:'Medication', value:0, detail:JSON.stringify({ name }), email:userEmail(), child:state.currentChild },
+            'btn-save-med', t('meds.save') || 'Save Moment'
         );
-        if (reminderH > 0) scheduleAlarm(name, dosage, reminderH);
         window.resetTimeInputs();
     };
-
-    function scheduleAlarm(medName, dosage, hours) {
-        const label = `💊 ${medName}${dosage ? ' – ' + dosage : ''} for ${state.currentChild}`;
-        if ('Notification' in window) {
-            Notification.requestPermission().then(p => {
-                if (p === 'granted') setTimeout(() => new Notification('Eco Family Flow', { body:label, icon:'/icon-192.png' }), hours * 3600000);
-            });
-        }
-    }
 
     window.saveHospitalNote = () => {
         const hospital = document.getElementById('hospitalName').value.trim();
@@ -1497,9 +1494,9 @@
 
         if (lmed) {
             const d = parseDetail(lmed.detail);
-            h += item('💊', t('dashboard.medication'), `${escapeHTML(d.name||'')}${d.dosage?` (${escapeHTML(d.dosage)})`:''}`, lmed.timestamp);
+            h += item('📝', t('dashboard.medication'), escapeHTML(d.name||''), lmed.timestamp);
         } else {
-            h += item('💊', t('dashboard.medication'), t('dashboard.none'), null);
+            h += item('📝', t('dashboard.medication'), t('dashboard.none'), null);
         }
 
         if (na) {
@@ -1875,8 +1872,6 @@
                 </div>
                 <canvas id="rfc${month.replace('-','')}" width="700" height="200"></canvas>
                 <canvas id="rnc${month.replace('-','')}" width="700" height="200"></canvas>
-                <h4>Medications</h4>${mme.length ? `<ul>${mme.map(m=>{const d=parseDetail(m.detail);return`<li>${new Date(m.timestamp).toLocaleDateString()} – ${escapeHTML(d.name||'')} ${d.dosage?`(${escapeHTML(d.dosage)})`:''}</li>`;}).join('')}</ul>` : '<p>None</p>'}
-                <h4>Hospital Notes</h4>${mho.length ? `<ul>${mho.map(h=>{const d=parseDetail(h.detail);return`<li>${new Date(h.timestamp).toLocaleDateString()} – ${escapeHTML(d.hospital||'')}${d.notes?': '+escapeHTML(d.notes):''}</li>`;}).join('')}</ul>` : '<p>None</p>'}
                 <h4>Appointments</h4>${map2.length ? `<ul>${map2.map(a=>{const d=parseDetail(a.detail);return`<li>${new Date(a.timestamp).toLocaleDateString()} – ${escapeHTML(d.title||'')} (${escapeHTML(d.loc||'')})</li>`;}).join('')}</ul>` : '<p>None</p>'}`;
                 ct.appendChild(div);
 
@@ -2033,6 +2028,92 @@
                 .catch(err => console.warn('[App] Service worker registration failed:', err));
         });
     }
+</script>
+<script>
+// Swaps every emoji for the matching icon from the icon set at the top of <body>.
+// Runs now and again whenever the page text changes (language switch, history lists, etc.).
+(function () {
+    'use strict';
+    var CODES = {
+        '1F511':'key','1F33F':'leaf','23F0':'clock','23F1':'clock','1F630':'help','1F931':'care',
+        '1F37C':'bottle','1F9FB':'nappy','2764':'heart','1F496':'heart','1F4C8':'trend','1F4CA':'bars',
+        '2744':'snow','1F9CA':'snow','1F4C5':'calendar','1F4C6':'calendar','1F5D3':'calendar',
+        '1F4B0':'coins','1F4CB':'clipboard','1F4CD':'pin','1F4D8':'book','1F476':'baby',
+        '270F':'pencil','270D':'pencil','1F4DD':'pencil','1F512':'lock','1F4BE':'save','1F4E5':'download',
+        '1F5D1':'trash','1F464':'user','1F6AA':'logout','26A0':'warning','1F317':'moon','1F4A7':'drop',
+        '1F4A9':'poo','267B':'both','1F37D':'utensils','1F95B':'milk','1F6A8':'siren','2795':'plus',
+        '2796':'minus','1F517':'link','1F48A':'pill','1F3E5':'hospital',
+        '1F6D2':'cart','1F5C2':'folder','1F4CC':'pin','2715':'x',
+        '1F468 200D 2695':'stetho','1F1EC 1F1E7':'ruler','1F1FA 1F1F8':'ruler'
+    };
+    var LABELS = { trash:'Delete', pencil:'Edit', ruler:'Units', x:'Close' };
+    var SKIP = { SCRIPT:1, STYLE:1, TEXTAREA:1, INPUT:1, OPTION:1, SELECT:1, SVG:1, svg:1, CANVAS:1, NOSCRIPT:1, TITLE:1 };
+    var table = {}, alts = [];
+    Object.keys(CODES).forEach(function (k) {
+        var s = String.fromCodePoint.apply(null, k.split(' ').map(function (h) { return parseInt(h, 16); }));
+        table[s] = CODES[k]; alts.push(s);
+    });
+    alts.sort(function (a, b) { return b.length - a.length; });
+    var src = '(' + alts.join('|') + ')\uFE0F?';
+    var RX_TEST = new RegExp(src), RX_ALL = new RegExp(src, 'g');
+    var NS = 'http://www.w3.org/2000/svg';
+
+    function makeIcon(id) {
+        var svg = document.createElementNS(NS, 'svg');
+        svg.setAttribute('class', 'ico');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.setAttribute('aria-hidden', 'true');
+        svg.setAttribute('data-label', LABELS[id] || id);
+        var use = document.createElementNS(NS, 'use');
+        use.setAttribute('href', '#ic-' + id);
+        svg.appendChild(use);
+        return svg;
+    }
+
+    function swapText(node) {
+        var parent = node.parentNode, txt = node.nodeValue;
+        if (!parent || !txt || !RX_TEST.test(txt)) return;
+        var frag = document.createDocumentFragment(), last = 0, m;
+        RX_ALL.lastIndex = 0;
+        while ((m = RX_ALL.exec(txt))) {
+            if (m.index > last) frag.appendChild(document.createTextNode(txt.slice(last, m.index)));
+            frag.appendChild(makeIcon(table[m[1]]));
+            last = m.index + m[0].length;
+        }
+        if (last < txt.length) frag.appendChild(document.createTextNode(txt.slice(last)));
+        parent.replaceChild(frag, node);
+        // An icon that stands alone (like a delete button) gets a name for screen readers
+        if (!parent.textContent.trim()) {
+            var icons = parent.querySelectorAll('svg.ico');
+            for (var i = 0; i < icons.length; i++) {
+                icons[i].setAttribute('role', 'img');
+                icons[i].setAttribute('aria-label', icons[i].getAttribute('data-label'));
+                icons[i].removeAttribute('aria-hidden');
+            }
+        }
+    }
+
+    function walk(node) {
+        if (node.nodeType === 3) { swapText(node); return; }
+        if (node.nodeType !== 1 || SKIP[node.nodeName]) return;
+        var kids = Array.prototype.slice.call(node.childNodes);
+        for (var i = 0; i < kids.length; i++) walk(kids[i]);
+    }
+
+    var obs = new MutationObserver(function (records) {
+        obs.disconnect();
+        try {
+            records.forEach(function (r) {
+                if (r.type === 'characterData') walk(r.target);
+                else for (var i = 0; i < r.addedNodes.length; i++) walk(r.addedNodes[i]);
+            });
+        } finally { start(); }
+    });
+    function start() { obs.observe(document.body, { childList:true, subtree:true, characterData:true }); }
+
+    walk(document.body);
+    start();
+})();
 </script>
 </body>
 </html>

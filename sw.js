@@ -1,5 +1,5 @@
 // ─── Eco Family Flow – Service Worker ───────────────────────────────────────
-const CACHE_NAME = 'eco-family-flow-v4'; // bump this whenever cached assets change
+const CACHE_NAME = 'eco-family-flow-v5'; // bump this whenever cached assets change
 
 const ASSETS = [
   './',
